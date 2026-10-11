@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Prints what an assistant must have loaded: rule IDs, requirement IDs, a fingerprint of the
-# rule/requirement files. The assistant quotes the CONTEXT CHECK line in its first reply, so the
-# user can compare it with their own run of this script and spot a model working from memory.
+# Prints rule IDs, requirement IDs and a fingerprint of the rule/requirement files. The
+# assistant quotes the CONTEXT CHECK line in its first reply; the user compares it with their
+# own run to spot stale or missing context. A consistency aid only: a matching fingerprint
+# does not prove that the files were read or followed.
 # Usage: scripts/context-status.sh
 set -euo pipefail
 

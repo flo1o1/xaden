@@ -7,7 +7,7 @@ thin pointers: `CLAUDE.md`, `.github/copilot-instructions.md`, `.clinerules`,
 ## ChatGPT / web chat (no file access)
 
 ```bash
-scripts/pack-context.sh feature   # rules + requirements + prompt → context-pack.md (+ clipboard)
+scripts/pack-context.sh feature   # rules, security, requirements, changes, prompt → context-pack.md
 ```
 
 Paste it as the first message, then your task. Paste changed files back for review; apply

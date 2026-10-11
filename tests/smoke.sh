@@ -109,6 +109,13 @@ test_generated_project() {
   assert_fails "req.sh rejects unknown requirement" "$PROJECT/scripts/req.sh" show REQ-999 # traceability: ignore
   assert "context status lists rules" grep -q 'CC-09' <("$PROJECT/scripts/context-status.sh")
   assert "pack carries fingerprint and clean-code details" grep -q 'CLEAN CODE DETAILS' "$PROJECT/context-pack.md"
+  # REQ-023 complete and safely written pack
+  assert "pack includes the security checklist" grep -q 'Secure coding checklist' "$PROJECT/context-pack.md"
+  assert "pack includes unreleased changes" grep -q 'Project created from vibe-coding scaffold' "$PROJECT/context-pack.md"
+  assert "pack lists what it excludes" grep -q 'NOT INCLUDED' "$PROJECT/context-pack.md"
+  cp "$PROJECT/context-pack.md" "$WORKDIR/pack-before.md"
+  assert_fails "unknown prompt name rejected" "$PROJECT/scripts/pack-context.sh" feature no-such-prompt
+  assert "failed pack keeps the previous pack" cmp -s "$PROJECT/context-pack.md" "$WORKDIR/pack-before.md"
 
   sed 's/ draft / bogus /' "$PROJECT/docs/requirements/REQUIREMENTS.md" >"$WORKDIR/bad.md"
   assert_fails "invalid requirement status rejected" "$PROJECT/scripts/check-requirements.sh" "$WORKDIR/bad.md"

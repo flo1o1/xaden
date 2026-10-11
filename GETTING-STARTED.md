@@ -40,7 +40,8 @@ scaffold: everything a project gets comes from `template/`.
 - Chat without file access: `scripts/pack-context.sh kickoff`, paste `context-pack.md`.
 
 The assistant's first reply must start with `CONTEXT CHECK <number>`. Compare it with your own
-`scripts/context-status.sh`: a mismatch means it is not working from the real rules.
+`scripts/context-status.sh`: a mismatch means it started from stale or missing files. A match
+is a consistency aid only; it does not prove the rules were read or followed, so still review its work.
 
 You answer its questions, approve the requirements, and choose the stack. It then builds a
 minimal runnable skeleton and fills installation details in the guides.
