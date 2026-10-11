@@ -9,8 +9,15 @@
     ],
     "deny": [
       "Read(./.env)",
-      "Read(./.env.*)",
-      "Bash(git push --force:*)"
+      "Read(./.env.local)",
+      "Read(./.env.*.local)",
+      "Read(./.env.development)",
+      "Read(./.env.test)",
+      "Read(./.env.staging)",
+      "Read(./.env.production)",
+      "Bash(git push --force:*)",
+      "Bash(git push --force-with-lease:*)",
+      "Bash(git push -f:*)"
     ]
   }
 }

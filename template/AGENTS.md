@@ -148,3 +148,5 @@ Details and examples: `docs/clean-code.md` (same IDs).
   - releasing (`scripts/release.sh`).
 - An approval covers the action you described. A standing instruction from the user
   ("commit after each step") holds until withdrawn; do not ask again for what it covers.
+- Tool permission settings (e.g. `.claude/settings.json`) only catch some forms of these
+  actions; these rules apply whether or not a tool blocks you.

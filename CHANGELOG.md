@@ -11,6 +11,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - Project generation copies only git-tracked template files; untracked or ignored files (`.env`, `node_modules/`, `inbox/` content) are never copied or committed. Symlinks are refused; failed runs remove the partial project.
 
 ### Fixed
+- Claude Code deny rules blocked `.env.example`, which `/docs` must read; they now list real env file names, cover `git push -f` and `--force-with-lease`, and `CLAUDE.md` states what they do not cover.
 - Releases validate the tag before changing files, restore all files if the release commit fails, and print recovery steps if tagging fails.
 - Context packs include the security checklist and unreleased changes, list what they leave out, and are written atomically (an invalid prompt name keeps the previous pack). Docs now describe the fingerprint as a consistency aid, not proof.
 - Merge/Revert/fixup!/squash! commits no longer bypass ID checks; `Refs:` is parsed as a git trailer; CI checks every commit of a first push or pull request (`verify-commits.sh --ci`).

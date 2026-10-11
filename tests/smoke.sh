@@ -402,6 +402,31 @@ test_assistant_trust_rules() {
   assert "pack carries the trust rules" grep -q '^## 10. Trusted instructions and approvals' "$PROJECT/context-pack.md"
 }
 
+# read_denied <file-name>: true if a Read(./...) deny pattern in .claude/settings.json matches
+# the name. Shell globs stand in for Claude Code's gitignore-style matching of plain names.
+read_denied() {
+  local pattern
+  while IFS= read -r pattern; do
+    # shellcheck disable=SC2254 # the pattern is meant to glob
+    case "$1" in $pattern) return 0 ;; esac
+  done < <(sed -n 's/^ *"Read(\.\/\(.*\))",*$/\1/p' "$PROJECT/.claude/settings.json")
+  return 1
+}
+
+# REQ-034 accurate Claude Code permission rules
+test_claude_permissions() {
+  local secret
+  for secret in .env .env.local .env.production.local .env.development .env.test .env.staging .env.production; do
+    assert "Read denied for $secret" read_denied "$secret"
+  done
+  assert_fails "Read allowed for .env.example (documentation prompt needs it)" read_denied .env.example
+  assert "force-push variants denied" bash -c "grep -q 'git push -f:' '$PROJECT/.claude/settings.json' && grep -q 'git push --force-with-lease:' '$PROJECT/.claude/settings.json'"
+  assert "CLAUDE.md states the limits" grep -q 'not a security boundary' "$PROJECT/CLAUDE.md"
+  if need_tool python3 "settings.json syntax"; then
+    assert "settings.json is valid JSON" python3 -m json.tool "$PROJECT/.claude/settings.json"
+  fi
+}
+
 # rule_ids <file>: prints the sorted, unique CC-nn IDs a file mentions.
 rule_ids() {
   grep -o 'CC-[0-9][0-9]' "$1" | sort -u
@@ -474,6 +499,7 @@ test_clean_code_guidance
 test_inbox
 test_generated_project
 test_assistant_trust_rules
+test_claude_permissions
 test_setup_and_commit_checks
 test_commit_bypasses
 test_missing_tools
