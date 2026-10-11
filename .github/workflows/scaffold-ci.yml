@@ -23,11 +23,15 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y shellcheck
-          pipx install semgrep
-          pipx install ruff
+          pipx install "semgrep==1.180.0"
+          pipx install "ruff==0.16.10"
+          archive="gitleaks_8.30.1_linux_x64.tar.gz"
+          curl -fsSLO "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/${archive}"
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  ${archive}" | sha256sum -c -
+          tar -xzf "$archive" gitleaks && sudo install gitleaks /usr/local/bin/gitleaks
       - name: Install analysis tools (macOS)
         if: runner.os == 'macOS'
-        run: brew install shellcheck semgrep ruff
+        run: brew install shellcheck semgrep ruff gitleaks # Homebrew versions; Linux job is the pinned reference
       - name: Scaffold checks incl. smoke test
         env:
           GIT_AUTHOR_NAME: ci
@@ -35,6 +39,7 @@ jobs:
           GIT_COMMITTER_NAME: ci
           GIT_COMMITTER_EMAIL: ci@example.invalid
           SMOKE_REQUIRE_TOOLS: "1"
+          STRICT: "1"
         run: scripts/check-scaffold.sh
       - name: SAST with semgrep registry rules (broader, needs network)
         run: semgrep scan --config p/default --metrics=off --error --quiet

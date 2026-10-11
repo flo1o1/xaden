@@ -14,7 +14,7 @@ main() {
   [ -z "$(git status --porcelain)" ] || die "working tree not clean; commit or stash first"
   next="$(bump_version "$(tr -d '[:space:]' <VERSION)" "$part")"
 
-  "$ROOT/scripts/check-scaffold.sh"
+  STRICT=1 "$ROOT/scripts/check-scaffold.sh"
   stamp_changelog CHANGELOG.md "$next"
   printf '%s\n' "$next" >VERSION
   git add VERSION CHANGELOG.md

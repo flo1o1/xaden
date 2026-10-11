@@ -26,12 +26,9 @@ cd "$ROOT"
 
 # check_project_files: requirements, docs structure, traceability (cheap, always run).
 check_project_files() {
-  info "requirements format"
-  "$SCRIPTS/check-requirements.sh" || FAILURES=$((FAILURES + 1))
-  info "documentation structure"
-  "$SCRIPTS/check-docs.sh" || FAILURES=$((FAILURES + 1))
-  info "requirement traceability"
-  "$SCRIPTS/check-traceability.sh" || FAILURES=$((FAILURES + 1))
+  run_tool "requirements format" "$SCRIPTS/check-requirements.sh"
+  run_tool "documentation structure" "$SCRIPTS/check-docs.sh"
+  run_tool "requirement traceability" "$SCRIPTS/check-traceability.sh"
 }
 
 # check_stacks: each file in stacks/ defines stack_check <mode> for one language.
@@ -51,7 +48,4 @@ scan_secrets "$MODE"
 scan_sast "$MODE" "$ROOT/.semgrep"
 check_stacks
 
-if [ "$FAILURES" -gt 0 ]; then
-  die "$FAILURES check(s) failed"
-fi
-info "all checks passed"
+finish_checks

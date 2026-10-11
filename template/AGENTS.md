@@ -66,7 +66,9 @@ Details and examples: `docs/clean-code.md` (same IDs).
   detected, missing lint/type/test setup fails the check instead of being skipped.
 - Fix findings; never silence a rule without a one-line reason. Recurring security mistakes
   become a rule in `.semgrep/rules.yml` (offline, versioned).
-- Do not claim success unless the check passed. Report failures verbatim.
+- Every run ends with a summary: passed, failed, skipped. A run with skipped checks is
+  INCOMPLETE, never a success; CI and releases use `--strict`, where missing tools fail.
+- Do not claim success unless the check passed. Report failures and skipped checks verbatim.
 
 ## 6. Security (mandatory)
 

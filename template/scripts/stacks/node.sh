@@ -25,6 +25,7 @@ stack_check() {
   fi
   node_run_script lint
   [ "$1" = "full" ] || return 0
+  require "package-lock.json (reproducible installs; run npm install and commit it)" test -f package-lock.json
   node_run_script typecheck
   node_run_script test
   run_tool "node: npm audit (network)" npm audit --audit-level=high

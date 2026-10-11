@@ -34,7 +34,7 @@ main() {
   current="$(tr -d '[:space:]' <VERSION)"
   next="$(bump_version "$current" "$part")"
 
-  "$SCRIPTS/check.sh"
+  "$SCRIPTS/check.sh" --strict # every required tool must run (REQ-019)
   "$SCRIPTS/check-docs.sh" --release || die "documentation incomplete; run the documentation prompt (/docs)"
   stamp_changelog CHANGELOG.md "$next"
   stamp_docs "$next"

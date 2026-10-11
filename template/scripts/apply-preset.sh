@@ -35,9 +35,10 @@ set_npm_script() {
 apply_python() {
   copy_preset_file python ruff.toml
   copy_preset_file python mypy.ini
+  copy_preset_file python requirements-dev.txt
   mkdir -p tests
-  echo "Install the tools (ask the user first):"
-  echo "  python3 -m pip install ruff mypy pytest bandit pip-audit"
+  echo "Install the pinned tools (ask the user first):"
+  echo "  python3 -m pip install -r requirements-dev.txt"
 }
 
 apply_node() {

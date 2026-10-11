@@ -41,8 +41,8 @@ Then open `my-app` in your tool and run the kickoff prompt (`/kickoff` in Claude
 
 ## Requirements on your machine
 
-bash, git, tar, awk, sed (Linux and macOS). Optional, checks skip what is missing
-(`scripts/check.sh --strict` demands them): shellcheck, gitleaks, semgrep, and ruff, mypy,
+bash, git, tar, awk, sed (Linux and macOS). Locally, a missing analysis tool is skipped and
+the run is reported as INCOMPLETE; CI and releases use `--strict`, where it fails: shellcheck, gitleaks, semgrep, and ruff, mypy,
 bandit, pip-audit, pytest (Python) or npm with `lint`/`typecheck`/`test` scripts (Node).
 Windows: use WSL or Git Bash (optional, untested).
 

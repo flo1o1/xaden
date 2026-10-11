@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Checks the scaffold repository itself: its own requirements, the template's integrity,
 # shell lint, secret scan, SAST (local rules + rule tests) and the end-to-end smoke test.
-# Usage: scripts/check-scaffold.sh [--staged]
+# Usage: [STRICT=1] scripts/check-scaffold.sh [--staged]   (STRICT=1: missing tools fail, as in CI)
 #   (default)  full run incl. semgrep rule tests and tests/smoke.sh
 #   --staged   pre-commit run: staged files only, offline, no smoke test
 set -euo pipefail
@@ -24,7 +24,7 @@ run_step() {
   local label=$1
   shift
   info "$label"
-  "$@" || FAILURES=$((FAILURES + 1))
+  if "$@"; then CHECKS_PASSED=$((CHECKS_PASSED + 1)); else FAILURES=$((FAILURES + 1)); fi
 }
 
 # test_semgrep_rules: proves every local rule fires on its fixtures in tests/semgrep/.
@@ -48,9 +48,12 @@ scan_secrets "$MODE"
 scan_sast "$MODE" "$ROOT/template/.semgrep" '^tests/semgrep/'
 
 if [ "$MODE" = "full" ]; then
-  has_command semgrep && run_step "semgrep rule tests" test_semgrep_rules
+  if has_command semgrep; then
+    run_step "semgrep rule tests" test_semgrep_rules
+  else
+    record_missing_tool "semgrep rule tests" semgrep
+  fi
   run_step "smoke test" "$ROOT/tests/smoke.sh"
 fi
 
-[ "$FAILURES" -eq 0 ] || die "$FAILURES check(s) failed"
-info "scaffold checks passed"
+finish_checks

@@ -160,6 +160,13 @@ test_stack_enforcement() {
 # REQ-007 release, REQ-010 docs gate
 test_release() {
   assert_fails "release blocked by TODO markers in docs" "$PROJECT/scripts/release.sh" patch
+  if need_tool gitleaks "release without scanner fixture"; then
+    sed -i.bak '/TODO/d' "$PROJECT"/docs/*-guide.md && rm -f "$PROJECT"/docs/*.bak
+    git -C "$PROJECT" commit -q -am "docs: fill guides"
+    assert_fails "release fails when a required scanner is missing" bash -c "PATH='$(path_without gitleaks)' '$PROJECT/scripts/release.sh' patch"
+    assert "failed release left VERSION unchanged" test "$(tr -d '[:space:]' <"$PROJECT/VERSION")" = "0.1.0"
+    git -C "$PROJECT" reset -q --hard HEAD~1
+  fi
   sed -i.bak '/TODO/d' "$PROJECT"/docs/*-guide.md && rm -f "$PROJECT"/docs/*.bak
   git -C "$PROJECT" commit -q -am "docs: fill guides"
   assert "release patch" "$PROJECT/scripts/release.sh" patch
@@ -197,6 +204,29 @@ test_generation_safety() {
   cp "$WORKDIR/bad-req.md" "$source/template/docs/requirements/REQUIREMENTS.md"
   assert_fails "generation fails when the first commit is rejected" "$source/scripts/new-project.sh" late-fail "$WORKDIR/late-fail"
   assert "partial project removed after late failure" test ! -e "$WORKDIR/late-fail"
+}
+
+# path_without <tool>: prints a PATH where every command except <tool> is available.
+path_without() {
+  local bin="$WORKDIR/path-without-$1" dir file
+  mkdir -p "$bin"
+  local IFS=:
+  for dir in $PATH; do
+    for file in "$dir"/*; do
+      [ -x "$file" ] && [ ! -e "$bin/${file##*/}" ] && [ "${file##*/}" != "$1" ] && ln -s "$file" "$bin/${file##*/}"
+    done
+  done
+  printf '%s' "$bin"
+}
+
+# REQ-019 required checks cannot be skipped silently
+test_missing_tools() {
+  need_tool gitleaks "missing-scanner fixture" || return 0
+  local restricted
+  restricted="$(path_without gitleaks)"
+  assert "local check reports INCOMPLETE without gitleaks" bash -c "cd '$PROJECT' && PATH='$restricted' scripts/check.sh 2>&1 | grep -q 'INCOMPLETE'"
+  assert_fails "strict check fails without gitleaks" bash -c "cd '$PROJECT' && PATH='$restricted' scripts/check.sh --strict"
+  assert "summary lists the skipped check" bash -c "cd '$PROJECT' && PATH='$restricted' scripts/check.sh 2>&1 | grep -q 'skipped: secret scan'"
 }
 
 # REQ-026 local drop zone
@@ -276,6 +306,7 @@ test_template_contents
 test_inbox
 test_generated_project
 test_setup_and_commit_checks
+test_missing_tools
 test_staged_checks
 test_stack_enforcement
 test_traceability
