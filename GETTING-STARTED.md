@@ -10,7 +10,7 @@ private skills.
 | Linux or macOS (Windows: WSL or Git Bash, untested) | Scripts are bash + POSIX tools |
 | git, bash, awk, sed, tar, grep, cksum | Preinstalled on Linux/macOS |
 | An AI coding tool | Claude Code recommended; Aider, Cline, Continue, Cursor, Codex, Copilot, ChatGPT or a local model (Ollama, LM Studio) also work — see `template/docs/local-llm.md` |
-| Recommended: shellcheck, gitleaks, semgrep | Static analysis and secret scanning; without them checks only warn |
+| Recommended: shellcheck, gitleaks, semgrep | Static analysis and secret scanning. Locally a missing tool is skipped and the run reported INCOMPLETE; CI and releases use `--strict`, where it fails. Once a stack exists, its tools are required too: ruff, mypy, bandit, pip-audit, pytest (Python) or npm with `lint`/`typecheck`/`test` scripts (Node) |
 | Optional: Obsidian | Comfortable reading and editing of the prompt library |
 | Optional: extra checks and plugins | `scripts/check.sh` suggests the ones that fit your project (`TIP:` lines); list in `template/docs/optional-tools.md` |
 | Optional: [Ponytail](https://github.com/DietrichGebert/ponytail) | Third-party rule set (MIT) that pushes assistants towards less new code; see below |
@@ -43,8 +43,13 @@ tests/smoke.sh       # proves the scaffold works on your machine
 
 ```bash
 scripts/new-project.sh my-app        # creates ../my-app with its own git repo and hooks
+scripts/new-project.sh my-app ~/code/x   # or at a location of your choice
 cd ../my-app
 ```
+
+Only files tracked by git in `template/` are copied (including uncommitted edits to them);
+untracked or ignored files such as `.env`, `node_modules/` or `inbox/` content never are.
+A failed run removes the half-created project.
 
 Prefer GitHub's "Use this template" button? Then clone your copy and run
 `scripts/new-project.sh my-app` from it the same way. Never develop your project inside the
@@ -87,8 +92,14 @@ scripts/update-scaffold.sh ../my-app            # dry run
 scripts/update-scaffold.sh ../my-app --apply    # stage changes; review with git diff --cached
 ```
 
-Merge any `*.scaffold-new` files it reports (your local edits are never overwritten), then
-commit `chore(scaffold): update to vX.Y.Z`.
+Only scaffold-managed files (scripts, prompts, presets, rules, commands) are updated; code,
+requirements, guides, README and changelog are never touched. Merge any `*.scaffold-new` files
+it reports (your local edits are never overwritten), then commit
+`chore(scaffold): update to vX.Y.Z`. Each project records its scaffold version in `.scaffold/`.
+
+Projects that still keep requirements in one `docs/requirements/REQUIREMENTS.md` table run
+`scripts/migrate-requirements.sh` after updating: it converts every row into a requirement
+file (job stories left as TODO to rewrite) and the checks then accept the new format.
 
 ## Joining an existing project
 
