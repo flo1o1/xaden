@@ -83,7 +83,7 @@ never touched. Each project records its scaffold version in `.scaffold/`.
 
 ```bash
 scripts/setup.sh              # maintainer hooks (.githooks/) + tool check
-scripts/check-scaffold.sh     # full check incl. smoke test (pre-commit runs --quick)
+scripts/check-scaffold.sh     # full check incl. smoke test (pre-commit runs --staged)
 scripts/release-scaffold.sh minor
 ```
 
