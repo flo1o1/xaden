@@ -133,6 +133,8 @@ Details and examples: `docs/clean-code.md` (same IDs).
 ## 9. Working style
 
 - Plan briefly, then change in small steps; keep the project runnable.
+- Place new code as `docs/architecture.md` → "Rules for new code" says; update that file in the
+  same change when the structure changes.
 - Order of work (CC-09): for a feature, refactor first (separate commit, tests green) only when
   the change would be hard otherwise, then test-first; for a bug fix, a failing regression test
   first, then the smallest fix, then refactor if needed.

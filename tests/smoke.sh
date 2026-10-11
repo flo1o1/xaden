@@ -125,7 +125,7 @@ test_generated_project() {
   assert "project has a threat model with an ASVS level" grep -q 'ASVS level' "$PROJECT/docs/threat-model.md"
   assert "kickoff fills the threat model" grep -q 'docs/threat-model.md' "$PROJECT/prompts/kickoff.md"
   assert "security review reads the threat model" grep -q 'docs/threat-model.md' "$PROJECT/prompts/security-review.md"
-  assert "pack includes the threat model" grep -q '^# THREAT MODEL' "$PROJECT/context-pack.md"
+  assert "pack includes the threat model" grep -q '^# PROJECT DOCUMENT (docs/threat-model.md)' "$PROJECT/context-pack.md"
   mv "$PROJECT/docs/threat-model.md" "$WORKDIR/threat-model.md"
   assert "pack names a missing threat model" bash -c "'$PROJECT/scripts/pack-context.sh' && grep -q 'threat-model.md (MISSING' '$PROJECT/context-pack.md'"
   mv "$WORKDIR/threat-model.md" "$PROJECT/docs/threat-model.md"
@@ -170,6 +170,16 @@ test_generated_project() {
   for owned in SECURITY.md docs/threat-model.md docs/security-exceptions.md; do
     assert_fails "$owned is project-owned, never overwritten by updates" is_managed "$owned"
   done
+  # REQ-042 architecture document with rules for new code
+  local section
+  for section in '^## Layers and dependency direction' '^## Composition root' '^## Rules for new code' '^## Third-party code'; do
+    assert "architecture template has: $section" grep -q "$section" "$PROJECT/docs/architecture.md"
+  done
+  assert "kickoff fills the architecture" grep -q 'docs/architecture.md' "$PROJECT/prompts/kickoff.md"
+  assert "feature prompt follows the rules for new code" grep -q 'Rules for new code' "$PROJECT/prompts/feature.md"
+  assert "code review checks layering" grep -q 'docs/architecture.md' "$PROJECT/prompts/code-review.md"
+  assert "pack includes the architecture" grep -q '^# PROJECT DOCUMENT (docs/architecture.md)' "$PROJECT/context-pack.md"
+  assert_fails "architecture is project-owned, never overwritten by updates" is_managed docs/architecture.md
   "$PROJECT/scripts/pack-context.sh" feature >/dev/null 2>&1
   cp "$PROJECT/context-pack.md" "$WORKDIR/pack-before.md"
   assert_fails "unknown prompt name rejected" "$PROJECT/scripts/pack-context.sh" feature no-such-prompt

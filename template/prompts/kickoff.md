@@ -29,6 +29,8 @@ Turn my idea into tracked requirements, a stack decision, and a first runnable s
 5. Propose a stack with 2 alternatives and a one-line trade-off each. **Approval point:**
    wait for my choice.
 6. Record the decision in `docs/decisions/0001-stack.md` (copy `docs/decisions/0000-template.md`).
+   Fill `docs/architecture.md` for the chosen stack: layers, composition root, naming, rules for
+   new code. Keep it as small as the project.
 7. Create the minimal skeleton: source dir, one test, dependency file. Run
    `scripts/apply-preset.sh python|node` for the clean-code linter config (other stacks: create
    an equivalent config mapping CC-01…CC-08, see `docs/clean-code.md`). **Approval point**
@@ -41,5 +43,5 @@ Turn my idea into tracked requirements, a stack decision, and a first runnable s
 - [ ] Requirements approved by me
 - [ ] Threat model filled; open questions listed
 - [ ] Skeleton runs; `scripts/check.sh` passes
-- [ ] Decision record and README written
+- [ ] Decision record, architecture and README written
 - [ ] Completion report given (AGENTS.md §5): checks run, checks skipped, unresolved findings, acceptance evidence

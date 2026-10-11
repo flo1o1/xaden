@@ -21,8 +21,9 @@ Implement one capability, test-first, tracked in requirements.
 2. If the feature has no `REQ-nnn`, add one (status `draft`) and a change-log line.
    **Approval point:** show me the row; after my OK set it to `in-progress`.
    If it conflicts with an existing requirement, stop and ask me.
-3. Plan in at most 5 small steps. **Approval point** if the plan touches more than 2 files or
-   adds a dependency.
+3. Plan in at most 5 small steps, placing code as `docs/architecture.md` → "Rules for new code"
+   says; if the feature changes the structure, update that file in the same change.
+   **Approval point** if the plan touches more than 2 files or adds a dependency.
 4. If the code is hard to change for this feature, refactor first ([[refactor]], separate
    commit, tests green). Otherwise leave unrelated code alone (CC-09).
 5. For each step: write a failing test that cites the `REQ-nnn`, make it pass, refactor
