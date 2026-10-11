@@ -38,6 +38,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-038 | job | should | done | The scaffold is published under the MIT license |
 | REQ-045 | job | must | done | The scaffold depends on no personal tools, skills or accounts |
 | REQ-056 | job | should | done | Run Xaden as one command from anywhere |
+| REQ-059 | job | should | approved | Existing projects receive assistant permission updates without losing their edits |
 
 ## Quality gates (`quality-gates`)
 
@@ -62,6 +63,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-024 | job | must | done | Releases never leave a partial state |
 | REQ-037 | job | should | done | Documentation guidance is honest about checks and covers operations |
 | REQ-043 | job | should | done | Persisted data formats are versioned and migrated without data loss |
+| REQ-058 | job | should | approved | Releases are blocked while security documents have unfilled markers |
 
 ## Requirements (`requirements`)
 
@@ -88,3 +90,4 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-039 | job | should | done | Security checklist and review cover the WSTG test areas missing so far |
 | REQ-040 | job | should | done | Local semgrep rules catch more insecure patterns |
 | REQ-052 | job | should | done | Dependencies are checked for existence and reputation before they are added |
+| REQ-057 | job | should | approved | Expired security exceptions fail the checks |
