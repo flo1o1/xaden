@@ -163,7 +163,7 @@ test_generated_project() {
   assert "pack carries fingerprint and clean-code details" grep -q 'CLEAN CODE DETAILS' "$PROJECT/context-pack.md"
   # REQ-023 complete and safely written pack
   assert "pack includes the security checklist" grep -q 'Secure coding checklist' "$PROJECT/context-pack.md"
-  assert "pack includes unreleased changes" grep -q 'Project created from vibe-coding scaffold' "$PROJECT/context-pack.md"
+  assert "pack includes unreleased changes" grep -q 'Project created from the Xaden scaffold' "$PROJECT/context-pack.md"
   assert "pack lists what it excludes" grep -q 'NOT INCLUDED' "$PROJECT/context-pack.md"
   # REQ-028 threat model at kickoff
   assert "project has a threat model with an ASVS level" grep -q 'ASVS level' "$PROJECT/docs/threat-model.md"
@@ -463,7 +463,7 @@ test_scaffold_commands() {
   assert "AGENTS.md maps prompt paths for the scaffold" grep -q '^## Using the project commands here' "$SCAFFOLD_ROOT/AGENTS.md"
   assert "scaffold threat model names entry points" grep -q '^## Entry points' "$SCAFFOLD_ROOT/docs/threat-model.md"
   assert_fails "projects get no scaffold commands" grep -rq 'template/prompts' "$PROJECT/.claude/commands"
-  assert_fails "projects get no scaffold threat model" grep -q 'Vibe Coding Scaffold' "$PROJECT/docs/threat-model.md"
+  assert_fails "projects get no scaffold threat model" grep -q 'Xaden' "$PROJECT/docs/threat-model.md"
 }
 
 # REQ-054 look for mature existing solutions before building

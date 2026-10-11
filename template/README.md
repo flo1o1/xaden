@@ -2,7 +2,7 @@
 
 > Describe the project in one sentence here.
 
-Built with the vibe-coding scaffold: AI-assisted, requirements-tracked, statically
+Built with the Xaden scaffold: AI-assisted, requirements-tracked, statically
 analysed, security-reviewed, SemVer-versioned.
 
 ## Quick start

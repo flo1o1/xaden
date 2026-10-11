@@ -1,4 +1,4 @@
-# AGENTS.md — Vibe Coding Scaffold (maintainers)
+# AGENTS.md — Xaden (maintainers)
 
 This repository **is the scaffold**. Read this before changing it.
 

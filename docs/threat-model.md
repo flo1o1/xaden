@@ -1,4 +1,4 @@
-# Vibe Coding Scaffold — Threat model
+# Xaden — Threat model
 
 The scaffold's own threat model, read by `/security` in this repository (REQ-055). Generated
 projects get their own from `template/docs/threat-model.md`. Update this file when a change

@@ -44,7 +44,7 @@ init_repository() {
   git -C "$dir" init -q -b main
   "$dir/scripts/setup.sh" >/dev/null
   git -C "$dir" add -A
-  git -C "$dir" commit -q -m "chore: initialize project from vibe-coding scaffold"
+  git -C "$dir" commit -q -m "chore: initialize project from the Xaden scaffold"
 }
 
 main() {

@@ -1,4 +1,4 @@
-# CLAUDE.md — Vibe Coding Scaffold (maintainers)
+# CLAUDE.md — Xaden (maintainers)
 
 @AGENTS.md
 @template/AGENTS.md

@@ -1,4 +1,4 @@
-# Vibe Coding Scaffold
+# Xaden
 
 A tool-agnostic starter for AI-assisted ("vibe") coding that keeps quality, security and
 traceability under control. Works with Claude Code, ChatGPT, Aider, Cline, Continue,
