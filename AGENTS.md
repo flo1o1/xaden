@@ -5,7 +5,7 @@ This repository **is the scaffold**. Read this before changing it.
 - `template/` is the product: every file there is copied into new projects.
   Its rules (`template/AGENTS.md`) apply here too, especially the clean-code rules
   `CC-01`…`CC-09` in its section 3 and the grounding rules in its section 0.
-- The scaffold's own requirements are in `docs/requirements/REQUIREMENTS.md` (this
+- The scaffold's own requirements are in `docs/requirements/` (one file per requirement, this
   repository, not the template). Update them first when scope changes; look them up with
   `PROJECT_ROOT=. template/scripts/req.sh show REQ-nnn`, never from memory.
 - Commits: Conventional Commits; `feat` needs `Refs: REQ-nnn` from **this** repository's

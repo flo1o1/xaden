@@ -70,6 +70,51 @@ msg() {
   printf '%s' "$WORKDIR/commit-msg.txt"
 }
 
+# assert_fails_with <description> <expected-text> <command...>: command must exit non-zero and
+# its output must contain the expected text, so it fails for the right reason.
+assert_fails_with() {
+  local description=$1 expected=$2
+  shift 2
+  if ("$@") >"$OUTPUT" 2>&1; then
+    show_output
+    die "FAILED (expected failure): $description"
+  fi
+  if ! grep -q -- "$expected" "$OUTPUT"; then
+    show_output
+    die "FAILED (wrong reason, expected '$expected'): $description"
+  fi
+  PASSED=$((PASSED + 1))
+  printf 'ok   %s\n' "$description"
+}
+
+# req_file <root> <REQ-nnn>: path of a requirement file below <root>/docs/requirements.
+req_file() {
+  find "$1/docs/requirements" -name "$2-*.md" | head -n 1
+}
+
+# edit_file <file> <sed-expression>: edits a file in place (portable, no sed -i).
+edit_file() {
+  sed "$2" "$1" >"$1.edit" && mv "$1.edit" "$1"
+}
+
+# set_status <REQ-nnn> <status>: changes a requirement's status in the demo project and
+# regenerates the index.
+set_status() {
+  edit_file "$(req_file "$PROJECT" "$1")" "s/^status: .*/status: $2/"
+  "$PROJECT/scripts/req.sh" index >/dev/null
+}
+
+# requirements_variant <name> <sed-expression>: a copy of the demo project's requirements with
+# REQ-001 edited and the index regenerated; prints the requirements directory.
+requirements_variant() {
+  local root="$WORKDIR/variants/$1"
+  rm -rf "$root" && mkdir -p "$root/docs"
+  cp -R "$PROJECT/docs/requirements" "$root/docs/"
+  edit_file "$(req_file "$root" REQ-001)" "$2"
+  PROJECT_ROOT="$root" "$PROJECT/scripts/req.sh" index >/dev/null
+  printf '%s' "$root/docs/requirements"
+}
+
 # REQ-007 semantic versioning
 test_bump_version() {
   assert "bump patch" test "$(bump_version 1.2.3 patch)" = "1.2.4"
@@ -104,9 +149,8 @@ test_generated_project() {
   assert_fails "pack-context rejects path traversal" "$PROJECT/scripts/pack-context.sh" ../AGENTS
   assert_fails "bad commit message rejected" "$PROJECT/scripts/hooks/commit-msg" "$(msg "did stuff\n")"
   assert_fails "feat citing a draft requirement rejected (REQ-021)" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat(api): add endpoint\n\nRefs: REQ-001\n')"
-  sed 's/| must     | draft  |/| must     | approved |/' "$PROJECT/docs/requirements/REQUIREMENTS.md" >"$WORKDIR/approved.md"
-  cp "$WORKDIR/approved.md" "$PROJECT/docs/requirements/REQUIREMENTS.md"
-  git -C "$PROJECT" add docs/requirements/REQUIREMENTS.md
+  set_status REQ-001 approved
+  git -C "$PROJECT" add docs/requirements
   assert "feat citing an approved requirement accepted" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat(api): add endpoint\n\nRefs: REQ-001\n')"
   git -C "$PROJECT" reset -q --hard
   assert_fails "feat without Refs rejected" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat(api): add endpoint\n')"
@@ -192,16 +236,97 @@ test_generated_project() {
   assert_fails "unknown prompt name rejected" "$PROJECT/scripts/pack-context.sh" feature no-such-prompt
   assert "failed pack keeps the previous pack" cmp -s "$PROJECT/context-pack.md" "$WORKDIR/pack-before.md"
 
-  sed 's/ draft / bogus /' "$PROJECT/docs/requirements/REQUIREMENTS.md" >"$WORKDIR/bad.md"
-  assert_fails "invalid requirement status rejected" "$PROJECT/scripts/check-requirements.sh" "$WORKDIR/bad.md"
+  local check="$PROJECT/scripts/check-requirements.sh"
+  assert_fails_with "invalid requirement status rejected" 'unknown status' \
+    "$check" "$(requirements_variant bad-status 's/^status: .*/status: bogus/')"
   # REQ-021 complete fields and real dates
-  awk -F'|' 'BEGIN { OFS = "|" } /^\| REQ-001/ { $6 = " " } { print }' "$PROJECT/docs/requirements/REQUIREMENTS.md" >"$WORKDIR/empty-acceptance.md"
-  assert_fails "empty acceptance criteria rejected" "$PROJECT/scripts/check-requirements.sh" "$WORKDIR/empty-acceptance.md"
-  awk -F'|' 'BEGIN { OFS = "|" } /^\| REQ-001/ { $7 = " not-a-date " } { print }' "$PROJECT/docs/requirements/REQUIREMENTS.md" >"$WORKDIR/bad-date.md"
-  assert_fails "invalid date rejected" "$PROJECT/scripts/check-requirements.sh" "$WORKDIR/bad-date.md"
-  awk -F'|' 'BEGIN { OFS = "|" } /^\| REQ-001/ { $7 = " {{DATE}} " } { print }' "$PROJECT/docs/requirements/REQUIREMENTS.md" >"$WORKDIR/placeholder-date.md"
-  assert_fails "unfilled date placeholder rejected in projects" "$PROJECT/scripts/check-requirements.sh" "$WORKDIR/placeholder-date.md"
-  assert_fails "placeholder requirement blocks a release" "$PROJECT/scripts/check-requirements.sh" --release
+  assert_fails_with "empty acceptance criteria rejected" 'Acceptance criteria' \
+    "$check" "$(requirements_variant no-criteria '/^- TODO: Given/d')"
+  assert_fails_with "invalid date rejected" 'invalid date' \
+    "$check" "$(requirements_variant bad-date 's/^updated: .*/updated: not-a-date/')"
+  assert_fails_with "unfilled date placeholder rejected in projects" 'unfilled' \
+    "$check" "$(requirements_variant placeholder-date 's/^updated: .*/updated: {{DATE}}/')"
+  assert_fails_with "placeholder requirement blocks a release" 'before a release' "$check" --release
+}
+
+# REQ-046 functional requirements as jobs to be done, quality requirements as goals
+test_job_stories() {
+  local check="$PROJECT/scripts/check-requirements.sh"
+  assert_fails_with "a job without a job story is rejected" 'When …, I want to …, so I can …' \
+    "$check" "$(requirements_variant feature-text 's/^TODO: When .*/Export invoices as PDF./')"
+  assert "a job story is accepted" "$check" "$(requirements_variant job-story \
+    's/^TODO: When .*/When I close a month, I want to export all invoices, so I can send them to my accountant./')"
+  assert_fails_with "a quality requirement needs a quality goal" 'Quality goal' \
+    "$check" "$(requirements_variant quality-without-goal 's/^type: job/type: quality/')"
+  assert "a quality requirement with a goal is accepted" "$check" "$(requirements_variant quality-goal \
+    's/^type: job/type: quality/; s/^## Job/## Quality goal/; s/^TODO: When .*/95 % of searches answer within one second./')"
+  assert "TODO text only warns outside a release" bash -c "'$check' 2>&1 | grep -q 'contains TODO text'"
+  assert_fails_with "unknown requirement type rejected" 'type must be one of' \
+    "$check" "$(requirements_variant bad-type 's/^type: job/type: story/')"
+  assert "AGENTS.md defines the job story format" grep -q 'When <situation>, I want to <motivation>, so I can <expected' "$PROJECT/AGENTS.md"
+  assert "kickoff writes requirements as jobs" grep -q 'Find the jobs my users hire the software for' "$PROJECT/prompts/kickoff.md"
+}
+
+# REQ-047 one file per requirement, epic folders, global IDs, generated index
+test_requirement_files() {
+  local check="$PROJECT/scripts/check-requirements.sh" variant
+  assert_fails_with "epic must match the folder" 'does not match folder' \
+    "$check" "$(requirements_variant wrong-epic 's/^epic: .*/epic: other/')"
+  assert_fails_with "id must match the file name" 'file name must start with' \
+    "$check" "$(requirements_variant wrong-id 's/^id: REQ-001/id: REQ-002/')"
+  variant="$(requirements_variant duplicate 's/x/x/')"
+  cp "$(req_file "$WORKDIR/variants/duplicate" REQ-001)" "$variant/first-epic/REQ-001-copy.md"
+  PROJECT_ROOT="$WORKDIR/variants/duplicate" "$PROJECT/scripts/req.sh" index >/dev/null
+  assert_fails_with "duplicate IDs rejected" 'duplicate id' "$check" "$variant"
+  variant="$(requirements_variant no-epic 's/x/x/')"
+  rm "$variant/first-epic/EPIC.md"
+  assert_fails_with "every epic folder needs EPIC.md" 'missing EPIC.md' "$check" "$variant"
+  variant="$(requirements_variant stale-index 's/x/x/')"
+  edit_file "$(req_file "$WORKDIR/variants/stale-index" REQ-001)" 's/^# .*/# Renamed job/'
+  assert_fails_with "a stale index is rejected" 'stale' "$check" "$variant"
+  variant="$(requirements_variant old-table 's/x/x/')"
+  printf '| ID |\n' >"$variant/REQUIREMENTS.md"
+  assert_fails_with "the old table format is rejected with a migration hint" 'migrate-requirements.sh' "$check" "$variant"
+  assert "req.sh new creates the next ID in a new epic" bash -c "PROJECT_ROOT='$WORKDIR/variants/stale-index' \
+    '$PROJECT/scripts/req.sh' new billing job 'Export invoices' | grep -q 'docs/requirements/billing/REQ-002-export-invoices.md'"
+  assert "req.sh new adds the epic and updates the index" bash -c "test -f '$WORKDIR/variants/stale-index/docs/requirements/billing/EPIC.md' \
+    && grep -q '| REQ-002 | job | should | draft | Export invoices |' '$WORKDIR/variants/stale-index/docs/requirements/INDEX.md'"
+  assert "req.sh show prints the requirement file" bash -c "'$PROJECT/scripts/req.sh' show REQ-001 | grep -q '^## Acceptance criteria'"
+  assert "pack includes the index and requirement files" bash -c "grep -q '^# REQUIREMENTS INDEX' '$PROJECT/context-pack.md' \
+    && grep -q '^# REQUIREMENTS (docs/requirements/first-epic/REQ-001-' '$PROJECT/context-pack.md'"
+  assert "CLAUDE.md imports the requirements index" grep -qx '@docs/requirements/INDEX.md' "$PROJECT/CLAUDE.md"
+}
+
+# write_requirements_table <root>: a project in the old single-table format.
+write_requirements_table() {
+  mkdir -p "$1/docs/requirements"
+  printf '%s\n' '# Requirements — legacy' '' \
+    '| ID      | Requirement | Priority | Status | Acceptance criteria | Updated |' \
+    '|---------|-------------|----------|--------|---------------------|---------|' \
+    '| REQ-001 | Users export data as CSV | must | done | CSV has a header row | 2026-01-02 |' \
+    '| REQ-002 | Pages load fast | should | draft | Start page under 1 s | 2026-02-03 |' \
+    '' '## Change log' '' '- 2026-01-02 REQ-001 added: first export.' >"$1/docs/requirements/REQUIREMENTS.md"
+}
+
+# REQ-048 migration from the requirements table
+test_requirements_migration() {
+  local legacy="$WORKDIR/legacy" migrated
+  write_requirements_table "$legacy"
+  assert "table migrates to requirement files" env PROJECT_ROOT="$legacy" "$PROJECT/scripts/migrate-requirements.sh"
+  migrated="$(req_file "$legacy" REQ-001)"
+  assert "migration keeps id, status, priority and date" bash -c "grep -qx 'status: done' '$migrated' \
+    && grep -qx 'priority: must' '$migrated' && grep -qx 'updated: 2026-01-02' '$migrated' && grep -qx 'epic: unsorted' '$migrated'"
+  assert "migration keeps text and acceptance criteria" bash -c "grep -qx '# Users export data as CSV' '$migrated' \
+    && grep -qx -- '- CSV has a header row' '$migrated'"
+  assert "migration names the file after the text" test -f "$legacy/docs/requirements/unsorted/REQ-002-pages-load-fast.md"
+  assert "migration moves the change log" grep -q 'REQ-001 added: first export.' "$legacy/docs/requirements/README.md"
+  assert "migration removes the table" test ! -e "$legacy/docs/requirements/REQUIREMENTS.md"
+  assert "migrated requirements validate (TODO job stories warn)" "$PROJECT/scripts/check-requirements.sh" "$legacy/docs/requirements"
+  assert_fails_with "migrated TODO job stories block a release" 'before a release' \
+    "$PROJECT/scripts/check-requirements.sh" --release "$legacy/docs/requirements"
+  write_requirements_table "$legacy"
+  assert_fails_with "migration never overwrites requirement files" 'already exist' \
+    env PROJECT_ROOT="$legacy" "$PROJECT/scripts/migrate-requirements.sh"
 }
 
 # REQ-012 usable by others (setup after clone, CI commit checks)
@@ -278,9 +403,11 @@ test_release_failures() {
 # REQ-007 release, REQ-010 docs gate
 test_release() {
   assert_fails "release blocked by TODO markers in docs" "$PROJECT/scripts/release.sh" patch
-  sed 's/Describe the first requirement here/Users can export data as CSV/' \
-    "$PROJECT/docs/requirements/REQUIREMENTS.md" >"$WORKDIR/real-req.md"
-  cp "$WORKDIR/real-req.md" "$PROJECT/docs/requirements/REQUIREMENTS.md"
+  edit_file "$(req_file "$PROJECT" REQ-001)" \
+    's/^TODO: When .*/When I close a month, I want to export my data, so I can send it to my accountant./; s/^- TODO: .*/- Given data, when I export, then a CSV file is written./'
+  printf '# Reporting\n\n## Goal\n\nWhen I run my business, I want to see my numbers, so I can decide quickly.\n' \
+    >"$PROJECT/docs/requirements/first-epic/EPIC.md"
+  "$PROJECT/scripts/req.sh" index >/dev/null
   git -C "$PROJECT" commit -q -am "docs(requirements): replace placeholder"
   if need_tool gitleaks "release without scanner fixture"; then
     sed -i.bak '/TODO/d' "$PROJECT"/docs/*-guide.md && rm -f "$PROJECT"/docs/*.bak
@@ -323,8 +450,7 @@ test_generation_safety() {
   assert_fails "symlink in template refused" "$source/scripts/new-project.sh" link-app "$WORKDIR/link-app"
   assert "nothing created when export is refused" test ! -e "$WORKDIR/link-app"
   git -C "$source" rm -q --cached template/link.md && rm "$source/template/link.md"
-  sed 's/| draft  |/| bogus  |/' "$source/template/docs/requirements/REQUIREMENTS.md" >"$WORKDIR/bad-req.md"
-  cp "$WORKDIR/bad-req.md" "$source/template/docs/requirements/REQUIREMENTS.md"
+  edit_file "$(req_file "$source/template" REQ-001)" 's/^status: .*/status: bogus/'
   assert_fails "generation fails when the first commit is rejected" "$source/scripts/new-project.sh" late-fail "$WORKDIR/late-fail"
   assert "partial project removed after late failure" test ! -e "$WORKDIR/late-fail"
 }
@@ -354,11 +480,12 @@ test_missing_tools() {
 
 # REQ-020 staged snapshot: checks and commit-msg validate what will be committed
 test_staged_snapshot() {
-  local requirements="$PROJECT/docs/requirements/REQUIREMENTS.md" before_status before_diff
+  local requirements before_status before_diff
+  requirements="$(req_file "$PROJECT" REQ-001)"
   cp "$requirements" "$WORKDIR/req-original.md"
   # staged content broken, working tree fixed: must fail
-  sed 's/| draft  |/| bogus  |/' "$WORKDIR/req-original.md" >"$requirements"
-  git -C "$PROJECT" add docs/requirements/REQUIREMENTS.md
+  sed 's/^status: .*/status: bogus/' "$WORKDIR/req-original.md" >"$requirements"
+  git -C "$PROJECT" add docs/requirements
   cp "$WORKDIR/req-original.md" "$requirements"
   before_status="$(git -C "$PROJECT" status --porcelain)"
   before_diff="$(git -C "$PROJECT" diff)"
@@ -366,7 +493,7 @@ test_staged_snapshot() {
   assert "working tree and index untouched by staged check" test "$(git -C "$PROJECT" status --porcelain)$(git -C "$PROJECT" diff)" = "$before_status$before_diff"
   git -C "$PROJECT" reset -q --hard
   # staged content fine, working tree broken: must pass
-  sed 's/| draft  |/| bogus  |/' "$WORKDIR/req-original.md" >"$requirements"
+  sed 's/^status: .*/status: bogus/' "$WORKDIR/req-original.md" >"$requirements"
   assert "unstaged breakage does not fail the staged check" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
   git -C "$PROJECT" checkout -q -- docs
   if need_tool semgrep "staged SAST snapshot fixture"; then
@@ -377,12 +504,12 @@ test_staged_snapshot() {
     git -C "$PROJECT" reset -q --hard && git -C "$PROJECT" clean -qfd
   fi
   # requirement only in the working tree cannot validate a commit
-  awk '{ print } /^\| REQ-001/ { print "| REQ-002 | Second | must | approved | Testable | 2026-10-11 |" }' \
-    "$WORKDIR/req-original.md" >"$requirements"
+  "$PROJECT/scripts/req.sh" new first-epic job "Second job" >/dev/null
+  set_status REQ-002 approved
   assert_fails "REQ only in unstaged file rejected by commit-msg" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat: x\n\nRefs: REQ-002\n')"
-  git -C "$PROJECT" add docs/requirements/REQUIREMENTS.md
+  git -C "$PROJECT" add docs/requirements
   assert "same REQ accepted once staged" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat: x\n\nRefs: REQ-002\n')"
-  git -C "$PROJECT" reset -q --hard
+  git -C "$PROJECT" reset -q --hard && git -C "$PROJECT" clean -qfd
 }
 
 # REQ-022 commit reference checks cannot be bypassed
@@ -391,8 +518,7 @@ test_commit_bypasses() {
   assert_fails "Merge prefix cannot smuggle an unknown ID" "$hook" "$(msg 'Merge branch x\n\nRefs: REQ-777\n')" # traceability: ignore
   assert_fails "fixup! prefix cannot smuggle an unknown ID" "$hook" "$(msg 'fixup! feat: x\n\nSee REQ-778\n')" # traceability: ignore
   assert "plain Merge message still accepted" "$hook" "$(msg 'Merge branch x\n')"
-  sed 's/| must     | draft  |/| must     | approved |/' "$PROJECT/docs/requirements/REQUIREMENTS.md" >"$WORKDIR/approved.md"
-  cp "$WORKDIR/approved.md" "$PROJECT/docs/requirements/REQUIREMENTS.md"
+  set_status REQ-001 approved
   git -C "$PROJECT" commit -q -am "docs(requirements): approve REQ-001"
   assert "Refs in prose is not a trailer" bash -c "'$hook' '$(msg 'feat: x\n\nRefs: REQ-001\n\nMore prose after it.\n')' 2>&1 | grep -q \"need a 'Refs: REQ-nnn' trailer\""
   # A first push with a bad commit in the middle: every introduced commit is checked.
@@ -529,8 +655,7 @@ test_clean_code_guidance() {
 
 # REQ-016 traceability
 test_traceability() {
-  sed 's/| must     | draft  |/| must     | done   |/' "$PROJECT/docs/requirements/REQUIREMENTS.md" >"$WORKDIR/req.md"
-  cp "$WORKDIR/req.md" "$PROJECT/docs/requirements/REQUIREMENTS.md"
+  set_status REQ-001 "done"
   assert_fails "done requirement without test fails" "$PROJECT/scripts/check-traceability.sh"
   mkdir -p "$PROJECT/tests"
   printf '# REQ-001\n' >"$PROJECT/tests/test_first.py"
@@ -548,7 +673,7 @@ test_scaffold_update() {
   local newer="$WORKDIR/newer-scaffold"
   assert "project records scaffold version" test -f "$PROJECT/.scaffold/version"
   assert "manifest lists managed files" grep -q 'prompts/feature.md' "$PROJECT/.scaffold/manifest"
-  assert "manifest excludes project files" test -z "$(grep 'REQUIREMENTS.md' "$PROJECT/.scaffold/manifest" || true)"
+  assert "manifest excludes project files" test -z "$(grep 'docs/requirements/' "$PROJECT/.scaffold/manifest" || true)"
   assert "fresh project is up to date" bash -c "'$SCAFFOLD_ROOT/scripts/update-scaffold.sh' '$PROJECT' | grep -q '0 change(s) planned'"
 
   # A newer scaffold: one changed prompt, one new prompt, one prompt changed on both sides.
@@ -558,7 +683,7 @@ test_scaffold_update() {
   printf -- '---\ntitle: New\n---\n# New prompt\n' >"$newer/template/prompts/new-prompt.md"
   printf '\nUpstream change.\n' >>"$newer/template/prompts/feature.md"
   printf '\nMy local tweak.\n' >>"$PROJECT/prompts/feature.md"
-  printf '\nProject requirement edit.\n' >>"$PROJECT/docs/requirements/REQUIREMENTS.md"
+  printf '\nProject requirement edit.\n' >>"$PROJECT/docs/requirements/README.md"
   git -C "$PROJECT" commit -q -am "docs: local prompt tweak and requirement edit" --no-verify
 
   assert "dry run changes nothing" bash -c "'$newer/scripts/update-scaffold.sh' '$PROJECT' >/dev/null && test -z \"\$(git -C '$PROJECT' status --porcelain)\""
@@ -567,7 +692,7 @@ test_scaffold_update() {
   assert "new prompt added" test -f "$PROJECT/prompts/new-prompt.md"
   assert "local tweak kept on conflict" grep -q 'My local tweak.' "$PROJECT/prompts/feature.md"
   assert "conflict candidate written" grep -q 'Upstream change.' "$PROJECT/prompts/feature.md.scaffold-new"
-  assert "project requirements untouched" grep -q 'Project requirement edit.' "$PROJECT/docs/requirements/REQUIREMENTS.md"
+  assert "project requirements untouched" grep -q 'Project requirement edit.' "$PROJECT/docs/requirements/README.md"
   assert "version recorded" test "$(cat "$PROJECT/.scaffold/version")" = "9.9.9"
   git -C "$PROJECT" reset -q --hard HEAD~1 && git -C "$PROJECT" clean -qfdx
 }
@@ -584,6 +709,9 @@ test_template_contents
 test_clean_code_guidance
 test_inbox
 test_generated_project
+test_job_stories
+test_requirement_files
+test_requirements_migration
 test_assistant_trust_rules
 test_claude_permissions
 test_prompt_workflow

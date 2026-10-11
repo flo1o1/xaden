@@ -7,7 +7,7 @@ Explicit user instructions in the current session override this file.
 ## 0. Grounding (never invent rules or requirements)
 
 - The only valid rules are the `CC-nn` items in section 3 and the sections of this file.
-  The only valid requirements are the `REQ-nnn` rows in `docs/requirements/REQUIREMENTS.md`.
+  The only valid requirements are the `REQ-nnn` files under `docs/requirements/`.
 - Never quote a rule or requirement from memory. Look it up: `scripts/req.sh show REQ-nnn`,
   `scripts/req.sh list`, or read the file. If it is not in the files, it does not exist: say so and ask.
 - Cite IDs when you act ("per CC-05", "implements REQ-003"). Commits are rejected when they cite
@@ -19,19 +19,28 @@ Explicit user instructions in the current session override this file.
 1. Run `scripts/context-status.sh`. Begin your first reply with its `CONTEXT CHECK <fingerprint>`
    line. It lets the user see which file versions you started from; it is a consistency aid,
    not proof that you read or follow them. No shell access: copy the line from the pasted pack.
-2. Read `docs/requirements/REQUIREMENTS.md` (source of truth for *what* to build).
+2. Read `docs/requirements/INDEX.md` (source of truth for *what* to build) and the requirement
+   files your task touches (`scripts/req.sh show REQ-nnn`).
 3. Read the `Unreleased` section of `CHANGELOG.md` (what changed since last release).
 4. If a request is ambiguous or conflicts with a requirement: **ask, do not guess**.
 
 ## 2. Requirements tracking (mandatory)
 
-- Every behaviour the user asks for has a requirement `REQ-nnn` in
-  `docs/requirements/REQUIREMENTS.md`.
+- Every behaviour the user asks for has a requirement `REQ-nnn`: one file
+  `docs/requirements/<epic>/REQ-nnn-<slug>.md`, grouped by topic (epic). Each epic folder has an
+  `EPIC.md` whose goal states the big job the epic serves.
+- Functional requirements are **jobs to be done** (`type: job`), written from the user's
+  situation, not as a feature: *"When <situation>, I want to <motivation>, so I can <expected
+  outcome>."* Non-functional requirements are measurable **quality goals** (`type: quality`).
+  Acceptance criteria are concrete examples (*Given … when … then …*) that become tests.
 - When the user adds, changes, or drops something during a session:
-  **update the requirements file first, then write code.**
-- IDs are stable. Never delete or renumber; set status `dropped` instead.
-- Add one line to the `Change log` section of the requirements file per change.
-- Run `scripts/check-requirements.sh` after editing; it validates fields, statuses and dates.
+  **update the requirement files first, then write code.** Create new ones with
+  `scripts/req.sh new <epic> <job|quality> "<title>"`; after edits run `scripts/req.sh index`.
+- IDs are global and stable. Never delete, reuse or renumber; set status `dropped` instead.
+  Moving a requirement to another epic keeps its ID (move the file, change `epic:`).
+- Add one line per change to the `Change log` in `docs/requirements/README.md`.
+- Run `scripts/check-requirements.sh` after editing; it validates front matter, job stories,
+  acceptance criteria and the index. TODO text is a warning and blocks releases.
 - Lifecycle: `draft` (idea) → `approved` by the user → `in-progress` → `done` (with a citing test).
   `feat`/`fix` commits may only reference approved, in-progress or done requirements.
 

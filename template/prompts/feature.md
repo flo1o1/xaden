@@ -17,9 +17,11 @@ Implement one capability, test-first, tracked in requirements.
 - Related requirement: {{REQ-nnn or "new"}}
 
 ## Steps
-1. Run `scripts/context-status.sh`; read `AGENTS.md` and the requirements file. Look requirements up with `scripts/req.sh show REQ-nnn`; never from memory.
-2. If the feature has no `REQ-nnn`, add one (status `draft`) and a change-log line.
-   **Approval point:** show me the row; after my OK set it to `in-progress`.
+1. Run `scripts/context-status.sh`; read `AGENTS.md` and `docs/requirements/INDEX.md`. Look
+   requirements up with `scripts/req.sh show REQ-nnn`; never from memory.
+2. If the feature has no `REQ-nnn`, create one as a job (`scripts/req.sh new <epic> job
+   "<title>"`: *When …, I want to …, so I can …*) and a change-log line.
+   **Approval point:** show me the file; after my OK set it to `in-progress`.
    If it conflicts with an existing requirement, stop and ask me.
 3. Plan in at most 5 small steps, placing code as `docs/architecture.md` → "Rules for new code"
    says; if the feature changes the structure, update that file in the same change.

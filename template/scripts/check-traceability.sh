@@ -51,7 +51,7 @@ check_tests_cite_known_requirements() {
   known="$(requirement_rows | cut -d' ' -f1)"
   while IFS= read -r id; do
     if ! printf '%s\n' "$known" | grep -qx "$id"; then
-      warn "tests cite $id, which is not in REQUIREMENTS.md"
+      warn "tests cite $id, which is not in docs/requirements"
       FAILURES=$((FAILURES + 1))
     fi
   done < <(test_files | while IFS= read -r file; do

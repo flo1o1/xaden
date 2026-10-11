@@ -1,7 +1,7 @@
 # {{PROJECT_NAME}} — Architecture
 
 How the code is organised and where new code goes. Behaviour belongs in
-`docs/requirements/REQUIREMENTS.md`, coding rules in `AGENTS.md` and `docs/clean-code.md`.
+`docs/requirements/`, coding rules in `AGENTS.md` and `docs/clean-code.md`.
 Filled at kickoff after the stack decision (`prompts/kickoff.md`); updated in the same change
 whenever the structure changes. Assistants follow "Rules for new code" before adding files.
 

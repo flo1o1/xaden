@@ -21,7 +21,7 @@ Tools without file access: `scripts/pack-context.sh kickoff` and paste `context-
 | Path | Purpose |
 |------|---------|
 | `AGENTS.md` | Rules for every AI assistant (`CLAUDE.md` imports it) |
-| `docs/requirements/REQUIREMENTS.md` | Tracked requirements, updated every session |
+| `docs/requirements/` | Requirements: one file per job or quality goal, grouped by epic; `INDEX.md` lists them |
 | `docs/user-guide.md`, `docs/admin-guide.md` | End-user and operator documentation (install, system requirements, config, upgrade) |
 | `docs/architecture.md` | Layers, composition root, naming, rules for new code; filled at kickoff |
 | `SECURITY.md` | How to report vulnerabilities; secret rotation; incident basics |

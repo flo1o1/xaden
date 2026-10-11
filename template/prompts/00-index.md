@@ -21,7 +21,7 @@ Every prompt has frontmatter (`status`, `version`, `works-with`) visible in Obsi
 | [[documentation]] | Write/update user and admin guides | `/docs` |
 | [[release]] | Cut a SemVer release | `/release` |
 
-Related: [[prompt-template]] · rules in `AGENTS.md` · requirements in `docs/requirements/REQUIREMENTS.md`
+Related: [[prompt-template]] · rules in `AGENTS.md` · requirements in `docs/requirements/INDEX.md`
 
 ## How to use with each tool
 

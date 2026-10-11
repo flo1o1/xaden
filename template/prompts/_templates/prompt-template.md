@@ -16,7 +16,7 @@ tags: [prompt]
 - {{variable}}: {{description and format}}
 
 ## Steps
-1. Read `AGENTS.md` and `docs/requirements/REQUIREMENTS.md`.
+1. Read `AGENTS.md` and `docs/requirements/INDEX.md`.
 2.
 
 ## Done when

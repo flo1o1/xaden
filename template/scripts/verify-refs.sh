@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Rejects commit messages that cite rules/requirements which do not exist.
 # Usage: scripts/verify-refs.sh <commit-message-file>
-# - Every REQ-nnn must be a row in REQUIREMENTS.md; every CC-nn a rule in AGENTS.md.
+# - Every REQ-nnn must be a requirement file in docs/requirements; every CC-nn a rule in AGENTS.md.
 # - `feat` needs a "Refs: REQ-nnn" trailer; `fix` needs one or "Refs: none".
 set -euo pipefail
 
@@ -22,7 +22,27 @@ read_committed_version() {
   git -C "$(dirname "$1")" show ":./$(basename "$1")" 2>/dev/null || cat "$1"
 }
 
-REQUIREMENTS_TEXT="$(read_committed_version "$ROOT/docs/requirements/REQUIREMENTS.md")"
+# committed_requirements_root: a directory whose docs/requirements holds the requirement files
+# as they will be committed (git index). Outside git, the working tree itself.
+committed_requirements_root() {
+  local snapshot path
+  if ! git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
+    printf '%s' "$ROOT"
+    return 0
+  fi
+  snapshot="$(mktemp -d)"
+  mkdir -p "$snapshot/docs/requirements"
+  while IFS= read -r -d '' path; do
+    mkdir -p "$snapshot/$(dirname "$path")"
+    git -C "$ROOT" show ":./$path" >"$snapshot/$path"
+  done < <(git -C "$ROOT" ls-files -z -- docs/requirements)
+  printf '%s' "$snapshot"
+}
+
+REQUIREMENTS_ROOT="$(committed_requirements_root)"
+[ "$REQUIREMENTS_ROOT" = "$ROOT" ] || trap 'rm -rf "$REQUIREMENTS_ROOT"' EXIT
+# "ID [status, priority] title" per committed requirement.
+REQUIREMENTS_LIST="$(PROJECT_ROOT="$REQUIREMENTS_ROOT" "$SCRIPTS/req.sh" list)"
 RULES_TEXT="$(read_committed_version "$RULES_FILE")"
 
 # check_cited_ids: every cited ID must exist in the source of truth.
@@ -30,17 +50,15 @@ check_cited_ids() {
   local id
   while IFS= read -r id; do
     case "$id" in
-      REQ-*) printf '%s\n' "$REQUIREMENTS_TEXT" | grep -Eq "^\| *$id " || die "commit cites unknown requirement $id" ;;
+      REQ-*) printf '%s\n' "$REQUIREMENTS_LIST" | grep -q "^$id " || die "commit cites unknown requirement $id" ;;
       CC-*) printf '%s\n' "$RULES_TEXT" | grep -Eq "^- \*\*$id\*\*" || die "commit cites unknown rule $id" ;;
     esac
   done < <(grep -oE 'REQ-[0-9]{3,}|CC-[0-9]{2}' "$MESSAGE_FILE" | sort -u)
 }
 
-# requirement_status <REQ-nnn>: status column of the requirement as committed.
+# requirement_status <REQ-nnn>: status of the requirement as committed.
 requirement_status() {
-  printf '%s\n' "$REQUIREMENTS_TEXT" | awk -F'|' -v id="$1" '
-    { gsub(/^[ \t]+|[ \t]+$/, "", $2); gsub(/^[ \t]+|[ \t]+$/, "", $5) }
-    $2 == id { print $5 }'
+  printf '%s\n' "$REQUIREMENTS_LIST" | sed -n "s/^$1 \[\([^,]*\),.*/\1/p"
 }
 
 # check_referenced_status <refs-text>: feat/fix may only implement approved, in-progress or

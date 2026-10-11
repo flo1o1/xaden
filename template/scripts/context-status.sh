@@ -10,10 +10,16 @@ set -euo pipefail
 # another repository (e.g. the scaffold itself) reuse these scripts.
 SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="${PROJECT_ROOT:-$(cd "$SCRIPTS/.." && pwd)}"
-RULES_FILES=("$ROOT/AGENTS.md" "$ROOT/docs/clean-code.md" "$ROOT/docs/requirements/REQUIREMENTS.md")
+
+# rule_and_requirement_files: the rule files plus every Markdown file under docs/requirements,
+# in a fixed order so the fingerprint is the same on every machine.
+rule_and_requirement_files() {
+  printf '%s\n' "$ROOT/AGENTS.md" "$ROOT/docs/clean-code.md"
+  find "$ROOT/docs/requirements" -type f -name '*.md' | LC_ALL=C sort
+}
 
 # fingerprint: CRC of all rule and requirement files (POSIX cksum, same on Linux and macOS).
-fingerprint() { cat "${RULES_FILES[@]}" | cksum | cut -d' ' -f1; }
+fingerprint() { rule_and_requirement_files | tr '\n' '\0' | xargs -0 cat | cksum | cut -d' ' -f1; }
 
 # rule_ids: defined rule IDs, e.g. "CC-01 CC-02 ...".
 rule_ids() { grep -oE '^- \*\*CC-[0-9]{2}\*\*' "$ROOT/AGENTS.md" | grep -oE 'CC-[0-9]{2}' | tr '\n' ' '; }
