@@ -425,7 +425,9 @@ test_template_contents() {
   for pointer in CLAUDE.md .clinerules .continue/rules/project.md .github/copilot-instructions.md .aider.conf.yml; do
     assert "$pointer points to AGENTS.md" grep -q 'AGENTS.md' "$PROJECT/$pointer"
   done
-  assert "/security command uses alice skill with fallback" grep -q 'alice-security-engineer' "$PROJECT/.claude/commands/security.md"
+  assert "/security runs the tool-agnostic review prompt" grep -q '@prompts/security-review.md' "$PROJECT/.claude/commands/security.md"
+  # REQ-045 no personal skills, plugins or private tools: the generated project names none
+  assert_fails "generated project references no skills" grep -rli 'skill' "$PROJECT" --exclude-dir=.git
   assert "tool-agnostic security prompt present" grep -q 'OWASP' "$PROJECT/prompts/security-review.md"
   assert "Obsidian vault configured" test -f "$PROJECT/.obsidian/app.json"
   assert "every prompt has frontmatter" bash -c "cd '$PROJECT/prompts' && for f in *.md; do head -1 \"\$f\" | grep -qx -- '---' || exit 1; done"

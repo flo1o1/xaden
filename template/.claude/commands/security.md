@@ -1,7 +1,7 @@
 ---
-description: Security review (alice-security-engineer skill if installed, else OWASP WSTG prompt)
+description: Security review (OWASP WSTG based checklist, report with evidence)
 ---
 
-If the `alice-security-engineer` skill is available, invoke it on the scope below, then also complete the checklist in the prompt. Scope: $ARGUMENTS
+Run the security review below. Scope: $ARGUMENTS
 
 @prompts/security-review.md

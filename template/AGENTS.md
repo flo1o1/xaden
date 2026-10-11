@@ -101,7 +101,7 @@ Details and examples: `docs/clean-code.md` (same IDs).
   secret is rotated and revoked, not just removed from git.
 - After finishing a feature that touches input, auth, data, files, network, or
   dependencies — and before every release — run a security review:
-  - Claude Code: `/security` (uses the `alice-security-engineer` skill if installed).
+  - Claude Code: `/security` (runs `prompts/security-review.md`).
   - Any other LLM: paste `prompts/security-review.md` plus the changed files.
   - Save the report in `docs/security-reviews/` (scope, evidence, limitations, findings, status).
     A completed checklist is not proof of security.

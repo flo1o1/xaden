@@ -11,8 +11,7 @@ tags: [prompt, security, review]
 
 ## Goal
 Find exploitable weaknesses in the changed code, ranked by risk, with fixes.
-(Claude Code: `/security` runs the `alice-security-engineer` skill when installed; this
-prompt is the tool-independent equivalent.)
+Works with any assistant; Claude Code runs it as `/security`.
 
 ## Inputs
 - Scope: {{changed files, or whole project}}

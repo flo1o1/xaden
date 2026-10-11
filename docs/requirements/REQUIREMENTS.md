@@ -49,7 +49,7 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 | REQ-042 | Projects document their architecture with rules for new code | should | done | Template docs/architecture.md (goals, layers and dependency direction, composition root, interaction, naming, rules for new code, persisted data); kickoff fills it after the stack decision; feature prompt follows it; context pack includes it | 2026-10-11 |
 | REQ-043 | Persisted data formats are versioned and migrated without data loss | should | done | Architecture template and clean-code.md state versioned formats, automatic migration, partial failure isolated with a message, tests per old version; release prompt counts incompatible data, file, API or config format changes as major | 2026-10-11 |
 | REQ-044 | Linter configuration only gets stricter without user approval | should | done | AGENTS.md: loosening rules or thresholds is an approval point; adopting linters on existing code uses a baseline that may only shrink | 2026-10-11 |
-| REQ-045 | The scaffold depends on no personal tools, skills or accounts | must | approved | Scaffold and generated projects name no personal skills, plugins or private tools; features work with what the README lists as prerequisites; a smoke test rejects named skills in the template | 2026-10-11 |
+| REQ-045 | The scaffold depends on no personal tools, skills or accounts | must | done | Scaffold and generated projects name no personal skills, plugins or private tools; features work with what the README lists as prerequisites; a smoke test rejects named skills in the template | 2026-10-11 |
 
 ## Change log
 
@@ -93,3 +93,4 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 - 2026-10-11 REQ-044 done: AGENTS.md section 5 and presets: loosening needs approval, baselines only shrink
 - 2026-10-11 REQ-005 changed: the review no longer refers to a personal skill (user: keep the scaffold generic).
 - 2026-10-11 REQ-045 added: user asked that the scaffold never depend on personal skills or tools.
+- 2026-10-11 REQ-045 done: skill references removed from template and docs; maintainer rule added; smoke test guards it

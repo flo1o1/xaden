@@ -14,7 +14,7 @@ relative to it.
 | One rule set for every LLM | `AGENTS.md` (+ `CLAUDE.md` imports it, other tools get pointer files) |
 | Clean code | Rules in `AGENTS.md`, details in `docs/clean-code.md`, review/refactor prompts |
 | Static analysis | `scripts/check.sh`: shellcheck, gitleaks, semgrep, per-stack linters/type/audit (Python, Node) |
-| Security | `docs/security.md`, `/security` (alice-security-engineer skill), tool-agnostic `prompts/security-review.md` |
+| Security | `docs/security.md`, `/security` and tool-agnostic `prompts/security-review.md` (OWASP WSTG based) |
 | Requirements tracking | `docs/requirements/REQUIREMENTS.md`, validated by `scripts/check-requirements.sh`; the AI must update it when scope changes |
 | Semantic versioning | `VERSION`, `CHANGELOG.md`, Conventional Commits hook, `scripts/release.sh` |
 | User + admin docs | `docs/user-guide.md`, `docs/admin-guide.md` (install, system requirements, config, hardening, upgrade); filled by `/docs`, structure checked by `scripts/check-docs.sh` (not content), release blocked while incomplete |

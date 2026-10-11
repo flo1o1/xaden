@@ -84,7 +84,6 @@ CI re-runs the static analysis and commit-message checks, so skipped hooks are c
 
 ## Security review quality
 
-`/security` uses the `alice-security-engineer` skill when the user has it installed; otherwise
-it follows `prompts/security-review.md` (OWASP WSTG based), which works with any model.
+`/security` follows `prompts/security-review.md` (OWASP WSTG based), which works with any model.
 Claude Code users can additionally run the built-in `/security-review`. Use a strong model for
 reviews before releases.
