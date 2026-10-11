@@ -22,6 +22,14 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 | REQ-015 | Clean-code rules enforced by linters; a detected stack without checks fails | must | done | Stack presets map CC rules to linter settings; missing lint/type/test steps fail check.sh | 2026-10-11 |
 | REQ-016 | Requirements traceable to tests | must | done | Every done requirement is referenced by a test; matrix script lists requirement to tests | 2026-10-11 |
 | REQ-017 | Existing projects can adopt newer scaffold versions | should | done | Projects record scaffold version; update script shows and applies changes to managed files only | 2026-10-11 |
+| REQ-018 | Project generation copies only reviewed template content | must | approved | Only git-tracked template files (staged content) are copied; untracked, ignored and secret files never; symlinks and existing targets refused; partial output removed on failure; paths with spaces work | 2026-10-11 |
+| REQ-019 | Required checks cannot be skipped silently | must | approved | Every check reports passed, failed or skipped; any skip marks the run INCOMPLETE; CI and releases run strict so a missing scanner fails; CI provisions pinned tool versions | 2026-10-11 |
+| REQ-020 | Pre-commit checks validate exactly the staged snapshot | must | approved | A staged regression cannot be hidden by an unstaged fix; a requirement ID present only in an unstaged file cannot validate a commit; the working tree is never modified | 2026-10-11 |
+| REQ-021 | Requirements need complete fields and an eligible status | must | approved | Empty requirement text or acceptance criteria and invalid dates fail; template placeholders block releases; feat and fix may only reference approved, in-progress or done requirements | 2026-10-11 |
+| REQ-022 | Commit reference checks cannot be bypassed | must | approved | Special prefixes skip only the format check; Refs are parsed as git trailers; CI validates every commit of a first push | 2026-10-11 |
+| REQ-023 | Context pack contains all mandatory guidance and is written safely | must | approved | Pack includes the security checklist and the Unreleased changelog and lists its contents; an invalid prompt name keeps the previous pack; docs call the fingerprint a consistency aid, not proof | 2026-10-11 |
+| REQ-024 | Releases never leave a partial state | must | approved | An existing tag or failing check aborts before any file changes; a failing commit restores the files; a failing tag is reported with recovery steps | 2026-10-11 |
+| REQ-025 | Scaffold tests are diagnosable and independent of user configuration | should | approved | Failed assertions show the command output; tests ignore global git configuration; tool-dependent fixtures are mandatory in CI | 2026-10-11 |
 
 ## Change log
 
@@ -31,3 +39,4 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 - 2026-10-11 REQ-015 done: ruff/mypy and ESLint presets mapped to CC rules; detected stacks fail on missing setup.
 - 2026-10-11 REQ-016 done: check-traceability.sh; scaffold smoke tests cite the requirements they verify.
 - 2026-10-11 REQ-017 done: .scaffold manifest and update-scaffold.sh with three-way comparison.
+- 2026-10-11 REQ-018..REQ-025 added from an external review (findings F01, F04-F08, release partial failure, test diagnostics). F02 and F03 were already fixed by REQ-015.
