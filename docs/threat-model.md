@@ -4,8 +4,8 @@ The scaffold's own threat model, read by `/security` in this repository (REQ-055
 projects get their own from `template/docs/threat-model.md`. Update this file when a change
 adds an entry point, a downloaded tool or a new place the scripts write to.
 
-**Last reviewed:** 2026-10-11, security review `docs/security-reviews/2026-10-11-xaden-command.md`
-(previous: `2026-10-11-scaffold-scripts.md`).
+**Last reviewed:** 2026-10-11, security review `docs/security-reviews/2026-10-11-audit-fixes.md`
+(previous: `2026-10-11-xaden-command.md`, `2026-10-11-scaffold-scripts.md`).
 
 ## System summary
 
@@ -33,7 +33,8 @@ may meet secrets in the working tree (`.env`, `inbox/`), which they must not cop
   requirement IDs, epics and titles (`req.sh`); command and arguments of `xaden`, target
   directory of `install.sh`.
 - Files the scripts read: `template/` (exported to projects), requirement files, commit message
-  files, `CHANGELOG.md`, `VERSION`, `docs/security-exceptions.md`, `SECURITY.md`, a project's
+  files, the old requirements table `docs/requirements/REQUIREMENTS.md` (`migrate-requirements.sh`),
+  `CHANGELOG.md`, `VERSION`, `docs/security-exceptions.md`, `SECURITY.md`, a project's
   `.scaffold/manifest` and `package.json` /
   `pyproject.toml` (which decide which tools run).
 - Environment: `PROJECT_ROOT`, `RULES_FILE`, `STRICT`, `PATH`; in CI `EVENT_NAME`, `BASE_REF`,
@@ -89,6 +90,9 @@ Verification standard: OWASP ASVS (what to build), OWASP WSTG (how to test it).
 | Update overwrites a project's own edits | project integrity | three-way comparison; conflicts written as `*.scaffold-new` | REQ-017, smoke `test_scaffold_update` |
 | Symlink in a project redirects an update's writes outside the project | users' machines | writes refused when the path or a parent is a symlink (review 2026-10-11 #1) | REQ-017, smoke `test_update_safety` |
 | Edited manifest makes an update delete project-owned files | project integrity | manifest paths outside `MANAGED_PATHS` ignored (review #2) | REQ-017, smoke `test_update_safety` |
+| Crafted ID in an old requirements table makes the migration write outside `docs/requirements/` | users' machines | every ID must be `REQ-nnn` before anything is written (review 2026-10-11-audit-fixes #1) | REQ-048, smoke `test_requirements_migration` |
+| Impossible expiry date keeps an accepted vulnerability "valid" | trust in the gates | month 01–12 and day 01–31 required (review 2026-10-11-audit-fixes #2) | REQ-057, smoke `test_security_exceptions` |
+| `fix` trailer with any text containing "none" passes | trust in the gates | only the exact value `none` replaces a requirement (review 2026-10-11-audit-fixes #3) | REQ-022, smoke `test_commit_bypasses` |
 | Repository token left in `.git/config` while CI runs project code | CI runner | `persist-credentials: false` on every checkout (review #3) | REQ-019, smoke `test_ci_credentials` |
 | `install.sh` replaces a user's own `xaden` file, or `--uninstall` removes one | users' machines | never overwrites an existing name; removes only a link to this checkout | REQ-056, smoke `test_xaden_command` |
 | `xaden` project commands run a malicious project's scripts | users' machines | same trust as running `scripts/*.sh` by hand; documented in GETTING-STARTED ("only in projects you trust"); commands are a fixed list | REQ-056 |
