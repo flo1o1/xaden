@@ -85,7 +85,12 @@ keep_managed() {
 managed_template_files() { template_files "$1" | keep_managed; }
 
 # render_file <source> <project-name>: prints a template file with placeholders filled.
-render_file() { sed -e "s/{{PROJECT_NAME}}/$2/g" "$1"; }
+render_file() { fill_project_name "$2" <"$1"; }
+
+# fill_project_name <project-name>: filter; replaces {{PROJECT_NAME}} on stdin. The name must
+# pass is_project_name (it is used in a sed replacement). New projects and update checksums
+# must render the same way, so this is the only place that fills the name.
+fill_project_name() { sed -e "s/{{PROJECT_NAME}}/$1/g"; }
 
 # content_sum: checksum of stdin (POSIX cksum: CRC and size).
 content_sum() { cksum | awk '{ print $1 "-" $2 }'; }
