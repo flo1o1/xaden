@@ -27,9 +27,12 @@ requirement_rows() {
 test_files() { list_project_files | tr '\0' '\n' | grep -E "$TEST_FILE_PATTERN" || true; }
 
 # tests_citing <REQ-nnn>: test files that mention the ID (word match), comma-separated.
+# Skips "traceability: ignore" lines, like cited_ids.
 tests_citing() {
   test_files | while IFS= read -r file; do
-    if grep -qE "(^|[^0-9A-Za-z-])$1([^0-9]|$)" "$file" 2>/dev/null; then printf '%s\n' "$file"; fi
+    if grep -v 'traceability: ignore' "$file" 2>/dev/null | grep -qE "(^|[^0-9A-Za-z-])$1([^0-9]|$)"; then
+      printf '%s\n' "$file"
+    fi
   done | paste -sd, - || true
 }
 

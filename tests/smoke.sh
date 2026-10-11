@@ -763,6 +763,10 @@ test_traceability() {
   set_status REQ-001 "done"
   assert_fails "done requirement without test fails" "$PROJECT/scripts/check-traceability.sh"
   mkdir -p "$PROJECT/tests"
+  printf 'data = "REQ-001"  # traceability: ignore\n' >"$PROJECT/tests/test_ignored.py"
+  git -C "$PROJECT" add tests/test_ignored.py
+  assert_fails "ignored line does not count as a test" "$PROJECT/scripts/check-traceability.sh"
+  assert "matrix skips ignored lines like the check" grep -q '^| REQ-001 | done | — |' <("$PROJECT/scripts/check-traceability.sh" --matrix)
   printf '# REQ-001\n' >"$PROJECT/tests/test_first.py"
   git -C "$PROJECT" add tests/test_first.py
   assert "done requirement with test passes" "$PROJECT/scripts/check-traceability.sh"

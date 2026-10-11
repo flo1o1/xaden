@@ -17,3 +17,4 @@ When a requirement is marked done, I want a test that references it, so I can pr
 
 - Every done requirement is referenced by a test
 - matrix script lists requirement to tests
+- check and matrix count the same citations; lines marked `traceability: ignore` count for neither
