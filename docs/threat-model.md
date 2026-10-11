@@ -4,7 +4,7 @@ The scaffold's own threat model, read by `/security` in this repository (REQ-055
 projects get their own from `template/docs/threat-model.md`. Update this file when a change
 adds an entry point, a downloaded tool or a new place the scripts write to.
 
-**Last reviewed:** 2026-10-11, created with REQ-055; no security review recorded yet.
+**Last reviewed:** 2026-10-11, security review `docs/security-reviews/2026-10-11-scaffold-scripts.md`.
 
 ## System summary
 
@@ -49,6 +49,9 @@ may meet secrets in the working tree (`.env`, `inbox/`), which they must not cop
 ## Attackers and capabilities
 
 - Contributor sending a pull request: controls branch names, commit messages and file contents.
+- Contributor to a generated project, or the author of a project cloned from elsewhere: controls
+  its tracked files, including symbolic links and `.scaffold/manifest`, which
+  `update-scaffold.sh` reads and writes next to.
 - Compromised upstream tool or action: code runs in CI with the job's permissions (read-only
   repository token).
 - Malicious file in `inbox/` or pasted content: tries to make the assistant run commands or
@@ -80,6 +83,9 @@ Verification standard: OWASP ASVS (what to build), OWASP WSTG (how to test it).
 | Commit cites invented requirements or slips past checks | trust in the gates | ID and trailer checks on every commit, re-run in CI | REQ-011, REQ-022, smoke `test_commit_bypasses` |
 | Malicious `BASE_REF` in CI | CI runner | value validated before use | REQ-022, smoke "CI rejects a malformed base ref" |
 | Update overwrites a project's own edits | project integrity | three-way comparison; conflicts written as `*.scaffold-new` | REQ-017, smoke `test_scaffold_update` |
+| Symlink in a project redirects an update's writes outside the project | users' machines | open, see `docs/security-reviews/2026-10-11-scaffold-scripts.md` #1 | REQ-017 |
+| Edited manifest makes an update delete project-owned files | project integrity | open, see review #2 | REQ-017 |
+| Repository token left in `.git/config` while CI runs project code | CI runner | open, see review #3 | REQ-019 |
 | Tampered gitleaks download in CI | CI runner | pinned version, SHA-256 verified | REQ-019 |
 | Instructions hidden in `inbox/` or pasted content | users' machines, secrets | `inbox/` ignored by git; AGENTS.md §10 treats it as data | REQ-026, REQ-033 |
 
