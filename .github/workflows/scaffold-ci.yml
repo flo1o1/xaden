@@ -48,12 +48,5 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           BASE_REF: ${{ github.base_ref }}
           BEFORE_SHA: ${{ github.event.before }}
-        run: |
-          if [ "$EVENT_NAME" = "pull_request" ]; then
-            range="origin/$BASE_REF..HEAD"
-          elif git cat-file -e "$BEFORE_SHA^{commit}" 2>/dev/null; then
-            range="$BEFORE_SHA..HEAD"
-          else
-            range="HEAD~1..HEAD"
-          fi
-          PROJECT_ROOT="$PWD" RULES_FILE="$PWD/template/AGENTS.md" template/scripts/verify-commits.sh "$range"
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: PROJECT_ROOT="$PWD" RULES_FILE="$PWD/template/AGENTS.md" template/scripts/verify-commits.sh --ci

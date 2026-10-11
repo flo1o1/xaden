@@ -60,7 +60,8 @@ check_referenced_status() {
 check_required_trailer() {
   local type refs
   type=$(head -n 1 "$MESSAGE_FILE" | sed -E 's/^([a-z]+).*/\1/')
-  refs=$(grep -E '^Refs:' "$MESSAGE_FILE" || true)
+  # Only real git trailers count (last paragraph), not "Refs:" lines in prose (REQ-022).
+  refs=$(git interpret-trailers --parse <"$MESSAGE_FILE" | grep -E '^Refs:' || true)
   case "$type" in
     feat) printf '%s' "$refs" | grep -Eq 'REQ-[0-9]{3,}' || die "feat commits need a 'Refs: REQ-nnn' trailer" ;;
     fix) printf '%s' "$refs" | grep -Eq 'REQ-[0-9]{3,}|none' || die "fix commits need 'Refs: REQ-nnn' or 'Refs: none'" ;;

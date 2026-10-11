@@ -279,6 +279,31 @@ test_staged_snapshot() {
   git -C "$PROJECT" reset -q --hard
 }
 
+# REQ-022 commit reference checks cannot be bypassed
+test_commit_bypasses() {
+  local hook="$PROJECT/scripts/hooks/commit-msg" zero="0000000000000000000000000000000000000000" before_bad
+  assert_fails "Merge prefix cannot smuggle an unknown ID" "$hook" "$(msg 'Merge branch x\n\nRefs: REQ-777\n')" # traceability: ignore
+  assert_fails "fixup! prefix cannot smuggle an unknown ID" "$hook" "$(msg 'fixup! feat: x\n\nSee REQ-778\n')" # traceability: ignore
+  assert "plain Merge message still accepted" "$hook" "$(msg 'Merge branch x\n')"
+  sed 's/| must     | draft  |/| must     | approved |/' "$PROJECT/docs/requirements/REQUIREMENTS.md" >"$WORKDIR/approved.md"
+  cp "$WORKDIR/approved.md" "$PROJECT/docs/requirements/REQUIREMENTS.md"
+  git -C "$PROJECT" commit -q -am "docs(requirements): approve REQ-001"
+  assert "Refs in prose is not a trailer" bash -c "'$hook' '$(msg 'feat: x\n\nRefs: REQ-001\n\nMore prose after it.\n')' 2>&1 | grep -q \"need a 'Refs: REQ-nnn' trailer\""
+  # A first push with a bad commit in the middle: every introduced commit is checked.
+  before_bad="$(git -C "$PROJECT" rev-parse HEAD)"
+  git -C "$PROJECT" commit -q --allow-empty --no-verify -m "feat: no refs in the middle"
+  git -C "$PROJECT" commit -q --allow-empty -m "docs: fine on top"
+  assert_fails "CI first push checks the whole new history" \
+    env EVENT_NAME=push BEFORE_SHA="$zero" DEFAULT_BRANCH=main "$PROJECT/scripts/verify-commits.sh" --ci
+  git -C "$PROJECT" update-ref refs/remotes/origin/main "$before_bad"
+  assert_fails "CI pull request range includes the bad commit" \
+    env EVENT_NAME=pull_request BASE_REF=main "$PROJECT/scripts/verify-commits.sh" --ci
+  assert_fails "CI rejects a malformed base ref" \
+    env EVENT_NAME=pull_request BASE_REF='main;rm' "$PROJECT/scripts/verify-commits.sh" --ci
+  git -C "$PROJECT" update-ref -d refs/remotes/origin/main
+  git -C "$PROJECT" reset -q --hard "$before_bad~1"
+}
+
 # REQ-026 local drop zone
 test_inbox() {
   printf 'private\n' >"$PROJECT/inbox/notes.txt"
@@ -356,6 +381,7 @@ test_template_contents
 test_inbox
 test_generated_project
 test_setup_and_commit_checks
+test_commit_bypasses
 test_missing_tools
 test_staged_checks
 test_staged_snapshot

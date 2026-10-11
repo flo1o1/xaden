@@ -1,16 +1,19 @@
 #!/usr/bin/env bash
 # Git commit-msg hook: enforce Conventional Commits (drives SemVer decisions)
 # and verify that cited requirement/rule IDs exist (guards against invented IDs).
+# Merge, Revert, fixup! and squash! messages skip only the format check; their references
+# are still verified (REQ-022). fixup!/squash! commits are validated again after squashing.
 set -euo pipefail
 
 first_line="$(head -n 1 "$1")"
 pattern='^(feat|fix|refactor|docs|test|chore|perf|build|ci|style|revert)(\([a-z0-9._-]+\))?!?: .{1,72}$'
 
+check_format=1
 case "$first_line" in
-  Merge\ *|Revert\ \"*|fixup!\ *|squash!\ *) exit 0 ;;
+  Merge\ * | Revert\ \"* | fixup!\ * | squash!\ *) check_format=0 ;;
 esac
 
-if ! printf '%s' "$first_line" | grep -Eq "$pattern"; then
+if [ "$check_format" = "1" ] && ! printf '%s' "$first_line" | grep -Eq "$pattern"; then
   echo "ERROR: commit message must follow Conventional Commits:" >&2
   echo "  <type>(<scope>)!: <summary up to 72 chars>" >&2
   echo "  types: feat fix refactor docs test chore perf build ci style revert" >&2

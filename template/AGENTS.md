@@ -87,6 +87,9 @@ Details and examples: `docs/clean-code.md` (same IDs).
   `scripts/release.sh <major|minor|patch>` does it — only run when the user asks.
 - Conventional Commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`; `!` or
   `BREAKING CHANGE:` for breaking changes. Enforced by the commit-msg hook.
+- `Refs:` must be a git trailer: in the last paragraph of the message, next to other trailers.
+  Merge/Revert/fixup!/squash! messages skip only the format check; IDs are always verified,
+  and CI re-checks every commit a push or pull request introduces.
 - Add a user-visible bullet to `CHANGELOG.md` → `Unreleased` for every `feat`/`fix`.
 - Commit each coherent step. Never force-push, never rewrite published history.
 

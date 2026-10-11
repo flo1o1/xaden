@@ -26,7 +26,7 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 | REQ-019 | Required checks cannot be skipped silently | must | done | Every check reports passed, failed or skipped; any skip marks the run INCOMPLETE; CI and releases run strict so a missing scanner fails; CI provisions pinned tool versions | 2026-10-11 |
 | REQ-020 | Pre-commit checks validate exactly the staged snapshot | must | done | A staged regression cannot be hidden by an unstaged fix; a requirement ID present only in an unstaged file cannot validate a commit; the working tree is never modified | 2026-10-11 |
 | REQ-021 | Requirements need complete fields and an eligible status | must | done | Empty requirement text or acceptance criteria and invalid dates fail; template placeholders block releases; feat and fix may only reference approved, in-progress or done requirements | 2026-10-11 |
-| REQ-022 | Commit reference checks cannot be bypassed | must | approved | Special prefixes skip only the format check; Refs are parsed as git trailers; CI validates every commit of a first push | 2026-10-11 |
+| REQ-022 | Commit reference checks cannot be bypassed | must | done | Special prefixes skip only the format check; Refs are parsed as git trailers; CI validates every commit of a first push | 2026-10-11 |
 | REQ-023 | Context pack contains all mandatory guidance and is written safely | must | approved | Pack includes the security checklist and the Unreleased changelog and lists its contents; an invalid prompt name keeps the previous pack; docs call the fingerprint a consistency aid, not proof | 2026-10-11 |
 | REQ-024 | Releases never leave a partial state | must | approved | An existing tag or failing check aborts before any file changes; a failing commit restores the files; a failing tag is reported with recovery steps | 2026-10-11 |
 | REQ-025 | Scaffold tests are diagnosable and independent of user configuration | should | done | Failed assertions show the command output; tests ignore global git configuration; tool-dependent fixtures are mandatory in CI | 2026-10-11 |
@@ -48,3 +48,4 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 - 2026-10-11 REQ-019 done: passed/failed/skipped summary, INCOMPLETE status, strict CI and release, pinned CI tools
 - 2026-10-11 REQ-020 done: pre-commit checks run on an export of the git index; commit-msg reads requirements from the index
 - 2026-10-11 REQ-021 done: field, date and placeholder validation; feat/fix only reference approved, in-progress or done
+- 2026-10-11 REQ-022 done: prefixes skip only format check, trailers parsed by git, CI range covers whole first push

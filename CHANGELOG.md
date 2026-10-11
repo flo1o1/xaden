@@ -10,6 +10,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - Project generation copies only git-tracked template files; untracked or ignored files (`.env`, `node_modules/`, `inbox/` content) are never copied or committed. Symlinks are refused; failed runs remove the partial project.
 
 ### Fixed
+- Merge/Revert/fixup!/squash! commits no longer bypass ID checks; `Refs:` is parsed as a git trailer; CI checks every commit of a first push or pull request (`verify-commits.sh --ci`).
 - Requirements validation rejects empty text or acceptance criteria, invalid dates and (for releases) template placeholders; `feat`/`fix` commits may only reference approved, in-progress or done requirements.
 - Smoke test failures now show the command output; tests ignore global git config; tool fixtures are mandatory in CI and visibly skipped locally.
 - Python projects were never detected unless pyproject.toml, setup.py and requirements*.txt all existed.
