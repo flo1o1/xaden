@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/assets/xaden.png" alt="Xaden logo: a hooded figure with two swords" width="160"></p>
+
 # Xaden
 
 A tool-agnostic starter for AI-assisted ("vibe") coding that keeps quality, security and
