@@ -8,7 +8,8 @@
 MANAGED_PATHS="scripts/ prompts/ presets/ .claude/commands/ .semgrep/ .github/workflows/
 .github/copilot-instructions.md .continue/ .clinerules .aider.conf.yml .obsidian/app.json
 .obsidian/core-plugins.json .obsidian/templates.json AGENTS.md CLAUDE.md docs/clean-code.md
-docs/security.md docs/local-llm.md docs/decisions/0000-template.md .editorconfig .gitattributes
+docs/security.md docs/local-llm.md docs/decisions/0000-template.md docs/security-reviews/0000-template.md
+.editorconfig .gitattributes
 inbox/README.md"
 
 # Where a project records which scaffold version and files it was built from.

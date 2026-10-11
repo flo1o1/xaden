@@ -89,6 +89,8 @@ Details and examples: `docs/clean-code.md` (same IDs).
   dependencies — and before every release — run a security review:
   - Claude Code: `/security` (uses the `alice-security-engineer` skill if installed).
   - Any other LLM: paste `prompts/security-review.md` plus the changed files.
+  - Save the report in `docs/security-reviews/` (scope, evidence, limitations, findings, status).
+    A completed checklist is not proof of security.
 - Never hardcode or print secrets. Never commit `.env`. Ask before adding dependencies and follow
   the dependency policy in `docs/security.md`; accepted vulnerabilities go to
   `docs/security-exceptions.md` with owner and expiry.

@@ -140,6 +140,13 @@ test_generated_project() {
   for topic in '^## Reporting a vulnerability' '^## Secret rotation' '^## Incident response basics' 'SBOM'; do
     assert "SECURITY.md covers: $topic" grep -q "$topic" "$PROJECT/SECURITY.md"
   done
+  # REQ-032 recorded security review reports
+  for topic in '^## Scope' '^## Evidence' '^## Limitations' '^## Findings' '^## Remediation summary'; do
+    assert "review report template has: $topic" grep -q "$topic" "$PROJECT/docs/security-reviews/0000-template.md"
+  done
+  assert "review prompt writes the report" grep -q 'docs/security-reviews/0000-template.md' "$PROJECT/prompts/security-review.md"
+  assert "review prompt says a checklist is not proof" grep -q 'not proof of security' "$PROJECT/prompts/security-review.md"
+  assert "review template is updated with the scaffold" is_managed docs/security-reviews/0000-template.md
   local owned
   for owned in SECURITY.md docs/threat-model.md docs/security-exceptions.md; do
     assert_fails "$owned is project-owned, never overwritten by updates" is_managed "$owned"

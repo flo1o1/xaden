@@ -34,12 +34,21 @@ prompt is the tool-independent equivalent.)
    - Data retention, deletion and what gets logged
    - Error handling and information leakage; debug flags
    - Dependencies: new or outdated packages, known CVEs, install scripts
+   Look beyond the changed lines: callers, configuration, permissions and dependencies the
+   change relies on.
 3. Run `scripts/check.sh` (secret scan, SAST, dependency audit) and include its findings.
-4. Report each finding: `severity (critical|high|medium|low)` · location `file:line` ·
+   A skipped scanner is a limitation, not a pass.
+4. Write the report from `docs/security-reviews/0000-template.md` to
+   `docs/security-reviews/<date>-<scope>.md`: scope (and what is out of scope), evidence
+   (commands, results, tests), limitations, findings, remediation status.
+   Each finding: `severity (critical|high|medium|low)` · location `file:line` ·
    what an attacker does · minimal fix as code.
-5. Only claim what you verified in the code. Mark guesses as "unverified".
+5. Only claim what you verified in the code. Mark guesses as "unverified". A completed
+   checklist is not proof of security; say so in the limitations.
 6. After my OK, apply fixes with a regression test each; commit `fix(security): <summary>`.
+   Update each finding's status in the report.
 
 ## Done when
 - [ ] Every entry point reviewed or explicitly out of scope
-- [ ] Critical/high findings fixed or accepted by me in writing
+- [ ] Report saved with scope, evidence, limitations, findings and status
+- [ ] Critical/high findings fixed, or accepted by me with owner and expiry
