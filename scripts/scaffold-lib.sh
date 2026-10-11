@@ -73,12 +73,16 @@ template_files() {
   (cd "$1" && find . -type f | sed 's|^\./||' | sort)
 }
 
-# managed_template_files <template-dir>: template files the scaffold manages.
-managed_template_files() {
-  template_files "$1" | while IFS= read -r file; do
+# keep_managed: filter; prints the paths read from stdin (one per line) the scaffold manages.
+keep_managed() {
+  local file
+  while IFS= read -r file; do
     if is_managed "$file"; then printf '%s\n' "$file"; fi
   done
 }
+
+# managed_template_files <template-dir>: template files the scaffold manages.
+managed_template_files() { template_files "$1" | keep_managed; }
 
 # render_file <source> <project-name>: prints a template file with placeholders filled.
 render_file() { sed -e "s/{{PROJECT_NAME}}/$2/g" "$1"; }

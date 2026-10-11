@@ -65,8 +65,7 @@ base_sum() {
 candidate_paths() {
   {
     managed_template_files "$TEMPLATE"
-    { cut -f2 "$PROJECT/$SCAFFOLD_STATE_DIR/manifest" 2>/dev/null || true; } |
-      while IFS= read -r file; do if is_managed "$file"; then printf '%s\n' "$file"; fi; done
+    { cut -f2 "$PROJECT/$SCAFFOLD_STATE_DIR/manifest" 2>/dev/null || true; } | keep_managed
   } | sort -u
 }
 
