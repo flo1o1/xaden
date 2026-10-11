@@ -44,7 +44,7 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 | REQ-037 | Documentation guidance is honest about checks and covers operations | should | done | Docs state check-docs.sh validates structure only; documentation prompt and admin guide ask for timeouts, retries, cancellation, health checks, safe logs, migrations with rollback and tested restores where they apply | 2026-10-11 |
 | REQ-038 | The scaffold is published under the MIT license | should | done | Root LICENSE holds the MIT text; generated projects do not inherit it | 2026-10-11 |
 | REQ-039 | Security checklist and review cover the WSTG test areas missing so far | should | done | security.md and the review prompt cover open redirect, parameter pollution, header injection and smuggling, further injection types, file inclusion, vertical privilege escalation, user enumeration, default credentials, session scope and URL tokens, HSTS, exposed files and methods, client-side secrets, encryption at rest, upload origin and counts, automation and wildcard DoS, ReDoS, audit trail, segregation of duties, postMessage and web storage, payments via a provider; obsolete technologies left out | 2026-10-11 |
-| REQ-040 | Local semgrep rules catch more insecure patterns | should | approved | Rules for open redirect, insecure randomness for secrets, weak password hashing, cookies without security flags, unsafe XML parsing and regular expressions built from input, each proven by fixtures in tests/semgrep for Python and JS where applicable | 2026-10-11 |
+| REQ-040 | Local semgrep rules catch more insecure patterns | should | done | Rules for open redirect, insecure randomness for secrets, weak password hashing, cookies without security flags, unsafe XML parsing and regular expressions built from input, each proven by fixtures in tests/semgrep for Python and JS where applicable | 2026-10-11 |
 
 ## Change log
 
@@ -80,3 +80,4 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 - 2026-10-11 REQ-038 done: MIT LICENSE at the root, chosen by the user; not copied into projects
 - 2026-10-11 REQ-039..REQ-040 added: gaps found by comparing a community WSTG checklist (inbox, untrusted, not copied) with security.md and the semgrep rules.
 - 2026-10-11 REQ-039 done: security.md and review prompt extended with the missing WSTG areas; obsolete items left out
+- 2026-10-11 REQ-040 done: 12 semgrep rules with fixtures; smoke proves an open redirect blocks the pre-commit check

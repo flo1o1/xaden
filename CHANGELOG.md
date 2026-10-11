@@ -21,6 +21,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - Python projects were never detected unless pyproject.toml, setup.py and requirements*.txt all existed.
 
 ### Added
+- Twelve local semgrep rules (Python and JS/TS): open redirect, regular expressions built from request data, `random`/`Math.random` for secrets, fast hashes on passwords, cookies without `secure`/`httpOnly`, unsafe XML parsing (stdlib parsers, entity expansion). Each is proven by fixtures; `docs/security.md` says what the rules cover and what they miss.
 - The scaffold is published under the MIT License (`LICENSE`); generated projects do not inherit it.
 - Completion report format in AGENTS.md §5 (checks run, checks skipped, unresolved findings, acceptance evidence); every working prompt ends with it, and skipped checks are never reported as passed.
 - Security reviews are saved as reports (`docs/security-reviews/`, template managed by the scaffold) with scope, evidence, limitations, findings and remediation status; reviews look at callers, configuration and dependencies, not only changed lines.

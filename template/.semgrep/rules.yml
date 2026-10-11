@@ -58,6 +58,192 @@ rules:
     message: "Debug mode exposes an interactive debugger. Read it from configuration, default off."
     pattern: $APP.run(..., debug=True, ...)
 
+  - id: python-open-redirect
+    languages: [python]
+    severity: ERROR
+    message: "Redirect target comes from the request (open redirect). Redirect to a relative path or an allow-listed host (docs/security.md: Redirects)."
+    mode: taint
+    pattern-sources:
+      - pattern-either:
+          - pattern: request.args
+          - pattern: request.values
+          - pattern: request.form
+          - pattern: request.GET
+          - pattern: request.POST
+    pattern-sinks:
+      - pattern-either:
+          - pattern: redirect($URL, ...)
+          - pattern: HttpResponseRedirect($URL, ...)
+
+  - id: python-regex-from-input
+    languages: [python]
+    severity: ERROR
+    message: "Regular expression built from request data (ReDoS, regex injection). Use re.escape() or plain string matching (docs/security.md: Safe parsing)."
+    mode: taint
+    pattern-sources:
+      - pattern-either:
+          - pattern: request.args
+          - pattern: request.values
+          - pattern: request.form
+          - pattern: request.GET
+          - pattern: request.POST
+    pattern-sanitizers:
+      - pattern: re.escape(...)
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: re.$FUNC($PATTERN, ...)
+          - metavariable-regex:
+              metavariable: $FUNC
+              regex: ^(compile|match|fullmatch|search|findall|finditer|sub|subn|split)$
+          - focus-metavariable: $PATTERN
+
+  - id: python-insecure-random-secret
+    languages: [python]
+    severity: ERROR
+    message: "The random module is predictable; never use it for tokens, passwords or keys. Use the secrets module (docs/security.md: Crypto)."
+    pattern-either:
+      - patterns:
+          - pattern-inside: $NAME = ...
+          - pattern: random.$FUNC(...)
+          - metavariable-regex:
+              metavariable: $NAME
+              regex: (?i).*(token|secret|passw|salt|nonce|otp|api_?key|session).*
+      - patterns:
+          - pattern-inside: |
+              def $FN(...):
+                ...
+          - pattern: random.$FUNC(...)
+          - metavariable-regex:
+              metavariable: $FN
+              regex: (?i).*(token|secret|passw|salt|nonce|otp|api_?key|session).*
+
+  - id: python-weak-password-hash
+    languages: [python]
+    severity: ERROR
+    message: "Fast hashes (MD5, SHA-*) are unsuitable for passwords. Use Argon2id, bcrypt or scrypt (docs/security.md: Authentication)."
+    patterns:
+      - pattern-either:
+          - pattern: hashlib.$HASH(<... $PASSWORD ...>, ...)
+          - pattern: hashlib.$HASH(...).update(<... $PASSWORD ...>)
+          - pattern: hashlib.new($NAME, <... $PASSWORD ...>, ...)
+      - metavariable-regex:
+          metavariable: $HASH
+          regex: ^(md5|sha1|sha224|sha256|sha384|sha512|sha3_\w+|blake2b|blake2s|new)$
+      - metavariable-regex:
+          metavariable: $PASSWORD
+          regex: (?i)^\w*passw(or)?d\w*$
+
+  - id: python-cookie-without-flags
+    languages: [python]
+    severity: WARNING
+    message: "Cookie set without secure=True and httponly=True. Set both (and samesite) unless the cookie must be readable by scripts (docs/security.md: Cookies)."
+    patterns:
+      - pattern: $RESPONSE.set_cookie(...)
+      - pattern-not: $RESPONSE.set_cookie(..., secure=True, ..., httponly=True, ...)
+      - pattern-not: $RESPONSE.set_cookie(..., httponly=True, ..., secure=True, ...)
+
+  - id: python-unsafe-xml-parser
+    languages: [python]
+    severity: WARNING
+    message: "The standard library XML parsers are not safe against malicious XML (entity expansion). Parse untrusted XML with defusedxml (docs/security.md: Safe parsing)."
+    pattern-either:
+      - pattern: xml.etree.ElementTree.parse(...)
+      - pattern: xml.etree.ElementTree.fromstring(...)
+      - pattern: xml.etree.ElementTree.XML(...)
+      - pattern: xml.etree.ElementTree.iterparse(...)
+      - pattern: xml.dom.minidom.parse(...)
+      - pattern: xml.dom.minidom.parseString(...)
+      - pattern: xml.sax.parse(...)
+      - pattern: xml.sax.parseString(...)
+      - pattern: lxml.etree.XMLParser(..., resolve_entities=True, ...)
+      - pattern: lxml.etree.XMLParser(..., no_network=False, ...)
+
+  - id: js-open-redirect
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "Redirect target comes from the request (open redirect). Redirect to a relative path or an allow-listed host (docs/security.md: Redirects)."
+    mode: taint
+    pattern-sources:
+      - pattern-either:
+          - pattern: $REQ.query
+          - pattern: $REQ.body
+          - pattern: $REQ.params
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: $RES.redirect($URL)
+              - pattern: $RES.redirect($STATUS, $URL)
+          - focus-metavariable: $URL
+
+  - id: js-regex-from-input
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "Regular expression built from request data (ReDoS, regex injection). Escape the input or use plain string matching (docs/security.md: Safe parsing)."
+    mode: taint
+    pattern-sources:
+      - pattern-either:
+          - pattern: $REQ.query
+          - pattern: $REQ.body
+          - pattern: $REQ.params
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: new RegExp($PATTERN, ...)
+              - pattern: RegExp($PATTERN, ...)
+          - focus-metavariable: $PATTERN
+
+  - id: js-insecure-random-secret
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "Math.random is predictable; never use it for tokens, passwords or keys. Use crypto.randomBytes or crypto.randomUUID (docs/security.md: Crypto)."
+    pattern-either:
+      - patterns:
+          - pattern-either:
+              - pattern-inside: const $NAME = ...
+              - pattern-inside: let $NAME = ...
+              - pattern-inside: $NAME = ...
+          - pattern: Math.random()
+          - metavariable-regex:
+              metavariable: $NAME
+              regex: (?i).*(token|secret|passw|salt|nonce|otp|api_?key|session).*
+      - patterns:
+          - pattern-inside: |
+              function $FN(...) { ... }
+          - pattern: Math.random()
+          - metavariable-regex:
+              metavariable: $FN
+              regex: (?i).*(token|secret|passw|salt|nonce|otp|api_?key|session).*
+
+  - id: js-weak-password-hash
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "Fast hashes (MD5, SHA-*) are unsuitable for passwords. Use Argon2id, bcrypt or scrypt (docs/security.md: Authentication)."
+    patterns:
+      - pattern: $CRYPTO.createHash($ALGORITHM).update(<... $PASSWORD ...>, ...)
+      - metavariable-regex:
+          metavariable: $PASSWORD
+          regex: (?i)^\w*passw(or)?d\w*$
+
+  - id: js-cookie-without-flags
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "Cookie set without secure: true and httpOnly: true. Set both (and sameSite) unless the cookie must be readable by scripts (docs/security.md: Cookies)."
+    patterns:
+      - pattern-either:
+          - pattern: $RES.cookie($NAME, $VALUE)
+          - pattern: $RES.cookie($NAME, $VALUE, $OPTIONS)
+      - pattern-not: "$RES.cookie($NAME, $VALUE, {..., secure: true, ..., httpOnly: true, ...})"
+      - pattern-not: "$RES.cookie($NAME, $VALUE, {..., httpOnly: true, ..., secure: true, ...})"
+
+  - id: js-xml-external-entities
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "noent: true expands external entities (XXE). Remove it (docs/security.md: Safe parsing)."
+    pattern-either:
+      - pattern: "$LIB.parseXml($XML, {..., noent: true, ...})"
+      - pattern: "$LIB.parseXmlString($XML, {..., noent: true, ...})"
+
   - id: js-eval
     languages: [javascript, typescript]
     severity: ERROR

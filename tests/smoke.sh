@@ -207,6 +207,10 @@ test_staged_checks() {
     printf 'def run(user_input):\n    return eval(user_input)\n' >"$PROJECT/unsafe.py"
     git -C "$PROJECT" add unsafe.py
     assert_fails "staged check blocks eval via local semgrep rule" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
+    # REQ-040 the new rules ship with projects and run in the pre-commit check
+    printf 'from flask import redirect, request\n\n\ndef go():\n    return redirect(request.args.get("next"))\n' >"$PROJECT/unsafe.py"
+    git -C "$PROJECT" add unsafe.py
+    assert_fails "staged check blocks an open redirect via local semgrep rule" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
   fi
   git -C "$PROJECT" reset -q --hard
   rm -f "$PROJECT/clean.py" "$PROJECT/unsafe.py"

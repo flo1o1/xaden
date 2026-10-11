@@ -4,6 +4,10 @@ Baseline: the OWASP ASVS level chosen in `docs/threat-model.md` says *what* to b
 the OWASP Web Security Testing Guide (WSTG) says *how* to test it; the OWASP Top 10 names the
 most common failures. Applies to AI-generated code at least as much as to hand-written code.
 Sections marked *(web)* apply only to software with a browser client.
+Local semgrep rules (`.semgrep/rules.yml`, run by `scripts/check.sh`) catch simple forms of some
+items — shell and code injection, SQL strings, unsafe deserialization and XML, open redirects,
+regexes from input, weak randomness and password hashes, cookie flags, disabled TLS checks.
+Pattern rules miss data that flows through other functions; everything else needs review and tests.
 
 ## All applications
 

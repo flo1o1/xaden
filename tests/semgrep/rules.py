@@ -1,8 +1,17 @@
+# REQ-014, REQ-040: fixtures for template/.semgrep/rules.yml (semgrep --test in check-scaffold.sh).
+import hashlib
 import pickle
+import random
+import re
+import secrets
 import subprocess
+import xml.etree.ElementTree as ET
 
+import defusedxml.ElementTree
 import requests
 import yaml
+from flask import redirect, request
+from lxml import etree
 
 
 def fixtures(cursor, user_input, app):
@@ -26,3 +35,72 @@ def fixtures(cursor, user_input, app):
     requests.get("https://example.invalid", verify=False)
     # ruleid: python-debug-server
     app.run(debug=True)
+
+
+def redirect_fixtures():
+    target = request.args.get("next")
+    # ruleid: python-open-redirect
+    redirect(target)
+    # ruleid: python-open-redirect
+    redirect(request.form["next"])
+    # ok: python-open-redirect
+    return redirect("/home")
+
+
+def regex_fixtures(text):
+    term = request.args.get("q")
+    # ruleid: python-regex-from-input
+    re.search(term, text)
+    # ruleid: python-regex-from-input
+    re.compile(request.form["pattern"])
+    # ok: python-regex-from-input
+    re.search(re.escape(term), text)
+    # ok: python-regex-from-input
+    return re.match(r"^[a-z]+$", text)
+
+
+def make_reset_token():
+    # ruleid: python-insecure-random-secret
+    return str(random.randint(100000, 999999))
+
+
+def random_fixtures():
+    # ruleid: python-insecure-random-secret
+    api_key = random.getrandbits(128)
+    # ok: python-insecure-random-secret
+    delay = random.uniform(0.1, 0.5)
+    # ok: python-insecure-random-secret
+    session_token = secrets.token_urlsafe(32)
+    return api_key, delay, session_token
+
+
+def hash_fixtures(password, data):
+    # ruleid: python-weak-password-hash
+    digest = hashlib.sha256(password.encode()).hexdigest()
+    # ruleid: python-weak-password-hash
+    legacy = hashlib.md5(user_password)
+    # ok: python-weak-password-hash
+    checksum = hashlib.sha256(data).hexdigest()
+    # ok: python-weak-password-hash
+    derived = hashlib.scrypt(password.encode(), salt=b"salt", n=16384, r=8, p=1)
+    return digest, legacy, checksum, derived
+
+
+def cookie_fixtures(response, token):
+    # ruleid: python-cookie-without-flags
+    response.set_cookie("session", token)
+    # ruleid: python-cookie-without-flags
+    response.set_cookie("session", token, secure=True)
+    # ok: python-cookie-without-flags
+    response.set_cookie("session", token, secure=True, httponly=True, samesite="Lax")
+    # ok: python-cookie-without-flags
+    response.set_cookie("session", token, httponly=True, samesite="Strict", secure=True)
+
+
+def xml_fixtures(document):
+    # ruleid: python-unsafe-xml-parser
+    ET.fromstring(document)
+    # ruleid: python-unsafe-xml-parser
+    etree.XMLParser(resolve_entities=True)
+    # ok: python-unsafe-xml-parser
+    return defusedxml.ElementTree.fromstring(document)
