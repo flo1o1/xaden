@@ -35,6 +35,7 @@ main() {
   next="$(bump_version "$current" "$part")"
 
   "$SCRIPTS/check.sh" --strict # every required tool must run (REQ-019)
+  "$SCRIPTS/check-requirements.sh" --release || die "replace template placeholders in the requirements first"
   "$SCRIPTS/check-docs.sh" --release || die "documentation incomplete; run the documentation prompt (/docs)"
   stamp_changelog CHANGELOG.md "$next"
   stamp_docs "$next"

@@ -45,7 +45,7 @@ fi
 info "check mode: $MODE"
 run_step "scaffold requirements" "$TEMPLATE_SCRIPTS/check-requirements.sh" "$ROOT/docs/requirements/REQUIREMENTS.md"
 run_step "scaffold traceability" env PROJECT_ROOT="$ROOT" "$TEMPLATE_SCRIPTS/check-traceability.sh"
-run_step "template requirements format" env PROJECT_ROOT="$ROOT/template" "$TEMPLATE_SCRIPTS/check-requirements.sh"
+run_step "template requirements format" env PROJECT_ROOT="$ROOT/template" ALLOW_TEMPLATE_PLACEHOLDERS=1 "$TEMPLATE_SCRIPTS/check-requirements.sh"
 run_step "template docs structure" env PROJECT_ROOT="$ROOT/template" "$TEMPLATE_SCRIPTS/check-docs.sh"
 lint_shell "$MODE"
 scan_secrets "$MODE"

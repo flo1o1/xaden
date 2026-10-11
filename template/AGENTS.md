@@ -31,7 +31,9 @@ Explicit user instructions in the current session override this file.
   **update the requirements file first, then write code.**
 - IDs are stable. Never delete or renumber; set status `dropped` instead.
 - Add one line to the `Change log` section of the requirements file per change.
-- Run `scripts/check-requirements.sh` after editing; it validates the format.
+- Run `scripts/check-requirements.sh` after editing; it validates fields, statuses and dates.
+- Lifecycle: `draft` (idea) → `approved` by the user → `in-progress` → `done` (with a citing test).
+  `feat`/`fix` commits may only reference approved, in-progress or done requirements.
 
 ## 3. Clean code rules
 

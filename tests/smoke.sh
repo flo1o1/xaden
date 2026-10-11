@@ -95,7 +95,12 @@ test_generated_project() {
   assert "pack-context works" "$PROJECT/scripts/pack-context.sh" feature
   assert_fails "pack-context rejects path traversal" "$PROJECT/scripts/pack-context.sh" ../AGENTS
   assert_fails "bad commit message rejected" "$PROJECT/scripts/hooks/commit-msg" "$(msg "did stuff\n")"
-  assert "feat with valid Refs accepted" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat(api): add endpoint\n\nRefs: REQ-001\n')"
+  assert_fails "feat citing a draft requirement rejected (REQ-021)" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat(api): add endpoint\n\nRefs: REQ-001\n')"
+  sed 's/| must     | draft  |/| must     | approved |/' "$PROJECT/docs/requirements/REQUIREMENTS.md" >"$WORKDIR/approved.md"
+  cp "$WORKDIR/approved.md" "$PROJECT/docs/requirements/REQUIREMENTS.md"
+  git -C "$PROJECT" add docs/requirements/REQUIREMENTS.md
+  assert "feat citing an approved requirement accepted" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat(api): add endpoint\n\nRefs: REQ-001\n')"
+  git -C "$PROJECT" reset -q --hard
   assert_fails "feat without Refs rejected" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat(api): add endpoint\n')"
   assert_fails "invented requirement ID rejected" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat(api): add x\n\nRefs: REQ-042\n')" # traceability: ignore
   assert_fails "invented rule ID rejected" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'refactor: tidy per CC-77\n')"
@@ -107,6 +112,14 @@ test_generated_project() {
 
   sed 's/ draft / bogus /' "$PROJECT/docs/requirements/REQUIREMENTS.md" >"$WORKDIR/bad.md"
   assert_fails "invalid requirement status rejected" "$PROJECT/scripts/check-requirements.sh" "$WORKDIR/bad.md"
+  # REQ-021 complete fields and real dates
+  awk -F'|' 'BEGIN { OFS = "|" } /^\| REQ-001/ { $6 = " " } { print }' "$PROJECT/docs/requirements/REQUIREMENTS.md" >"$WORKDIR/empty-acceptance.md"
+  assert_fails "empty acceptance criteria rejected" "$PROJECT/scripts/check-requirements.sh" "$WORKDIR/empty-acceptance.md"
+  awk -F'|' 'BEGIN { OFS = "|" } /^\| REQ-001/ { $7 = " not-a-date " } { print }' "$PROJECT/docs/requirements/REQUIREMENTS.md" >"$WORKDIR/bad-date.md"
+  assert_fails "invalid date rejected" "$PROJECT/scripts/check-requirements.sh" "$WORKDIR/bad-date.md"
+  awk -F'|' 'BEGIN { OFS = "|" } /^\| REQ-001/ { $7 = " {{DATE}} " } { print }' "$PROJECT/docs/requirements/REQUIREMENTS.md" >"$WORKDIR/placeholder-date.md"
+  assert_fails "unfilled date placeholder rejected in projects" "$PROJECT/scripts/check-requirements.sh" "$WORKDIR/placeholder-date.md"
+  assert_fails "placeholder requirement blocks a release" "$PROJECT/scripts/check-requirements.sh" --release
 }
 
 # REQ-012 usable by others (setup after clone, CI commit checks)
@@ -160,6 +173,10 @@ test_stack_enforcement() {
 # REQ-007 release, REQ-010 docs gate
 test_release() {
   assert_fails "release blocked by TODO markers in docs" "$PROJECT/scripts/release.sh" patch
+  sed 's/Describe the first requirement here/Users can export data as CSV/' \
+    "$PROJECT/docs/requirements/REQUIREMENTS.md" >"$WORKDIR/real-req.md"
+  cp "$WORKDIR/real-req.md" "$PROJECT/docs/requirements/REQUIREMENTS.md"
+  git -C "$PROJECT" commit -q -am "docs(requirements): replace placeholder"
   if need_tool gitleaks "release without scanner fixture"; then
     sed -i.bak '/TODO/d' "$PROJECT"/docs/*-guide.md && rm -f "$PROJECT"/docs/*.bak
     git -C "$PROJECT" commit -q -am "docs: fill guides"

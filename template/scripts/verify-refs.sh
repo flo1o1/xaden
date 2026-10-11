@@ -36,6 +36,26 @@ check_cited_ids() {
   done < <(grep -oE 'REQ-[0-9]{3,}|CC-[0-9]{2}' "$MESSAGE_FILE" | sort -u)
 }
 
+# requirement_status <REQ-nnn>: status column of the requirement as committed.
+requirement_status() {
+  printf '%s\n' "$REQUIREMENTS_TEXT" | awk -F'|' -v id="$1" '
+    { gsub(/^[ \t]+|[ \t]+$/, "", $2); gsub(/^[ \t]+|[ \t]+$/, "", $5) }
+    $2 == id { print $5 }'
+}
+
+# check_referenced_status <refs-text>: feat/fix may only implement approved, in-progress or
+# done requirements; drafts must be approved first, dropped ones are gone (REQ-021).
+check_referenced_status() {
+  local id status
+  for id in $(printf '%s' "$1" | grep -oE 'REQ-[0-9]{3,}' | sort -u); do
+    status="$(requirement_status "$id")"
+    case "$status" in
+      approved | in-progress | done) ;;
+      *) die "$id has status '$status'; feat/fix may only reference approved, in-progress or done requirements" ;;
+    esac
+  done
+}
+
 # check_required_trailer: feat/fix must say which requirement they serve.
 check_required_trailer() {
   local type refs
@@ -45,6 +65,7 @@ check_required_trailer() {
     feat) printf '%s' "$refs" | grep -Eq 'REQ-[0-9]{3,}' || die "feat commits need a 'Refs: REQ-nnn' trailer" ;;
     fix) printf '%s' "$refs" | grep -Eq 'REQ-[0-9]{3,}|none' || die "fix commits need 'Refs: REQ-nnn' or 'Refs: none'" ;;
   esac
+  case "$type" in feat | fix) check_referenced_status "$refs" ;; esac
 }
 
 check_cited_ids
