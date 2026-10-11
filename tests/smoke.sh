@@ -449,6 +449,17 @@ test_assistant_plugins() {
   done
 }
 
+# REQ-054 look for mature existing solutions before building
+test_look_before_build() {
+  local item
+  for item in 'Look before you build' 'search the web for a mature solution' 'name, one-line summary, license, website' \
+    'No web access: say so'; do
+    assert "AGENTS.md rule covers: $item" grep -q -- "$item" "$PROJECT/AGENTS.md"
+  done
+  assert "feature prompt applies the rule" grep -q 'Look before you build (AGENTS.md' "$PROJECT/prompts/feature.md"
+  assert "pack carries the rule" grep -q 'Look before you build' "$PROJECT/context-pack.md"
+}
+
 # REQ-024 releases never leave a partial state
 test_release_failures() {
   local head hooks="$WORKDIR/failing-hooks"
@@ -804,6 +815,7 @@ test_stack_enforcement
 test_optional_tools
 test_dependency_vetting
 test_assistant_plugins
+test_look_before_build
 test_traceability
 test_scaffold_update
 test_release

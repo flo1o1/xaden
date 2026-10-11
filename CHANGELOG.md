@@ -27,6 +27,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - Python projects were never detected unless pyproject.toml, setup.py and requirements*.txt all existed.
 
 ### Added
+- "Look before you build" rule (AGENTS.md §9, feature prompt): before writing something others have likely solved, assistants search for mature existing solutions and offer them as options with name, summary, license, website and maturity; adopting one follows the dependency approval and registry check.
 - Optional tools, suggested where they fit: the full `scripts/check.sh` prints `TIP:` lines for actionlint and zizmor (GitHub workflows), jscpd (duplication), vulture or knip (dead code), Hypothesis or fast-check (property-based tests) and mutmut or StrykerJS (mutation testing), depending on the project's language. Adopted tools run in the check; tips never change the result. `docs/optional-tools.md` also lists Claude Code plugins for deeper reviews (Anthropic `code-review`/`security-guidance`, Trail of Bits, Ponytail).
 - GETTING-STARTED documents [Ponytail](https://github.com/DietrichGebert/ponytail) as an optional add-on rule set (install per tool, trusted sources); nothing is installed automatically. AGENTS.md §10 states that add-on rule sets never override the project rules.
 - Migration rules for persisted data in `docs/architecture.md`: versioned formats, automatic migration, isolated failures with a message, old data kept until migrated, a test per old version. The release prompt treats incompatible data, API and configuration format changes as major.

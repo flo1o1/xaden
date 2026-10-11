@@ -21,7 +21,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-042 | job | should | done | Projects document their architecture with rules for new code |
 | REQ-050 | job | should | done | Optional add-on rule sets such as Ponytail are documented and never override the project rules |
 | REQ-053 | job | could | done | Optional assistant plugins for review and security are documented in every project |
-| REQ-054 | job | should | approved | Assistants look for mature existing solutions before building their own |
+| REQ-054 | job | should | done | Assistants look for mature existing solutions before building their own |
 
 ## Project setup (`project-setup`)
 

@@ -153,6 +153,12 @@ Details and examples: `docs/clean-code.md` (same IDs).
 - Order of work (CC-09): for a feature, refactor first (separate commit, tests green) only when
   the change would be hard otherwise, then test-first; for a bug fix, a failing regression test
   first, then the smallest fix, then refactor if needed.
+- **Look before you build.** Before writing something others have likely solved (parsing, auth,
+  dates, retries, file formats, UI widgets, algorithms), check this codebase, the standard library
+  and installed dependencies, then search the web for a mature solution. Offer each candidate as an
+  option next to building it: name, one-line summary, license, website, maturity (maintenance,
+  adoption). The user decides; adding one is a dependency (§10, `docs/security.md` → Dependencies).
+  No web access: say so, and mark candidates named from memory as unverified.
 - Prefer boring, widely used libraries; justify every new dependency.
 - Prompts live in `prompts/` (an Obsidian vault). Improve a prompt there instead of
   re-explaining the same thing in chat.

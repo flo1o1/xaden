@@ -2,7 +2,7 @@
 title: Build a feature
 type: prompt
 status: stable
-version: 1.1.0
+version: 1.2.0
 works-with: [claude-code, chatgpt, local-llm]
 tags: [prompt, development]
 ---
@@ -23,7 +23,9 @@ Implement one capability, test-first, tracked in requirements.
    "<title>"`: *When …, I want to …, so I can …*) and a change-log line.
    **Approval point:** show me the file; after my OK set it to `in-progress`.
    If it conflicts with an existing requirement, stop and ask me.
-3. Plan in at most 5 small steps, placing code as `docs/architecture.md` → "Rules for new code"
+3. Look before you build (AGENTS.md §9): if a mature library, service or platform feature
+   could cover the feature, list the candidates (name, summary, license, website, maturity).
+   **Approval point** if I pick one. Then plan in at most 5 small steps, placing code as `docs/architecture.md` → "Rules for new code"
    says; if the feature changes the structure, update that file in the same change.
    **Approval point** if the plan touches more than 2 files or adds a dependency.
 4. If the code is hard to change for this feature, refactor first ([[refactor]], separate
