@@ -76,6 +76,16 @@ test_generated_project() {
   assert_fails "invalid requirement status rejected" "$PROJECT/scripts/check-requirements.sh" "$WORKDIR/bad.md"
 }
 
+test_setup_and_commit_checks() {
+  git -C "$PROJECT" config --unset core.hooksPath
+  assert "setup activates hooks" "$PROJECT/scripts/setup.sh"
+  assert "hooks path restored" test "$(git -C "$PROJECT" config core.hooksPath)" = "scripts/hooks"
+  assert "verify-commits accepts valid history" "$PROJECT/scripts/verify-commits.sh" HEAD~1..HEAD
+  git -C "$PROJECT" commit -q --allow-empty --no-verify -m "feat: sneaked past hooks"
+  assert_fails "verify-commits catches skipped hooks" "$PROJECT/scripts/verify-commits.sh" HEAD~1..HEAD
+  git -C "$PROJECT" reset -q --hard HEAD~1
+}
+
 test_release() {
   assert_fails "release blocked by TODO markers in docs" "$PROJECT/scripts/release.sh" patch
   sed -i.bak '/TODO/d' "$PROJECT"/docs/*-guide.md && rm -f "$PROJECT"/docs/*.bak
@@ -93,5 +103,6 @@ export GIT_COMMITTER_NAME=smoke GIT_COMMITTER_EMAIL=smoke@example.invalid
 test_bump_version
 test_new_project
 test_generated_project
+test_setup_and_commit_checks
 test_release
 info "smoke test passed ($PASSED assertions)"

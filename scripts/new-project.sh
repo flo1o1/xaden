@@ -10,7 +10,7 @@ SCAFFOLD_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$SCAFFOLD_ROOT/scripts/lib.sh"
 
 # Files that belong to the scaffold itself, not to generated projects.
-SCAFFOLD_ONLY="tests scripts/new-project.sh README.md CHANGELOG.md VERSION"
+SCAFFOLD_ONLY="tests scripts/new-project.sh README.md GETTING-STARTED.md CHANGELOG.md VERSION"
 
 # validate_name <name>: dies unless the name is a safe directory/package name.
 validate_name() {

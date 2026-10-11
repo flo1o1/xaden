@@ -20,9 +20,12 @@ Cursor, Codex, Copilot and local models (Ollama, LM Studio).
 | Obsidian | Open the folder as a vault; prompts have frontmatter, wikilinks, a template folder |
 | Chat UIs / small models | `scripts/pack-context.sh` builds one pasteable file |
 
+New here? Read **[GETTING-STARTED.md](GETTING-STARTED.md)** — prerequisites to first release.
+
 ## Create a project
 
 ```bash
+scripts/setup.sh                         # once after cloning: hooks + tool check
 scripts/new-project.sh my-app            # creates ../my-app with git, hooks, first commit
 scripts/new-project.sh my-app ~/code/x   # custom location
 ```
@@ -53,7 +56,7 @@ AGENTS.md  CLAUDE.md  .aider.conf.yml  .clinerules  .continue/  .github/
 .claude/commands/     slash commands wrapping prompts/
 prompts/              Obsidian vault content (open repo root as vault)
 docs/                 user-guide, admin-guide, requirements, decisions (ADR), clean-code, security, local-llm
-scripts/              check, release, hooks, new-project, pack-context
+scripts/              setup, check, release, hooks, new-project, pack-context, req, context-status
 ```
 
 See `docs/local-llm.md` for non-Claude tools.

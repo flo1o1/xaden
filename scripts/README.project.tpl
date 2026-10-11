@@ -8,8 +8,8 @@ analysed, security-reviewed, SemVer-versioned.
 ## Quick start
 
 ```bash
-git config core.hooksPath scripts/hooks   # already set by the scaffold
-scripts/check.sh                          # static analysis + requirements check
+scripts/setup.sh   # once after every clone: activates git hooks, lists missing tools
+scripts/check.sh   # static analysis, requirements and docs checks
 ```
 
 Start an AI session by pointing the tool at this folder, then run the kickoff prompt:
