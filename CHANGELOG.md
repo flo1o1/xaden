@@ -45,6 +45,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - `scripts/setup.sh` for fresh clones, commit-message checks in CI, GETTING-STARTED guide.
 
 ### Changed
+- Commit hooks are faster with many requirements: the traceability check reads each test file once, and the commit-msg check exports the staged requirements in one step.
 - Loosening a linter or type-checker rule, raising a threshold or adding a suppression is an approval point (AGENTS.md §5); when adopting linters on existing code, violations go into a baseline that may only shrink.
 - `docs/clean-code.md` adds design heuristics (composition root, do-or-coordinate, polymorphism over repeated switches, visible order dependencies, Law of Demeter, size heuristics), naming by scope, comment upkeep and language, refactoring techniques, and test practices (state over interaction, no logic in tests, flaky tests, test doubles, pyramid, Given/When/Then). The ESLint preset forbids `var`.
 - Security checklist and review prompt cover more OWASP WSTG test areas: open redirect, parameter pollution, header injection and request smuggling, NoSQL/LDAP/XPath/template injection, file inclusion, vertical privilege escalation, user enumeration, default accounts, session scope and tokens in URLs, HSTS, exposed files and methods, client-side secrets, encryption at rest, upload origin and limits, anti-automation, `LIKE` wildcards, ReDoS, audit trail, segregation of duties, `postMessage` and web storage, card payments via a provider.
