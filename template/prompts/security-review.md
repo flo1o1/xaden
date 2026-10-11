@@ -53,3 +53,4 @@ prompt is the tool-independent equivalent.)
 - [ ] Every entry point reviewed or explicitly out of scope
 - [ ] Report saved with scope, evidence, limitations, findings and status
 - [ ] Critical/high findings fixed, or accepted by me with owner and expiry
+- [ ] Completion report given (AGENTS.md §5): checks run, checks skipped, unresolved findings, acceptance evidence

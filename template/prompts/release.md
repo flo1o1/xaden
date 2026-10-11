@@ -28,3 +28,4 @@ Choose the correct SemVer bump and cut the release safely.
 
 ## Done when
 - [ ] Tag `vX.Y.Z` exists locally
+- [ ] Completion report given (AGENTS.md §5): checks run, checks skipped, unresolved findings, acceptance evidence

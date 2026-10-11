@@ -40,3 +40,4 @@ Implement one capability, test-first, tracked in requirements.
 - [ ] Acceptance criteria met and tested
 - [ ] `scripts/check.sh` passes
 - [ ] Requirements, changelog, docs, security review handled
+- [ ] Completion report given (AGENTS.md §5): checks run, checks skipped, unresolved findings, acceptance evidence

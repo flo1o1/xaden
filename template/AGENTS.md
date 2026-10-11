@@ -76,6 +76,16 @@ Details and examples: `docs/clean-code.md` (same IDs).
 - Every run ends with a summary: passed, failed, skipped. A run with skipped checks is
   INCOMPLETE, never a success; CI and releases use `--strict`, where missing tools fail.
 - Do not claim success unless the check passed. Report failures and skipped checks verbatim.
+- End every task with a completion report. A check you could not run is listed as skipped,
+  never as passed; "none" is only written when it is true.
+
+  ```
+  COMPLETION REPORT
+  Checks run:          <command> — passed | failed (quote the failing lines)
+  Checks skipped:      <check> — reason   (or: none)
+  Unresolved findings: <finding> — where, why open   (or: none)
+  Acceptance evidence: REQ-nnn — test name or command output that shows it is met
+  ```
 
 ## 6. Security (mandatory)
 

@@ -30,3 +30,4 @@ Keep `docs/requirements/REQUIREMENTS.md` true after scope changed in this sessio
 ## Done when
 - [ ] Validation passes
 - [ ] I confirmed the summary
+- [ ] Completion report given (AGENTS.md §5): checks run, checks skipped, unresolved findings, acceptance evidence

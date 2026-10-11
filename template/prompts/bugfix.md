@@ -30,3 +30,4 @@ Fix the root cause, prove it with a regression test.
 ## Done when
 - [ ] Regression test exists and passes
 - [ ] `scripts/check.sh` passes
+- [ ] Completion report given (AGENTS.md §5): checks run, checks skipped, unresolved findings, acceptance evidence

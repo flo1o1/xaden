@@ -42,3 +42,4 @@ Turn my idea into tracked requirements, a stack decision, and a first runnable s
 - [ ] Threat model filled; open questions listed
 - [ ] Skeleton runs; `scripts/check.sh` passes
 - [ ] Decision record and README written
+- [ ] Completion report given (AGENTS.md §5): checks run, checks skipped, unresolved findings, acceptance evidence

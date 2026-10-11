@@ -412,6 +412,12 @@ test_prompt_workflow() {
   assert_fails "no prompt uses an unmarked wait phrase" grep -lE 'Wait for my confirmation|Ask me before installing|wait for my OK' "$prompts"/*.md
   assert_fails "feature prompt does not skip requirement approval" grep -q 'status .in-progress.) and' "$prompts/feature.md"
   assert "bugfix is regression-test first" grep -q 'Do not change production code before the test fails' "$prompts/bugfix.md"
+  # REQ-036 truthful completion report
+  assert "AGENTS.md defines the completion report" bash -c "grep -q '^  COMPLETION REPORT' '$PROJECT/AGENTS.md' && grep -q 'Checks skipped:' '$PROJECT/AGENTS.md' && grep -q 'Acceptance evidence:' '$PROJECT/AGENTS.md'"
+  assert "skipped checks are never reported as passed" grep -q 'listed as skipped,' "$PROJECT/AGENTS.md"
+  for name in kickoff feature bugfix refactor requirements-update security-review release documentation; do
+    assert "$name prompt ends with the completion report" grep -q 'Completion report given' "$prompts/$name.md"
+  done
   assert "feature refactors first only when needed" grep -q 'refactor first (\[\[refactor\]\]' "$prompts/feature.md"
 }
 

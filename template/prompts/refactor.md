@@ -28,3 +28,4 @@ Improve structure without changing behaviour.
 ## Done when
 - [ ] Behaviour unchanged (tests identical or only added)
 - [ ] Smell list resolved or consciously deferred (note in commit body)
+- [ ] Completion report given (AGENTS.md §5): checks run, checks skipped, unresolved findings, acceptance evidence

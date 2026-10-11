@@ -39,3 +39,4 @@ to the code: installation, system requirements, configuration, usage, security, 
 - [ ] No TODO markers in scope; headings intact
 - [ ] Every setting, port and dependency in the code appears in the guides
 - [ ] Unknown facts were asked, not guessed
+- [ ] Completion report given (AGENTS.md §5): checks run, checks skipped, unresolved findings, acceptance evidence
