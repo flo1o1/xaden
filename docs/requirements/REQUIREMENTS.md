@@ -50,6 +50,10 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 | REQ-043 | Persisted data formats are versioned and migrated without data loss | should | done | Architecture template and clean-code.md state versioned formats, automatic migration, partial failure isolated with a message, tests per old version; release prompt counts incompatible data, file, API or config format changes as major | 2026-10-11 |
 | REQ-044 | Linter configuration only gets stricter without user approval | should | done | AGENTS.md: loosening rules or thresholds is an approval point; adopting linters on existing code uses a baseline that may only shrink | 2026-10-11 |
 | REQ-045 | The scaffold depends on no personal tools, skills or accounts | must | done | Scaffold and generated projects name no personal skills, plugins or private tools; features work with what the README lists as prerequisites; a smoke test rejects named skills in the template | 2026-10-11 |
+| REQ-046 | Functional requirements are written as Jobs To Be Done; quality requirements as measurable goals | should | approved | type job needs a job story (When, I want to, so I can); type quality needs a quality goal; both need acceptance criteria; validated by check-requirements.sh; TODO text warns and blocks releases | 2026-10-11 |
+| REQ-047 | One file per requirement, grouped in epic folders | should | approved | docs/requirements/<epic>/REQ-nnn-<slug>.md with front matter (id, type, epic, priority, status, updated) and an EPIC.md per folder; IDs stay global REQ-nnn; a generated INDEX.md must be current; req.sh lists, shows and creates requirements; all tools and the commit hook read the new layout | 2026-10-11 |
+| REQ-048 | Projects with a requirements table can migrate to the per-file format | should | approved | scripts/migrate-requirements.sh converts every table row into a requirement file without losing ID, status, priority, date, text or acceptance criteria, moves the change log, writes the index and refuses to overwrite existing files | 2026-10-11 |
+| REQ-049 | The scaffold documents its own requirements in the per-file JTBD format | should | approved | Every scaffold requirement is a job or quality file in a topic epic; no TODO job text remains; scaffold checks validate it | 2026-10-11 |
 
 ## Change log
 
@@ -94,3 +98,4 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 - 2026-10-11 REQ-005 changed: the review no longer refers to a personal skill (user: keep the scaffold generic).
 - 2026-10-11 REQ-045 added: user asked that the scaffold never depend on personal skills or tools.
 - 2026-10-11 REQ-045 done: skill references removed from template and docs; maintainer rule added; smoke test guards it
+- 2026-10-11 REQ-046..REQ-049 added: user wants Jobs To Be Done for functional requirements, one file per requirement, grouped by epic; global IDs, quality type for non-functional, migration script and scaffold migration chosen by the user.
