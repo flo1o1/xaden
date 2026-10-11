@@ -4,8 +4,8 @@
 # front matter with a unique id matching the file name, type job|quality, epic equal to its
 # folder, a known priority and status, and a YYYY-MM-DD date; a "# " title; a "## Job" job
 # story (When …, I want to …, so I can …) or a "## Quality goal"; and at least one
-# acceptance criterion. INDEX.md must match the files. TODO text is a warning, and an error
-# with --release, as are template placeholders. The date placeholder is accepted only with
+# acceptance criterion. INDEX.md must match the files. "TODO:" markers are a warning, and an
+# error with --release, as are template placeholders. The date placeholder is accepted only with
 # ALLOW_TEMPLATE_PLACEHOLDERS=1 (the scaffold's own template check).
 # Usage: scripts/check-requirements.sh [--release] [requirements-dir]
 set -euo pipefail
@@ -43,7 +43,7 @@ check_epics() {
                 in_goal && NF { goal = 1 } END { exit !(title && goal) }' "$epic/$EPIC_FILE"; then
       warn "${epic#"$DIR"/}/$EPIC_FILE: needs a \"# \" title and a non-empty \"## Goal\""
       FAILURES=$((FAILURES + 1))
-    elif grep -q 'TODO' "$epic/$EPIC_FILE"; then
+    elif grep -q 'TODO:' "$epic/$EPIC_FILE"; then
       warn "${epic#"$DIR"/}/$EPIC_FILE: contains TODO text"
     fi
   done < <(epic_dirs "$DIR")
@@ -80,7 +80,7 @@ check_files() {
       if (title == "") fail("missing \"# \" title")
       if (type == "job") {
         if (section_lines["Job"] == 0) fail("empty \"## Job\" section")
-        else if (!has_todo["Job"] && !(tolower(job) ~ /when .*i want to .*so i can/))
+        else if (!has_todo["Job"] && !(tolower(job) ~ /when .*i want .*so i can/))
           fail("job must read \"When …, I want to …, so I can …\"")
       }
       if (type == "quality" && section_lines["Quality goal"] == 0) fail("empty \"## Quality goal\" section")
@@ -102,7 +102,7 @@ check_files() {
       value = $0; sub(/^[^:]*:[ \t]*/, "", value); sub(/[ \t]+$/, "", value)
       field[key] = value; next
     }
-    /TODO/ { todo = 1; if (section != "") has_todo[section] = 1 }
+    /TODO:/ { todo = 1; if (section != "") has_todo[section] = 1 }
     /^# / && title == "" { title = substr($0, 3); next }
     /^## / { section = substr($0, 4); next }
     NF && section != "" { section_lines[section]++ }
@@ -118,7 +118,7 @@ check_files() {
 # check_release_blockers: TODO text and template placeholders block a release.
 check_release_blockers() {
   local found
-  found="$( (grep -rl -e 'TODO' -e '{{' "$DIR" --include='*.md' || true) | sed "s|^$DIR/||")"
+  found="$( (grep -rl -e 'TODO:' -e '{{' "$DIR" --include='*.md' || true) | sed "s|^$DIR/||")"
   if [ -n "$found" ]; then
     warn "replace TODO text and placeholders before a release:"
     printf '%s\n' "$found" | sed 's/^/  /' >&2

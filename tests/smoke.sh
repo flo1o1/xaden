@@ -260,7 +260,11 @@ test_job_stories() {
     "$check" "$(requirements_variant quality-without-goal 's/^type: job/type: quality/')"
   assert "a quality requirement with a goal is accepted" "$check" "$(requirements_variant quality-goal \
     's/^type: job/type: quality/; s/^## Job/## Quality goal/; s/^TODO: When .*/95 % of searches answer within one second./')"
+  assert "a natural job story with 'I want a' is accepted" "$check" "$(requirements_variant want-a \
+    's/^TODO: When .*/When I close a month, I want a PDF of all invoices, so I can send it to my accountant./')"
   assert "TODO text only warns outside a release" bash -c "'$check' 2>&1 | grep -q 'contains TODO text'"
+  assert "the word TODO in real content is no marker" bash -c "! '$check' '$(requirements_variant todo-word \
+    's/^TODO: When .*/When TODOs pile up, I want a list of them, so I can plan the work./; s/^- TODO: .*/- Given open TODOs, when I list them, then all are shown./')' 2>&1 | grep -q 'REQ-001-.*contains TODO'"
   assert_fails_with "unknown requirement type rejected" 'type must be one of' \
     "$check" "$(requirements_variant bad-type 's/^type: job/type: story/')"
   assert "AGENTS.md defines the job story format" grep -q 'When <situation>, I want to <motivation>, so I can <expected' "$PROJECT/AGENTS.md"
