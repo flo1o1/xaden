@@ -9,7 +9,7 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 | REQ-002 | One rule set usable by Claude Code, ChatGPT, other agents and local LLMs | must | done | AGENTS.md plus pointer files for Claude, Aider, Cline, Continue, Copilot; pack-context for chat UIs | 2026-10-11 |
 | REQ-003 | Apply clean-code rules when generating code | must | done | Numbered CC rules in template AGENTS.md; review and refactor prompts cite them | 2026-10-11 |
 | REQ-004 | Static code analysis on every commit and in CI | must | done | check.sh runs linters, shellcheck, secret scan, SAST; hooks and CI call it | 2026-10-11 |
-| REQ-005 | Security review via alice-security-engineer skill with a tool-agnostic fallback | must | done | /security command plus prompts/security-review.md based on OWASP WSTG | 2026-10-11 |
+| REQ-005 | Security review that works with any assistant | must | done | /security command and prompts/security-review.md based on OWASP WSTG; no personal or optional add-on required | 2026-10-11 |
 | REQ-006 | Track requirements and update them when a session changes scope | must | done | REQUIREMENTS.md validated by script; AGENTS.md mandates update before code; /requirements prompt | 2026-10-11 |
 | REQ-007 | Semantic versioning of projects | must | done | VERSION, CHANGELOG, Conventional Commits hook, release.sh bumps and tags | 2026-10-11 |
 | REQ-008 | Review prompts in Obsidian | must | done | Template opens as a vault; prompts have frontmatter, wikilinks, template folder | 2026-10-11 |
@@ -49,6 +49,7 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 | REQ-042 | Projects document their architecture with rules for new code | should | done | Template docs/architecture.md (goals, layers and dependency direction, composition root, interaction, naming, rules for new code, persisted data); kickoff fills it after the stack decision; feature prompt follows it; context pack includes it | 2026-10-11 |
 | REQ-043 | Persisted data formats are versioned and migrated without data loss | should | done | Architecture template and clean-code.md state versioned formats, automatic migration, partial failure isolated with a message, tests per old version; release prompt counts incompatible data, file, API or config format changes as major | 2026-10-11 |
 | REQ-044 | Linter configuration only gets stricter without user approval | should | done | AGENTS.md: loosening rules or thresholds is an approval point; adopting linters on existing code uses a baseline that may only shrink | 2026-10-11 |
+| REQ-045 | The scaffold depends on no personal tools, skills or accounts | must | approved | Scaffold and generated projects name no personal skills, plugins or private tools; features work with what the README lists as prerequisites; a smoke test rejects named skills in the template | 2026-10-11 |
 
 ## Change log
 
@@ -90,3 +91,5 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 - 2026-10-11 REQ-042 done: architecture.md template; kickoff, feature, review and pack use it
 - 2026-10-11 REQ-043 done: migration rules in architecture.md, clean-code.md points to them, release prompt counts format changes as major
 - 2026-10-11 REQ-044 done: AGENTS.md section 5 and presets: loosening needs approval, baselines only shrink
+- 2026-10-11 REQ-005 changed: the review no longer refers to a personal skill (user: keep the scaffold generic).
+- 2026-10-11 REQ-045 added: user asked that the scaffold never depend on personal skills or tools.
