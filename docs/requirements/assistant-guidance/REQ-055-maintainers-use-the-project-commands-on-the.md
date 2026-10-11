@@ -19,3 +19,4 @@ When I maintain the scaffold with Claude Code, I want to use the same `/bugfix`,
 - Given a template prompt names a project path (`scripts/check.sh`, `docs/clean-code.md`, `docs/threat-model.md`, …), when it runs in the scaffold, then the root AGENTS.md maps it to the scaffold's equivalent.
 - Given `/security` in the scaffold, when it starts, then a scaffold threat model in `docs/threat-model.md` names its assets, entry points and trust boundaries, and reports go to `docs/security-reviews/`.
 - Given a generated project, when it is created, then it contains none of the scaffold's own commands or threat model.
+- Given a maintainer session at the scaffold root, when it runs the context status as AGENTS.md maps it, then the `CONTEXT CHECK` line covers the template's rules and the scaffold's requirements, lists the `CC-nn` rules and prints no error

@@ -464,12 +464,17 @@ test_assistant_plugins() {
 
 # REQ-055 maintainers use the project commands on the scaffold itself
 test_scaffold_commands() {
-  local name prompt
+  local name prompt mapped
   for name in bugfix refactor review security; do
     prompt="$(sed -n 's|^@template/prompts/\(.*\)$|\1|p' "$SCAFFOLD_ROOT/.claude/commands/$name.md")"
     assert "/$name includes an existing template prompt" test -n "$prompt" -a -f "$SCAFFOLD_ROOT/template/prompts/$prompt"
   done
   assert "AGENTS.md maps prompt paths for the scaffold" grep -q '^## Using the project commands here' "$SCAFFOLD_ROOT/AGENTS.md"
+  # shellcheck disable=SC2016 # backticks are Markdown in AGENTS.md, not command substitution
+  mapped="$(sed -n 's/^| `scripts\/context-status.sh` | `\(.*\)` |$/\1/p' "$SCAFFOLD_ROOT/AGENTS.md")"
+  assert "AGENTS.md maps the context status for the scaffold" test -n "$mapped"
+  assert "mapped context status prints no error" bash -c "cd '$SCAFFOLD_ROOT' && test -z \"\$($mapped 2>&1 >/dev/null)\""
+  assert "mapped context status lists the CC rules" bash -c "cd '$SCAFFOLD_ROOT' && $mapped | grep -q '^rules: CC-01 '"
   assert "scaffold threat model names entry points" grep -q '^## Entry points' "$SCAFFOLD_ROOT/docs/threat-model.md"
   assert_fails "projects get no scaffold commands" grep -rq 'template/prompts' "$PROJECT/.claude/commands"
   assert_fails "projects get no scaffold threat model" grep -q 'Xaden' "$PROJECT/docs/threat-model.md"

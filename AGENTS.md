@@ -27,6 +27,7 @@ prompts from `template/prompts/` unchanged. Where a prompt names a project path,
 |-------------|--------------------|
 | `scripts/check.sh` | `scripts/check-scaffold.sh` (full run: `STRICT=1 scripts/check-scaffold.sh`) |
 | `scripts/req.sh …` | `PROJECT_ROOT=. template/scripts/req.sh …` |
+| `scripts/context-status.sh` | `PROJECT_ROOT=. RULES_FILE=template/AGENTS.md template/scripts/context-status.sh` |
 | `AGENTS.md` | this file, plus the rules in `template/AGENTS.md` |
 | `docs/clean-code.md`, `docs/security.md` | `template/docs/clean-code.md`, `template/docs/security.md` |
 | `docs/architecture.md` | the "Layout" section of `README.md` and this file |

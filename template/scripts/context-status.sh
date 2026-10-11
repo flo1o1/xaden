@@ -10,11 +10,13 @@ set -euo pipefail
 # another repository (e.g. the scaffold itself) reuse these scripts.
 SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="${PROJECT_ROOT:-$(cd "$SCRIPTS/.." && pwd)}"
+# Where the CC-nn rules are defined; docs/clean-code.md lives next to it.
+RULES_FILE="${RULES_FILE:-$ROOT/AGENTS.md}"
 
 # rule_and_requirement_files: the rule files plus every Markdown file under docs/requirements,
 # in a fixed order so the fingerprint is the same on every machine.
 rule_and_requirement_files() {
-  printf '%s\n' "$ROOT/AGENTS.md" "$ROOT/docs/clean-code.md"
+  printf '%s\n' "$RULES_FILE" "$(dirname "$RULES_FILE")/docs/clean-code.md"
   find "$ROOT/docs/requirements" -type f -name '*.md' | LC_ALL=C sort
 }
 
@@ -22,7 +24,7 @@ rule_and_requirement_files() {
 fingerprint() { rule_and_requirement_files | tr '\n' '\0' | xargs -0 cat | cksum | cut -d' ' -f1; }
 
 # rule_ids: defined rule IDs, e.g. "CC-01 CC-02 ...".
-rule_ids() { grep -oE '^- \*\*CC-[0-9]{2}\*\*' "$ROOT/AGENTS.md" | grep -oE 'CC-[0-9]{2}' | tr '\n' ' '; }
+rule_ids() { grep -oE '^- \*\*CC-[0-9]{2}\*\*' "$RULES_FILE" | grep -oE 'CC-[0-9]{2}' | tr '\n' ' '; }
 
 # requirement_ids: "REQ-001(draft) REQ-002(done) ...".
 requirement_ids() { "$SCRIPTS/req.sh" list | sed -E 's/^(REQ-[0-9]+) \[([^,]*),.*/\1(\2)/' | tr '\n' ' '; }

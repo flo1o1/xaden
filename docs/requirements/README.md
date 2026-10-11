@@ -84,3 +84,4 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-11 REQ-057 criterion sharpened: expiry dates with an impossible month or day fail (security review 2026-10-11-audit-fixes #2)
 - 2026-10-11 REQ-022 criterion added: only the exact value `none` replaces a requirement in a fix trailer (security review 2026-10-11-audit-fixes #3)
 - 2026-10-11 REQ-017 criterion added: updates work in git worktrees and submodules (audit 2026-10-11 #3)
+- 2026-10-11 REQ-055 criterion added: context status works at the scaffold root (audit 2026-10-11 #2)

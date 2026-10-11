@@ -22,6 +22,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - Project generation copies only git-tracked template files; untracked or ignored files (`.env`, `node_modules/`, `inbox/` content) are never copied or committed. Symlinks are refused; failed runs remove the partial project.
 
 ### Fixed
+- `scripts/context-status.sh` reads the rules from `RULES_FILE` when set, so maintainers get a complete `CONTEXT CHECK` at the scaffold root (command in the root AGENTS.md) instead of an error and an empty rule list.
 - `xaden update` and `scripts/update-scaffold.sh` work in git worktrees and submodules, where `.git` is a file instead of a folder.
 - The pre-commit hook copied every tracked file into its snapshot on each commit, so large tracked assets slowed every commit; files over 1 MiB that the commit does not change are now left out.
 - `check-traceability.sh --matrix` listed tests that cite a requirement only on a `traceability: ignore` line, while the check did not count them; both now skip those lines.
