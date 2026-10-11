@@ -17,9 +17,9 @@
 set -euo pipefail
 
 SCAFFOLD_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TEMPLATE="$SCAFFOLD_ROOT/template"
+TEMPLATE="" # exported template snapshot, see export_template (REQ-018)
 # shellcheck source=SCRIPTDIR/../template/scripts/lib.sh
-source "$TEMPLATE/scripts/lib.sh"
+source "$SCAFFOLD_ROOT/template/scripts/lib.sh"
 # shellcheck source=SCRIPTDIR/scaffold-lib.sh
 source "$SCAFFOLD_ROOT/scripts/scaffold-lib.sh"
 
@@ -130,6 +130,9 @@ main() {
   local from to
   parse_arguments "$@"
   read_project_name
+  TEMPLATE="$(mktemp -d)"
+  trap 'rm -rf "$TEMPLATE"' EXIT
+  export_template "$SCAFFOLD_ROOT/template" "$TEMPLATE"
   if [ "$APPLY" = "1" ] && [ -n "$(git -C "$PROJECT" status --porcelain)" ]; then
     die "project has uncommitted changes; commit or stash first"
   fi

@@ -22,7 +22,7 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 | REQ-015 | Clean-code rules enforced by linters; a detected stack without checks fails | must | done | Stack presets map CC rules to linter settings; missing lint/type/test steps fail check.sh | 2026-10-11 |
 | REQ-016 | Requirements traceable to tests | must | done | Every done requirement is referenced by a test; matrix script lists requirement to tests | 2026-10-11 |
 | REQ-017 | Existing projects can adopt newer scaffold versions | should | done | Projects record scaffold version; update script shows and applies changes to managed files only | 2026-10-11 |
-| REQ-018 | Project generation copies only reviewed template content | must | approved | Only git-tracked template files (staged content) are copied; untracked, ignored and secret files never; symlinks and existing targets refused; partial output removed on failure; paths with spaces work | 2026-10-11 |
+| REQ-018 | Project generation copies only reviewed template content | must | done | Only git-tracked template files (staged content) are copied; untracked, ignored and secret files never; symlinks and existing targets refused; partial output removed on failure; paths with spaces work | 2026-10-11 |
 | REQ-019 | Required checks cannot be skipped silently | must | approved | Every check reports passed, failed or skipped; any skip marks the run INCOMPLETE; CI and releases run strict so a missing scanner fails; CI provisions pinned tool versions | 2026-10-11 |
 | REQ-020 | Pre-commit checks validate exactly the staged snapshot | must | approved | A staged regression cannot be hidden by an unstaged fix; a requirement ID present only in an unstaged file cannot validate a commit; the working tree is never modified | 2026-10-11 |
 | REQ-021 | Requirements need complete fields and an eligible status | must | approved | Empty requirement text or acceptance criteria and invalid dates fail; template placeholders block releases; feat and fix may only reference approved, in-progress or done requirements | 2026-10-11 |
@@ -44,3 +44,4 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 - 2026-10-11 REQ-025 done: smoke test shows output on failure, ignores global git config, CI requires tool fixtures
 - 2026-10-11 REQ-026 added: user asked for a place to drop files that stay out of git.
 - 2026-10-11 REQ-026 done: inbox/ in scaffold and template, contents git-ignored
+- 2026-10-11 REQ-018 done: export_template copies tracked template files only, refuses symlinks, cleans up partial projects

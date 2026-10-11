@@ -26,16 +26,46 @@ is_managed() {
   return 1
 }
 
-# template_files <template-dir>: tracked and new (not ignored) files, relative paths, sorted.
-# Falls back to find when the template is not inside a git checkout.
-template_files() {
-  if git -C "$1" rev-parse --git-dir >/dev/null 2>&1; then
-    git -C "$1" ls-files --cached --others --exclude-standard
+# export_template <source-dir> <destination-dir>: writes the reviewed template content.
+# Policy (REQ-018):
+# - In a git checkout: only files *tracked* under <source-dir> (committed or added), with
+#   their working-tree content and modes, so maintainers can test edits before committing.
+#   Untracked and ignored files (secrets, dependencies, drop-zone content) are never exported.
+#   A warning names the case where uncommitted edits are included.
+# - Outside git (e.g. a downloaded archive): all files except secrets, dependencies,
+#   caches and drop-zone content.
+# - Symbolic links are refused in both cases.
+export_template() {
+  local source=$1 destination=$2 repo prefix pathspec staging
+  mkdir -p "$destination"
+  if repo="$(git -C "$source" rev-parse --show-toplevel 2>/dev/null)"; then
+    prefix="$(git -C "$source" rev-parse --show-prefix)"
+    pathspec="${prefix:-.}" # git rejects an empty pathspec when exporting a repository root
+    if git -C "$repo" ls-files -s -- "$pathspec" | awk '$1 == "120000" { found = 1 } END { exit !found }'; then
+      die "template contains symbolic links; refusing to export"
+    fi
+    git -C "$repo" diff HEAD --quiet -- "$pathspec" 2>/dev/null ||
+      warn "exporting uncommitted edits of tracked template files"
+    staging="$(mktemp -d)"
+    # Tracked paths that still exist in the working tree (deleted files are skipped).
+    git -C "$repo" ls-files -z -- "$pathspec" | while IFS= read -r -d '' file; do
+      if [ -f "$repo/$file" ]; then printf '%s\n' "$file"; fi
+    done | (cd "$repo" && tar cf - -T -) | (cd "$staging" && tar xf -)
+    (cd "$staging/$prefix" && tar cf - .) | (cd "$destination" && tar xf -)
+    rm -rf "$staging"
   else
-    (cd "$1" && find . -type f ! -name '.DS_Store' | sed 's|^\./||')
-  fi | while IFS= read -r file; do
-    if [ -f "$1/$file" ]; then printf '%s\n' "$file"; fi
-  done | sort -u
+    [ -z "$(cd "$source" && find . -type l | head -n 1)" ] || die "template contains symbolic links; refusing to export"
+    (cd "$source" && find . \( -name .git -o -name node_modules -o -name .venv -o -name __pycache__ \) -prune -o \
+      -type f ! -name .DS_Store ! -name .env ! \( -name '.env.*' ! -name .env.example \) \
+      ! -name '*.scaffold-new' ! -name context-pack.md ! \( -path './inbox/*' ! -name README.md \) -print |
+      tar cf - -T -) | (cd "$destination" && tar xf -)
+  fi
+}
+
+# template_files <exported-template-dir>: relative paths of all files, sorted.
+# Only use on a directory produced by export_template.
+template_files() {
+  (cd "$1" && find . -type f | sed 's|^\./||' | sort)
 }
 
 # managed_template_files <template-dir>: template files the scaffold manages.

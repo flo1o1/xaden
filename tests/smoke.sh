@@ -168,6 +168,37 @@ test_release() {
   assert "tag created" git -C "$PROJECT" rev-parse v0.1.1
 }
 
+# REQ-018 safe generation: a git copy of the scaffold with junk that must never be copied
+test_generation_safety() {
+  local source="$WORKDIR/source-scaffold" target="$WORKDIR/safety/generated app"
+  export_template "$SCAFFOLD_ROOT" "$source"
+  git -C "$source" init -q -b main && git -C "$source" add -A && git -C "$source" commit -q -m "chore: fixture"
+  printf 'SECRET=fixture\n' >"$source/template/.env"
+  printf 'private\n' >"$source/template/local-private-note.txt"
+  mkdir -p "$source/template/node_modules/pkg" && printf 'x\n' >"$source/template/node_modules/pkg/index.js"
+  printf 'dropped\n' >"$source/template/inbox/dropped.txt"
+  printf '\nUNCOMMITTED EDIT\n' >>"$source/template/prompts/bugfix.md"
+  local before
+  before="$(git -C "$source" status --porcelain)"
+  assert "generate from git source with junk" "$source/scripts/new-project.sh" safe-app "$target"
+  assert "untracked private file not copied" test ! -e "$target/local-private-note.txt"
+  assert ".env not copied" test ! -e "$target/.env"
+  assert "node_modules not copied" test ! -e "$target/node_modules"
+  assert "inbox content not copied" test ! -e "$target/inbox/dropped.txt"
+  assert "uncommitted edit of tracked file copied (maintainer testing)" grep -q 'UNCOMMITTED EDIT' "$target/prompts/bugfix.md"
+  assert "executable bits preserved" test -x "$target/scripts/check.sh"
+  assert "source left untouched" test "$(git -C "$source" status --porcelain)" = "$before"
+  assert_fails "existing target refused" "$source/scripts/new-project.sh" safe-app "$target"
+  ln -s ../README.md "$source/template/link.md" && git -C "$source" add template/link.md
+  assert_fails "symlink in template refused" "$source/scripts/new-project.sh" link-app "$WORKDIR/link-app"
+  assert "nothing created when export is refused" test ! -e "$WORKDIR/link-app"
+  git -C "$source" rm -q --cached template/link.md && rm "$source/template/link.md"
+  sed 's/| draft  |/| bogus  |/' "$source/template/docs/requirements/REQUIREMENTS.md" >"$WORKDIR/bad-req.md"
+  cp "$WORKDIR/bad-req.md" "$source/template/docs/requirements/REQUIREMENTS.md"
+  assert_fails "generation fails when the first commit is rejected" "$source/scripts/new-project.sh" late-fail "$WORKDIR/late-fail"
+  assert "partial project removed after late failure" test ! -e "$WORKDIR/late-fail"
+}
+
 # REQ-026 local drop zone
 test_inbox() {
   printf 'private\n' >"$PROJECT/inbox/notes.txt"
@@ -214,8 +245,7 @@ test_scaffold_update() {
   assert "fresh project is up to date" bash -c "'$SCAFFOLD_ROOT/scripts/update-scaffold.sh' '$PROJECT' | grep -q '0 change(s) planned'"
 
   # A newer scaffold: one changed prompt, one new prompt, one prompt changed on both sides.
-  mkdir -p "$newer"
-  template_files "$SCAFFOLD_ROOT" | (cd "$SCAFFOLD_ROOT" && tar cf - -T -) | (cd "$newer" && tar xf -)
+  export_template "$SCAFFOLD_ROOT" "$newer"
   printf '9.9.9\n' >"$newer/VERSION"
   printf '\nUpstream improvement.\n' >>"$newer/template/prompts/bugfix.md"
   printf -- '---\ntitle: New\n---\n# New prompt\n' >"$newer/template/prompts/new-prompt.md"
@@ -241,6 +271,7 @@ export GIT_COMMITTER_NAME=smoke GIT_COMMITTER_EMAIL=smoke@example.invalid
 
 test_bump_version
 test_new_project
+test_generation_safety
 test_template_contents
 test_inbox
 test_generated_project

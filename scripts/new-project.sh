@@ -18,11 +18,18 @@ validate_name() {
     die "invalid project name '$1' (use lowercase letters, digits, hyphens)"
 }
 
-# copy_template <destination>: copies the template's tracked and new (not ignored) files,
-# so local junk (.DS_Store, context-pack.md) never reaches a project.
-copy_template() {
-  mkdir -p "$1"
-  template_files "$TEMPLATE" | (cd "$TEMPLATE" && tar cf - -T -) | (cd "$1" && tar xf -)
+# Set while generating; cleanup_on_failure removes them unless generation completed.
+STAGING=""
+TARGET_CREATED=""
+COMPLETED=0
+
+# cleanup_on_failure: removes temporary files, and the half-created project on failure.
+cleanup_on_failure() {
+  [ -n "$STAGING" ] && rm -rf "$STAGING"
+  if [ "$COMPLETED" != "1" ] && [ -n "$TARGET_CREATED" ]; then
+    rm -rf "$TARGET_CREATED"
+    warn "generation failed; removed partial project $TARGET_CREATED"
+  fi
 }
 
 # fill_placeholders <dir> <name>: replaces {{PROJECT_NAME}} and {{DATE}} in text files.
@@ -54,11 +61,17 @@ main() {
   [ ! -e "$target" ] || die "target already exists: $target"
   has_command git || die "git is required"
 
-  copy_template "$target"
+  trap cleanup_on_failure EXIT
+  STAGING="$(mktemp -d)"
+  export_template "$TEMPLATE" "$STAGING"
+  mkdir -p "$target"
   target="$(cd "$target" && pwd)"
+  TARGET_CREATED="$target"
+  (cd "$STAGING" && tar cf - .) | (cd "$target" && tar xf -)
   fill_placeholders "$target" "$name"
-  write_manifest "$target" "$TEMPLATE" "$name" "$(tr -d '[:space:]' <"$SCAFFOLD_ROOT/VERSION")"
+  write_manifest "$target" "$STAGING" "$name" "$(tr -d '[:space:]' <"$SCAFFOLD_ROOT/VERSION")"
   init_repository "$target"
+  COMPLETED=1
 
   info "created $name at $target"
   echo "Next: open the folder in your LLM tool, then run the 'kickoff' prompt (prompts/kickoff.md)."

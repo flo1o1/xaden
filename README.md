@@ -33,6 +33,10 @@ scripts/new-project.sh my-app            # creates ../my-app with git, hooks, fi
 scripts/new-project.sh my-app ~/code/x   # custom location
 ```
 
+Only files tracked by git in `template/` are copied (including uncommitted edits to them);
+untracked or ignored files such as `.env`, `node_modules/` or `inbox/` content never are.
+A failed run removes the half-created project.
+
 Then open `my-app` in your tool and run the kickoff prompt (`/kickoff` in Claude Code).
 
 ## Requirements on your machine
