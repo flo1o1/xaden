@@ -118,7 +118,8 @@ Details and examples: `docs/clean-code.md` (same IDs).
     A completed checklist is not proof of security.
 - Never hardcode or print secrets. Never commit `.env`. Ask before adding dependencies and follow
   the dependency policy in `docs/security.md`; accepted vulnerabilities go to
-  `docs/security-exceptions.md` with owner and expiry.
+  `docs/security-exceptions.md` with owner and expiry; the full `scripts/check.sh` fails once
+  a row has expired.
 
 ## 7. Versioning and git
 

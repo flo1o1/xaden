@@ -90,4 +90,4 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-039 | job | should | done | Security checklist and review cover the WSTG test areas missing so far |
 | REQ-040 | job | should | done | Local semgrep rules catch more insecure patterns |
 | REQ-052 | job | should | done | Dependencies are checked for existence and reputation before they are added |
-| REQ-057 | job | should | approved | Expired security exceptions fail the checks |
+| REQ-057 | job | should | done | Expired security exceptions fail the checks |

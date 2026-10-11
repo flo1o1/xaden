@@ -883,6 +883,27 @@ test_xaden_command() {
   assert_fails "link gone after uninstall" test -L "$xaden"
 }
 
+# REQ-057: an accepted security exception fails the full check once it has expired.
+test_security_exceptions() {
+  local file="$PROJECT/docs/security-exceptions.md" check="$PROJECT/scripts/check-security-exceptions.sh"
+  local row='| SE-001 | GHSA-xxxx in lib@1.0.0 | not reachable | input never parsed | Dana | 2026-06-14 |'
+  assert "no accepted exceptions pass" env CHECK_DATE=2026-06-15 "$check"
+  printf '%s\n' "$row" >>"$file"
+  assert_fails_with "expired exception fails" "SE-001" env CHECK_DATE=2026-06-15 "$check"
+  assert "exception expiring today passes" env CHECK_DATE=2026-06-14 "$check"
+  assert_fails_with "full check fails on an expired exception" "SE-001" \
+    bash -c "cd '$PROJECT' && CHECK_DATE=2026-06-15 scripts/check.sh"
+  git -C "$PROJECT" add docs/security-exceptions.md
+  assert "staged check ignores the expiry date" bash -c "cd '$PROJECT' && CHECK_DATE=2026-06-15 scripts/check.sh --staged"
+  git -C "$PROJECT" reset -q --hard
+  printf '%s\n' "${row/Dana/ }" >>"$file"
+  assert_fails_with "exception without owner fails" "SE-001" env CHECK_DATE=2026-06-01 "$check"
+  git -C "$PROJECT" checkout -q -- docs/security-exceptions.md
+  printf '%s\n' "${row/2026-06-14/end of June}" >>"$file"
+  assert_fails_with "exception with an invalid date fails" "SE-001" env CHECK_DATE=2026-06-01 "$check"
+  git -C "$PROJECT" checkout -q -- docs/security-exceptions.md
+}
+
 # REQ-019: CI never leaves the job token in .git/config while project code runs
 # (security review 2026-10-11, finding 3).
 test_ci_credentials() {
@@ -928,6 +949,7 @@ test_scaffold_update
 test_update_safety
 test_ci_credentials
 test_xaden_command
+test_security_exceptions
 test_release
 if [ "$SKIPPED" -gt 0 ]; then
   warn "smoke test INCOMPLETE: $PASSED assertions passed, $SKIPPED fixture(s) skipped"

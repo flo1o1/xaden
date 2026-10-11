@@ -8,6 +8,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - Requirements are one file per requirement in epic folders (`docs/requirements/<epic>/REQ-nnn-<slug>.md` with an `EPIC.md` per epic and a generated `INDEX.md`) instead of one table. Functional requirements are Jobs To Be Done (*When …, I want to …, so I can …*), non-functional ones measurable quality goals. `scripts/req.sh new|show|list|index` manages them; `check-requirements.sh`, the commit hook, traceability, context fingerprint and packs read the new layout. Existing projects run `scripts/migrate-requirements.sh` after updating.
 
 ### Security
+- The full `scripts/check.sh` fails when a row in `docs/security-exceptions.md` has expired, has no owner or no `YYYY-MM-DD` expiry, so accepted risks are fixed or consciously renewed. The pre-commit hook skips this date-dependent check.
 - `scripts/update-scaffold.sh` refuses to write through a symbolic link in the project, so a committed symlink can no longer make an update overwrite files outside the project; paths in `.scaffold/manifest` outside the scaffold-managed files are ignored, so an edited manifest can no longer make an update delete project files.
 - CI checkouts no longer keep the job token in `.git/config` (`persist-credentials: false`) while dependency installs and tests run.
 - Dependency policy requires checking that a proposed package really exists in the official registry (source, maintainers, age, downloads) before it is added, against slopsquatting: malware registered under package names assistants invent.
