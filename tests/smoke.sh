@@ -123,6 +123,13 @@ test_generated_project() {
   mv "$PROJECT/docs/threat-model.md" "$WORKDIR/threat-model.md"
   assert "pack names a missing threat model" bash -c "'$PROJECT/scripts/pack-context.sh' && grep -q 'threat-model.md (MISSING' '$PROJECT/context-pack.md'"
   mv "$WORKDIR/threat-model.md" "$PROJECT/docs/threat-model.md"
+  # REQ-029 precise security checklist
+  local topic
+  for topic in 'not a replacement' 'DNS rebinding' 'hard links' 'size limit before reading' \
+    'tenant A cannot reach' 'revoke sessions' 'Password reset' 'Rate and resource limits' \
+    'Safe parsing' 'Data retention' '## Web applications \*(web)\*'; do
+    assert "security checklist covers: $topic" grep -q "$topic" "$PROJECT/docs/security.md"
+  done
   "$PROJECT/scripts/pack-context.sh" feature >/dev/null 2>&1
   cp "$PROJECT/context-pack.md" "$WORKDIR/pack-before.md"
   assert_fails "unknown prompt name rejected" "$PROJECT/scripts/pack-context.sh" feature no-such-prompt

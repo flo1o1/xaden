@@ -23,11 +23,15 @@ prompt is the tool-independent equivalent.)
    ones the threat model lacks, update the threat model and say so.
 2. For each entry point, trace untrusted data to sinks and check (OWASP WSTG categories):
    - Input validation and output encoding; injection (SQL, OS command, template, path, LDAP)
-   - Authentication, session management, password/token storage
-   - Authorization: server-side checks per request and per object (IDOR), default deny
+   - Authentication, session expiry and revocation, password reset, password/token storage
+   - Authorization: server-side checks per request, per object and per tenant (IDOR), default
+     deny; negative tests exist
    - Cryptography and TLS; randomness; hard-coded secrets; secrets in logs
-   - File upload/download, SSRF, CSRF, CORS, security headers, deserialization
-   - Business-logic abuse (race conditions, replay, limits, mass assignment)
+   - File upload/download, archive extraction, path and symlink traversal, SSRF (redirects,
+     private addresses, DNS rebinding), safe parsing, deserialization
+   - Web only: CSRF (not SameSite alone), CORS, security headers
+   - Business-logic abuse (race conditions, replay, rate and resource limits, mass assignment)
+   - Data retention, deletion and what gets logged
    - Error handling and information leakage; debug flags
    - Dependencies: new or outdated packages, known CVEs, install scripts
 3. Run `scripts/check.sh` (secret scan, SAST, dependency audit) and include its findings.
