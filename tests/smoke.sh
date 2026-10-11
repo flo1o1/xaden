@@ -175,6 +175,13 @@ test_generated_project() {
   for section in '^## Layers and dependency direction' '^## Composition root' '^## Rules for new code' '^## Third-party code'; do
     assert "architecture template has: $section" grep -q "$section" "$PROJECT/docs/architecture.md"
   done
+  # REQ-043 versioned persisted data, migrations without data loss
+  for section in 'carries a version' 'migrates older versions automatically' 'only that part is dropped' \
+    'Keep the old data until' 'migration test' 'breaking change (major version)'; do
+    assert "architecture migration rules: $section" grep -q "$section" "$PROJECT/docs/architecture.md"
+  done
+  assert "clean-code guide points to the migration rules" grep -q 'migration rules in .docs/architecture.md.' "$PROJECT/docs/clean-code.md"
+  assert "release prompt counts format changes as breaking" grep -q 'stored or exchanged data formats' "$PROJECT/prompts/release.md"
   assert "kickoff fills the architecture" grep -q 'docs/architecture.md' "$PROJECT/prompts/kickoff.md"
   assert "feature prompt follows the rules for new code" grep -q 'Rules for new code' "$PROJECT/prompts/feature.md"
   assert "code review checks layering" grep -q 'docs/architecture.md' "$PROJECT/prompts/code-review.md"

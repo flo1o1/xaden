@@ -15,6 +15,8 @@ Choose the correct SemVer bump and cut the release safely.
 ## Steps
 1. Read `CHANGELOG.md` → Unreleased and `git log` since the last tag.
 2. Decide the bump: any breaking change → `major`; else any `feat` → `minor`; else `patch`.
+   Breaking includes incompatible changes to stored or exchanged data formats, public APIs and
+   configuration; check that each comes with an automatic migration (`docs/architecture.md`).
    (While `0.x`, breaking changes may bump `minor`; tell me if you use that rule.)
 3. Confirm all `done` requirements are reflected in the changelog. Show me
    `scripts/check-traceability.sh --matrix`.

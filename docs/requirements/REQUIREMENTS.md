@@ -47,7 +47,7 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 | REQ-040 | Local semgrep rules catch more insecure patterns | should | done | Rules for open redirect, insecure randomness for secrets, weak password hashing, cookies without security flags, unsafe XML parsing and regular expressions built from input, each proven by fixtures in tests/semgrep for Python and JS where applicable | 2026-10-11 |
 | REQ-041 | Clean-code guide covers proven design, test and refactoring practices | should | done | clean-code.md adds composition root, do-or-know, polymorphism over repeated switches, temporal coupling, Law of Demeter, conditionals, size heuristics, test practices and test doubles, comment upkeep and language, refactoring techniques; ESLint preset forbids var; CC IDs unchanged; nothing project-specific | 2026-10-11 |
 | REQ-042 | Projects document their architecture with rules for new code | should | done | Template docs/architecture.md (goals, layers and dependency direction, composition root, interaction, naming, rules for new code, persisted data); kickoff fills it after the stack decision; feature prompt follows it; context pack includes it | 2026-10-11 |
-| REQ-043 | Persisted data formats are versioned and migrated without data loss | should | approved | Architecture template and clean-code.md state versioned formats, automatic migration, partial failure isolated with a message, tests per old version; release prompt counts incompatible data, file, API or config format changes as major | 2026-10-11 |
+| REQ-043 | Persisted data formats are versioned and migrated without data loss | should | done | Architecture template and clean-code.md state versioned formats, automatic migration, partial failure isolated with a message, tests per old version; release prompt counts incompatible data, file, API or config format changes as major | 2026-10-11 |
 | REQ-044 | Linter configuration only gets stricter without user approval | should | approved | AGENTS.md: loosening rules or thresholds is an approval point; adopting linters on existing code uses a baseline that may only shrink | 2026-10-11 |
 
 ## Change log
@@ -88,3 +88,4 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 - 2026-10-11 REQ-041..REQ-044 added: general practices extracted from another project's guidelines (inbox, untrusted); project-specific content excluded.
 - 2026-10-11 REQ-041 done: clean-code.md extended with general practices; ESLint preset adds no-var
 - 2026-10-11 REQ-042 done: architecture.md template; kickoff, feature, review and pack use it
+- 2026-10-11 REQ-043 done: migration rules in architecture.md, clean-code.md points to them, release prompt counts format changes as major

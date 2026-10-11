@@ -49,6 +49,24 @@ naming and location. -->
 - New external API, global or OS/browser feature: only through the composition root.
 - New user-visible text: the translation files, if the project is localised. -->
 
+## Persisted data and migrations
+
+Rules for every format the software stores or exchanges (database schema, files, local or
+browser storage, caches, export/import formats, configuration):
+
+- Each format carries a version (schema version, versioned key or file header).
+- An incompatible change gets a new version; old data is never overwritten or discarded silently.
+- On startup or upgrade the software migrates older versions automatically; users need not act.
+- If one part cannot be migrated, only that part is dropped, with a clear message; everything
+  else keeps working.
+- Keep the old data until the migrated data is written and readable.
+- Every supported old version has a migration test with a stored sample.
+- An incompatible change to a stored or exchanged format, a public API or the configuration is a
+  breaking change (major version); a compatible extension is not.
+
+<!-- TODO: List the formats this project persists or exchanges, their current version and where
+the migration code lives. Write "none" if the project stores nothing. -->
+
 ## Third-party code
 
 <!-- TODO: Vendored or pinned libraries, why they are needed, and how they are updated and tested

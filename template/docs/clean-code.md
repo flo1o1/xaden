@@ -87,6 +87,8 @@ Techniques that keep the system running between steps:
 - Parallel implementation: build the new path next to the old one, switch callers, then delete
   the old path.
 - Format changes: read old and new representation for a while, migrate, then remove the old one.
+  Stored data follows the migration rules in `docs/architecture.md` (versioned formats, automatic
+  migration, no silent data loss).
 - Code without tests: first pin current behaviour with characterization or acceptance tests,
   introduce seams at boundaries, then decide per component: refactor, rewrite or keep.
 
