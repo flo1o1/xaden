@@ -430,6 +430,8 @@ test_template_contents() {
   assert_fails "generated project references no skills" grep -rli 'skill' "$PROJECT" --exclude-dir=.git
   assert "tool-agnostic security prompt present" grep -q 'OWASP' "$PROJECT/prompts/security-review.md"
   assert "Obsidian vault configured" test -f "$PROJECT/.obsidian/app.json"
+  assert "shared Obsidian config stays tracked" bash -c "! git -C '$PROJECT' check-ignore -q .obsidian/app.json"
+  assert "per-user Obsidian state is ignored" bash -c "git -C '$PROJECT' check-ignore -q .obsidian/workspace.json && git -C '$PROJECT' check-ignore -q .obsidian/appearance.json && git -C '$PROJECT' check-ignore -q .obsidian/plugins/x/data.json"
   assert "every prompt has frontmatter" bash -c "cd '$PROJECT/prompts' && for f in *.md; do head -1 \"\$f\" | grep -qx -- '---' || exit 1; done"
 }
 

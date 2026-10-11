@@ -11,11 +11,13 @@ Thumbs.db
 .idea/
 .vscode/
 
-# Obsidian per-user state (keep shared config)
-.obsidian/workspace.json
-.obsidian/workspace-mobile.json
-.obsidian/cache
+# Obsidian: the scaffold root is no vault; template/.obsidian keeps only the shared vault config
+/.obsidian/
 .trash/
+template/.obsidian/*
+!template/.obsidian/app.json
+!template/.obsidian/core-plugins.json
+!template/.obsidian/templates.json
 
 # build / deps
 node_modules/
