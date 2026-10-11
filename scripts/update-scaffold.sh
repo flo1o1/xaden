@@ -92,12 +92,9 @@ classify() {
 
 # apply_action <action> <path>: performs one planned action inside the project.
 apply_action() {
-  local action=$1 path=$2
-  if [ "$action" = conflict ]; then
-    refuse_symlink_on_path "$PROJECT" "$path.scaffold-new"
-  else
-    refuse_symlink_on_path "$PROJECT" "$path"
-  fi
+  local action=$1 path=$2 written=$2
+  [ "$action" = conflict ] && written="$path.scaffold-new" # conflicts keep the project's file
+  refuse_symlink_on_path "$PROJECT" "$written"
   case "$action" in
     add | update)
       mkdir -p "$(dirname "$PROJECT/$path")"
@@ -106,7 +103,7 @@ apply_action() {
       git -C "$PROJECT" add -- "$path"
       ;;
     remove) git -C "$PROJECT" rm -q -- "$path" ;;
-    conflict) render_file "$TEMPLATE/$path" "$PROJECT_NAME" >"$PROJECT/$path.scaffold-new" ;;
+    conflict) render_file "$TEMPLATE/$path" "$PROJECT_NAME" >"$PROJECT/$written" ;;
   esac
 }
 
