@@ -1,0 +1,30 @@
+---
+title: Fix a bug
+type: prompt
+status: stable
+version: 1.0.0
+works-with: [claude-code, chatgpt, local-llm]
+tags: [prompt, development]
+---
+
+# Fix a bug
+
+## Goal
+Fix the root cause, prove it with a regression test.
+
+## Inputs
+- Symptom: {{what happens vs. what should happen}}
+- Repro: {{steps, input, error text}}
+
+## Steps
+1. Read `AGENTS.md`. Find which `REQ-nnn` the correct behaviour belongs to; if none, ask me.
+2. Reproduce with a failing test. Do not change production code before the test fails for the right reason.
+3. Find the root cause (state it in one sentence). No symptom patches.
+4. Make the smallest change that turns the test green. Refactor only afterwards.
+5. Run `scripts/check.sh`.
+6. Commit `fix(<scope>): <summary>`; add a `CHANGELOG.md` → Unreleased "Fixed" bullet.
+7. If the bug was a security flaw, say so and run [[security-review]].
+
+## Done when
+- [ ] Regression test exists and passes
+- [ ] `scripts/check.sh` passes

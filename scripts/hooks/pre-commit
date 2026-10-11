@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Git pre-commit hook: static analysis + requirements validation.
+# Bypass in emergencies with `git commit --no-verify` (CI still runs the checks).
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+"$ROOT/scripts/check.sh"
+
+# Nudge: code changed but requirements untouched.
+staged="$(git diff --cached --name-only)"
+if printf '%s\n' "$staged" | grep -Evq '^(docs/|prompts/|\.|[A-Z]+\.md$|VERSION$)' &&
+   ! printf '%s\n' "$staged" | grep -q '^docs/requirements/'; then
+  echo "NOTE: code staged without a requirements update. Did scope change?" >&2
+fi
