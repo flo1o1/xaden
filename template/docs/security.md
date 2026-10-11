@@ -43,8 +43,24 @@ Sections marked *(web)* apply only to software with a browser client.
 - **Data retention**: collect the minimum; define how long each sensitive data type is kept
   (see the threat model); deletion covers copies, caches, exports and derived data; backups
   expire on a schedule.
-- **Dependencies**: pin versions, minimal set, run the audit tool (`scripts/check.sh`), review new packages.
 - **Config**: debug off in production, least privilege for services and tokens.
+
+## Dependencies
+
+- **Adding**: ask the user first (AGENTS.md §6). Prefer widely used, maintained packages; check
+  the license, maintainer activity, download count and whether it runs install scripts
+  (`postinstall`, `setup.py` code). Keep the set minimal.
+- **Lockfiles**: commit the lockfile (`package-lock.json`, `uv.lock`/`poetry.lock` or pinned
+  `requirements*.txt`); install from it in CI (`npm ci`). Never edit it by hand.
+- **Licenses**: record the allowed licenses for this project in `docs/decisions/`; ask before
+  adding a copyleft (GPL, AGPL) or unknown license to software you distribute.
+- **Updates**: apply security fixes promptly; review other updates at least monthly; read the
+  changelog of major versions before upgrading; one dependency per commit when practical.
+- **Audit**: `scripts/check.sh` runs the stack's audit tool. A known vulnerability that cannot be
+  fixed yet is recorded in `docs/security-exceptions.md` with owner, reason and expiry; never
+  silence the audit without such an entry.
+- **Supply chain (optional)**: when you ship artifacts to others, consider a software bill of
+  materials (SBOM, e.g. CycloneDX or SPDX) and build provenance. Ask the user before adding tools.
 
 ## Web applications *(web)*
 

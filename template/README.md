@@ -24,6 +24,7 @@ Tools without file access: `scripts/pack-context.sh kickoff` and paste `context-
 | `docs/requirements/REQUIREMENTS.md` | Tracked requirements, updated every session |
 | `docs/user-guide.md`, `docs/admin-guide.md` | End-user and operator documentation (install, system requirements, config, upgrade) |
 | `docs/threat-model.md` | Assets, entry points, trust boundaries, ASVS level; filled at kickoff |
+| `docs/security.md`, `docs/security-exceptions.md` | Secure coding checklist and dependency policy; accepted vulnerabilities with owner and expiry |
 | `prompts/` | Reusable prompts; open the folder in Obsidian |
 | `scripts/` | check, release, hooks, context packing |
 | `CHANGELOG.md`, `VERSION` | SemVer history |

@@ -56,4 +56,5 @@ Verification standard: OWASP ASVS (what to build), OWASP WSTG (how to test it).
 
 ## Accepted risks
 
-<!-- TODO: Risks knowingly not mitigated, with the reason and who accepted them. -->
+<!-- TODO: Risks knowingly not mitigated, with the reason and who accepted them. Vulnerable
+dependencies go to docs/security-exceptions.md instead. -->

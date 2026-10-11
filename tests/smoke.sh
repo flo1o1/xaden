@@ -130,6 +130,12 @@ test_generated_project() {
     'Safe parsing' 'Data retention' '## Web applications \*(web)\*'; do
     assert "security checklist covers: $topic" grep -q "$topic" "$PROJECT/docs/security.md"
   done
+  # REQ-030 dependency policy with accountable exceptions
+  for topic in '^## Dependencies' 'Lockfiles' 'Licenses' 'install scripts' 'Updates'; do
+    assert "dependency policy covers: $topic" grep -q "$topic" "$PROJECT/docs/security.md"
+  done
+  assert "exceptions need owner and expiry" grep -q '| Owner | Expires (YYYY-MM-DD) |' "$PROJECT/docs/security-exceptions.md"
+  assert "release prompt blocks on expired exceptions" grep -q 'security-exceptions.md' "$PROJECT/prompts/release.md"
   "$PROJECT/scripts/pack-context.sh" feature >/dev/null 2>&1
   cp "$PROJECT/context-pack.md" "$WORKDIR/pack-before.md"
   assert_fails "unknown prompt name rejected" "$PROJECT/scripts/pack-context.sh" feature no-such-prompt

@@ -18,6 +18,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - Python projects were never detected unless pyproject.toml, setup.py and requirements*.txt all existed.
 
 ### Added
+- Dependency policy in `docs/security.md` (approval, lockfiles, licenses, install scripts, update cadence, optional SBOM/provenance) and `docs/security-exceptions.md` for accepted vulnerabilities with owner and expiry; the release prompt blocks on expired exceptions.
 - Threat model template (`docs/threat-model.md`): assets, sensitive data, entry points, trust boundaries, attackers, deployment assumptions, OWASP ASVS level. Kickoff fills it, security reviews read it, context packs include it.
 - `inbox/` drop zone in scaffold and projects: contents are git-ignored; assistants treat them as untrusted data.
 - Initial scaffold: AGENTS.md rules for any LLM, Claude Code commands, Obsidian prompt vault.
