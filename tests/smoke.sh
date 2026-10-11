@@ -516,6 +516,10 @@ test_clean_code_guidance() {
     'Test doubles replace' 'Pyramid' 'Given / When / Then'; do
     assert "clean-code guide covers: $practice" grep -q "$practice" "$PROJECT/docs/clean-code.md"
   done
+  # REQ-044 linter configuration only gets stricter without approval
+  assert "loosening linters is an approval point" grep -q 'raising a threshold, or adding an ignore or suppression is an \*\*Approval point' "$PROJECT/AGENTS.md"
+  assert "linter baselines may only shrink" grep -q 'it may only shrink' "$PROJECT/AGENTS.md"
+  assert "presets require approval to relax" bash -c "grep -q \"user's approval\" '$PROJECT/presets/node/eslint.config.mjs' && grep -q \"user's approval\" '$PROJECT/presets/python/ruff.toml'"
   assert "ESLint preset forbids var" grep -q '"no-var": "error"' "$PROJECT/presets/node/eslint.config.mjs"
 }
 

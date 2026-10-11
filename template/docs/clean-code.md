@@ -113,6 +113,8 @@ The rules are instructions to assistants; where a tool can check them, `scripts/
 does (presets: `scripts/apply-preset.sh python|node`). Tools catch size, naming patterns
 and obvious error-handling mistakes. Design, cohesion, dependency direction and good names
 need human review; no prompt or linter guarantees architectural quality.
+Configurations only get stricter without the user's approval; existing violations live in a
+baseline that may only shrink (AGENTS.md §5).
 
 | Rule | Python (ruff preset) | JS/TS (ESLint preset) | Otherwise |
 |------|----------------------|-----------------------|-----------|

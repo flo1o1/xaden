@@ -71,7 +71,11 @@ Details and examples: `docs/clean-code.md` (same IDs).
   types, tests and dependency audits run in the full run and in CI.
 - Linter presets (`scripts/apply-preset.sh python|node`) enforce CC rules; once a stack is
   detected, missing lint/type/test setup fails the check instead of being skipped.
-- Fix findings; never silence a rule without a one-line reason. Recurring security mistakes
+- Fix findings; never silence a rule without a one-line reason.
+- Linter and type-checker configuration only gets stricter on your own. Loosening a rule,
+  raising a threshold, or adding an ignore or suppression is an **Approval point**.
+- Adopting a linter on existing code: record the current violations in the tool's baseline or
+  suppression file; it may only shrink, and new code never adds to it. Recurring security mistakes
   become a rule in `.semgrep/rules.yml` (offline, versioned).
 - Every run ends with a summary: passed, failed, skipped. A run with skipped checks is
   INCOMPLETE, never a success; CI and releases use `--strict`, where missing tools fail.

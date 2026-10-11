@@ -1,5 +1,6 @@
 // Clean-code preset for JavaScript/TypeScript (scripts/apply-preset.sh node).
-// Each rule is mapped to the AGENTS.md rule it enforces. Relaxing a rule needs a comment with the reason.
+// Each rule is mapped to the AGENTS.md rule it enforces. Relaxing a rule needs the user's approval
+// and a comment with the reason (AGENTS.md §5).
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 
