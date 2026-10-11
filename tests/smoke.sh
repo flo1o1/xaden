@@ -572,7 +572,16 @@ test_missing_tools() {
 
 # REQ-020 staged snapshot: checks and commit-msg validate what will be committed
 test_staged_snapshot() {
-  local requirements before_status before_diff
+  local requirements before_status before_diff in_snapshot
+  # REQ-014: large files the commit does not change are not copied; staged ones always are.
+  head -c 1100000 /dev/zero >"$PROJECT/large-unchanged.bin"
+  git -C "$PROJECT" add large-unchanged.bin && git -C "$PROJECT" commit -q --no-verify -m "chore: large file"
+  head -c 1100000 /dev/zero >"$PROJECT/large-staged.bin" && printf 'x\n' >"$PROJECT/small-staged.txt"
+  git -C "$PROJECT" add large-staged.bin small-staged.txt
+  in_snapshot="source '$PROJECT/scripts/lib.sh'; enter_staged_snapshot '$PROJECT'"
+  assert "snapshot leaves out large unchanged files" bash -c "$in_snapshot; test ! -e large-unchanged.bin && test -f AGENTS.md"
+  assert "snapshot keeps staged files of any size" bash -c "$in_snapshot; test -f large-staged.bin && test -f small-staged.txt"
+  git -C "$PROJECT" reset -q --hard HEAD~1
   requirements="$(req_file "$PROJECT" REQ-001)"
   cp "$requirements" "$WORKDIR/req-original.md"
   # staged content broken, working tree fixed: must fail

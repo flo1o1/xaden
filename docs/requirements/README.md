@@ -69,3 +69,4 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-11 REQ-007 criterion added: both release scripts refuse a changelog without [Unreleased] (audit finding)
 - 2026-10-11 REQ-053 criterion added: /review points to ponytail-review as an optional second pass
 - 2026-10-11 REQ-016 criterion added: matrix skips `traceability: ignore` lines like the check (audit finding)
+- 2026-10-11 REQ-014 criterion added: pre-commit snapshot skips large unchanged files (audit finding)

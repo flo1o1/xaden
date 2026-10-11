@@ -74,18 +74,33 @@ TARGETS=()
 GIT_REPO=""
 SNAPSHOT=""
 STAGED_LIST=""
+# Files the commit does not change are left out of the snapshot above this size (1 MiB):
+# copying large tracked assets on every commit would make the hook slow (REQ-014).
+SNAPSHOT_MAX_UNCHANGED_FILE_BYTES=1048576
 
-# enter_staged_snapshot <repo-root>: exports the git index to a temporary directory and
-# changes into it, so checks see the staged content, not unstaged edits. Untracked dependency
-# folders are linked so linters resolve. The working tree is never modified.
+# snapshot_paths: index paths to export, one per line: every staged file, plus every other
+# file up to SNAPSHOT_MAX_UNCHANGED_FILE_BYTES. Names containing newlines are unsupported.
+snapshot_paths() {
+  {
+    tr '\0' '\n' <"$STAGED_LIST"
+    git -C "$GIT_REPO" ls-files -s -z | tr '\0' '\n' |
+      awk '{ path = $0; sub(/^[^\t]*\t/, "", path); print $2 " " path }' |
+      git -C "$GIT_REPO" cat-file --batch-check='%(objecttype) %(objectsize) %(rest)' |
+      awk -v limit="$SNAPSHOT_MAX_UNCHANGED_FILE_BYTES" '$1 == "blob" && $2 <= limit { sub(/^[^ ]* [^ ]* /, ""); print }'
+  } | LC_ALL=C sort -u
+}
+
+# enter_staged_snapshot <repo-root>: exports the git index (see snapshot_paths) to a temporary
+# directory and changes into it, so checks see the staged content, not unstaged edits.
+# Untracked dependency folders are linked so linters resolve. The working tree is never modified.
 enter_staged_snapshot() {
   local dependency_dir
   GIT_REPO=$1
   SNAPSHOT="$(mktemp -d)"
   STAGED_LIST="$(mktemp)"
   trap 'rm -rf "$SNAPSHOT" "$STAGED_LIST"' EXIT
-  git -C "$GIT_REPO" checkout-index --all --prefix="$SNAPSHOT/"
   git -C "$GIT_REPO" diff --cached --name-only -z --diff-filter=ACMR >"$STAGED_LIST"
+  snapshot_paths | git -C "$GIT_REPO" checkout-index --stdin --prefix="$SNAPSHOT/"
   for dependency_dir in node_modules .venv; do
     if [ -d "$GIT_REPO/$dependency_dir" ]; then ln -s "$GIT_REPO/$dependency_dir" "$SNAPSHOT/$dependency_dir"; fi
   done

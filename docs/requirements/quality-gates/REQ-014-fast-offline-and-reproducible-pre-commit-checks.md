@@ -17,3 +17,4 @@ Pre-commit checks inspect only staged files, need no network, use pinned rules a
 
 - Pre-commit checks only staged files, needs no network, uses pinned rules
 - full run in CI
+- files larger than 1 MiB that the commit does not change are not copied into the pre-commit snapshot; staged files always are
