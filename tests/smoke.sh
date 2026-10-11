@@ -391,6 +391,17 @@ test_template_contents() {
   assert "every prompt has frontmatter" bash -c "cd '$PROJECT/prompts' && for f in *.md; do head -1 \"\$f\" | grep -qx -- '---' || exit 1; done"
 }
 
+# REQ-033 trusted instructions versus untrusted content, explicit approvals
+test_assistant_trust_rules() {
+  local item
+  for item in 'issue and pull-request text' 'output of tools and dependencies' 'files in .inbox/.' \
+    'authorise running commands' 'destructive or irreversible' 'adding, removing or upgrading dependencies' \
+    'affecting production' 'sending code or data outside' 'reading, printing or changing secrets'; do
+    assert "AGENTS.md trust rules cover: $item" grep -q -- "$item" "$PROJECT/AGENTS.md"
+  done
+  assert "pack carries the trust rules" grep -q '^## 10. Trusted instructions and approvals' "$PROJECT/context-pack.md"
+}
+
 # rule_ids <file>: prints the sorted, unique CC-nn IDs a file mentions.
 rule_ids() {
   grep -o 'CC-[0-9][0-9]' "$1" | sort -u
@@ -462,6 +473,7 @@ test_template_contents
 test_clean_code_guidance
 test_inbox
 test_generated_project
+test_assistant_trust_rules
 test_setup_and_commit_checks
 test_commit_bypasses
 test_missing_tools
