@@ -9,6 +9,8 @@ SCAFFOLD_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TEMPLATE="$SCAFFOLD_ROOT/template"
 # shellcheck source=SCRIPTDIR/../template/scripts/lib.sh
 source "$TEMPLATE/scripts/lib.sh"
+# shellcheck source=SCRIPTDIR/scaffold-lib.sh
+source "$SCAFFOLD_ROOT/scripts/scaffold-lib.sh"
 
 # validate_name <name>: dies unless the name is a safe directory/package name.
 validate_name() {
@@ -16,10 +18,11 @@ validate_name() {
     die "invalid project name '$1' (use lowercase letters, digits, hyphens)"
 }
 
-# copy_template <destination>: copies template/ including dotfiles.
+# copy_template <destination>: copies the template's tracked and new (not ignored) files,
+# so local junk (.DS_Store, context-pack.md) never reaches a project.
 copy_template() {
   mkdir -p "$1"
-  (cd "$TEMPLATE" && tar cf - --exclude=context-pack.md .) | (cd "$1" && tar xf -)
+  template_files "$TEMPLATE" | (cd "$TEMPLATE" && tar cf - -T -) | (cd "$1" && tar xf -)
 }
 
 # fill_placeholders <dir> <name>: replaces {{PROJECT_NAME}} and {{DATE}} in text files.
@@ -54,6 +57,7 @@ main() {
   copy_template "$target"
   target="$(cd "$target" && pwd)"
   fill_placeholders "$target" "$name"
+  write_manifest "$target" "$TEMPLATE" "$name" "$(tr -d '[:space:]' <"$SCAFFOLD_ROOT/VERSION")"
   init_repository "$target"
 
   info "created $name at $target"

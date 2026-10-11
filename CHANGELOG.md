@@ -16,6 +16,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - `scripts/setup.sh` for fresh clones, commit-message checks in CI, GETTING-STARTED guide.
 
 ### Changed
+- Projects record their scaffold version and a manifest of managed files (`.scaffold/`);
+  `scripts/update-scaffold.sh <project> [--apply]` brings them to a newer scaffold with a
+  three-way comparison, never overwriting local edits (`*.scaffold-new` instead).
+- New projects receive only tracked, non-ignored template files (no `.DS_Store` etc.).
 - Requirement traceability (`check-traceability.sh`): `done` requirements must be cited by a test,
   tests must not cite unknown IDs; `--matrix` prints requirement → tests → commits.
 - Clean-code linter presets (`template/presets/`, `scripts/apply-preset.sh python|node`) map

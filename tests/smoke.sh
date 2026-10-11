@@ -7,6 +7,8 @@ set -euo pipefail
 SCAFFOLD_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=SCRIPTDIR/../template/scripts/lib.sh
 source "$SCAFFOLD_ROOT/template/scripts/lib.sh"
+# shellcheck source=SCRIPTDIR/../scripts/scaffold-lib.sh
+source "$SCAFFOLD_ROOT/scripts/scaffold-lib.sh"
 
 WORKDIR="$(mktemp -d)"
 trap 'rm -rf "$WORKDIR"' EXIT
@@ -168,6 +170,36 @@ test_traceability() {
   git -C "$PROJECT" reset -q --hard && git -C "$PROJECT" clean -qfd
 }
 
+# REQ-017 update path for existing projects
+test_scaffold_update() {
+  local newer="$WORKDIR/newer-scaffold"
+  assert "project records scaffold version" test -f "$PROJECT/.scaffold/version"
+  assert "manifest lists managed files" grep -q 'prompts/feature.md' "$PROJECT/.scaffold/manifest"
+  assert "manifest excludes project files" test -z "$(grep 'REQUIREMENTS.md' "$PROJECT/.scaffold/manifest" || true)"
+  assert "fresh project is up to date" bash -c "'$SCAFFOLD_ROOT/scripts/update-scaffold.sh' '$PROJECT' | grep -q '0 change(s) planned'"
+
+  # A newer scaffold: one changed prompt, one new prompt, one prompt changed on both sides.
+  mkdir -p "$newer"
+  template_files "$SCAFFOLD_ROOT" | (cd "$SCAFFOLD_ROOT" && tar cf - -T -) | (cd "$newer" && tar xf -)
+  printf '9.9.9\n' >"$newer/VERSION"
+  printf '\nUpstream improvement.\n' >>"$newer/template/prompts/bugfix.md"
+  printf -- '---\ntitle: New\n---\n# New prompt\n' >"$newer/template/prompts/new-prompt.md"
+  printf '\nUpstream change.\n' >>"$newer/template/prompts/feature.md"
+  printf '\nMy local tweak.\n' >>"$PROJECT/prompts/feature.md"
+  printf '\nProject requirement edit.\n' >>"$PROJECT/docs/requirements/REQUIREMENTS.md"
+  git -C "$PROJECT" commit -q -am "docs: local prompt tweak and requirement edit" --no-verify
+
+  assert "dry run changes nothing" bash -c "'$newer/scripts/update-scaffold.sh' '$PROJECT' >/dev/null && test -z \"\$(git -C '$PROJECT' status --porcelain)\""
+  assert "update applies" "$newer/scripts/update-scaffold.sh" "$PROJECT" --apply
+  assert "unmodified prompt updated" grep -q 'Upstream improvement.' "$PROJECT/prompts/bugfix.md"
+  assert "new prompt added" test -f "$PROJECT/prompts/new-prompt.md"
+  assert "local tweak kept on conflict" grep -q 'My local tweak.' "$PROJECT/prompts/feature.md"
+  assert "conflict candidate written" grep -q 'Upstream change.' "$PROJECT/prompts/feature.md.scaffold-new"
+  assert "project requirements untouched" grep -q 'Project requirement edit.' "$PROJECT/docs/requirements/REQUIREMENTS.md"
+  assert "version recorded" test "$(cat "$PROJECT/.scaffold/version")" = "9.9.9"
+  git -C "$PROJECT" reset -q --hard HEAD~1 && git -C "$PROJECT" clean -qfdx
+}
+
 # git needs an identity inside the sandbox project.
 export GIT_AUTHOR_NAME=smoke GIT_AUTHOR_EMAIL=smoke@example.invalid
 export GIT_COMMITTER_NAME=smoke GIT_COMMITTER_EMAIL=smoke@example.invalid
@@ -180,5 +212,6 @@ test_setup_and_commit_checks
 test_staged_checks
 test_stack_enforcement
 test_traceability
+test_scaffold_update
 test_release
 info "smoke test passed ($PASSED assertions)"

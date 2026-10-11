@@ -54,13 +54,25 @@ template/             the product: copied 1:1 into every new project
   prompts/            prompt library (open template/ or a project as Obsidian vault)
   docs/               user-guide, admin-guide, requirements, ADRs, clean-code, security, local-llm
   scripts/            setup, check, release, hooks, pack-context, req, context-status, stacks/
-scripts/              scaffold tools: new-project, setup, check-scaffold, release-scaffold
+scripts/              scaffold tools: new-project, update-scaffold, setup, check-scaffold, release-scaffold
 docs/requirements/    requirements of the scaffold itself
 tests/smoke.sh        end-to-end test: generates a project and exercises its tooling
 AGENTS.md CLAUDE.md   rules for maintaining the scaffold
 ```
 
 See `template/docs/local-llm.md` for non-Claude tools.
+
+## Updating existing projects
+
+```bash
+scripts/update-scaffold.sh ../my-app          # dry run: what would change
+scripts/update-scaffold.sh ../my-app --apply  # apply and stage; review, then commit
+```
+
+Only scaffold-managed files (scripts, prompts, presets, rules, commands) are updated. Files you
+changed locally are never overwritten: the new version is written next to them as
+`<file>.scaffold-new` for you to merge. Code, requirements, guides, README and changelog are
+never touched. Each project records its scaffold version in `.scaffold/`.
 
 ## Maintaining the scaffold
 

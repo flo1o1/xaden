@@ -26,6 +26,7 @@ Tools without file access: `scripts/pack-context.sh kickoff` and paste `context-
 | `prompts/` | Reusable prompts; open the folder in Obsidian |
 | `scripts/` | check, release, hooks, context packing |
 | `CHANGELOG.md`, `VERSION` | SemVer history |
+| `.scaffold/` | Scaffold version and managed-file manifest (used by the scaffold's `update-scaffold.sh`) |
 
 ## Release
 

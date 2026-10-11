@@ -21,7 +21,7 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 | REQ-014 | Fast, offline and reproducible pre-commit checks | must | done | Pre-commit checks only staged files, needs no network, uses pinned rules; full run in CI | 2026-10-11 |
 | REQ-015 | Clean-code rules enforced by linters; a detected stack without checks fails | must | done | Stack presets map CC rules to linter settings; missing lint/type/test steps fail check.sh | 2026-10-11 |
 | REQ-016 | Requirements traceable to tests | must | done | Every done requirement is referenced by a test; matrix script lists requirement to tests | 2026-10-11 |
-| REQ-017 | Existing projects can adopt newer scaffold versions | should | approved | Projects record scaffold version; update script shows and applies changes to managed files only | 2026-10-11 |
+| REQ-017 | Existing projects can adopt newer scaffold versions | should | done | Projects record scaffold version; update script shows and applies changes to managed files only | 2026-10-11 |
 
 ## Change log
 
@@ -30,3 +30,4 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 - 2026-10-11 REQ-014 done: staged/offline pre-commit, local semgrep rules.
 - 2026-10-11 REQ-015 done: ruff/mypy and ESLint presets mapped to CC rules; detected stacks fail on missing setup.
 - 2026-10-11 REQ-016 done: check-traceability.sh; scaffold smoke tests cite the requirements they verify.
+- 2026-10-11 REQ-017 done: .scaffold manifest and update-scaffold.sh with three-way comparison.

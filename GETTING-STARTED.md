@@ -60,6 +60,18 @@ Also available: `/bugfix`, `/refactor`, `/review`, `/security`, `/docs`.
 while the guides are incomplete, stamps versions, and tags locally. Push when you want:
 `git push --follow-tags`.
 
+## Getting scaffold improvements into your project
+
+Pull the newest scaffold, then from the scaffold directory:
+
+```bash
+scripts/update-scaffold.sh ../my-app            # dry run
+scripts/update-scaffold.sh ../my-app --apply    # stage changes; review with git diff --cached
+```
+
+Merge any `*.scaffold-new` files it reports (your local edits are never overwritten), then
+commit `chore(scaffold): update to vX.Y.Z`.
+
 ## Joining an existing project
 
 ```bash

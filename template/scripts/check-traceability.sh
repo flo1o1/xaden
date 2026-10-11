@@ -29,7 +29,7 @@ test_files() { git ls-files | grep -E "$TEST_FILE_PATTERN" || true; }
 # tests_citing <REQ-nnn>: test files that mention the ID (word match), comma-separated.
 tests_citing() {
   test_files | while IFS= read -r file; do
-    grep -qE "(^|[^0-9A-Za-z-])$1([^0-9]|$)" "$file" 2>/dev/null && printf '%s\n' "$file"
+    if grep -qE "(^|[^0-9A-Za-z-])$1([^0-9]|$)" "$file" 2>/dev/null; then printf '%s\n' "$file"; fi
   done | paste -sd, - || true
 }
 
