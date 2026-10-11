@@ -1,0 +1,18 @@
+---
+id: REQ-001
+type: job
+epic: project-setup
+priority: must
+status: done
+updated: 2026-10-11
+---
+
+# Create a new project from the template with its own git repository and active hooks
+
+## Job
+
+When I start a new project, I want one command that creates a repository from the template with active hooks, so I can begin coding under the scaffold's rules immediately.
+
+## Acceptance criteria
+
+- `scripts/new-project.sh name` yields a repo with one commit and core.hooksPath set (smoke test)

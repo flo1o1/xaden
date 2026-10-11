@@ -267,6 +267,9 @@ test_job_stories() {
     's/^TODO: When .*/When TODOs pile up, I want a list of them, so I can plan the work./; s/^- TODO: .*/- Given open TODOs, when I list them, then all are shown./')' 2>&1 | grep -q 'REQ-001-.*contains TODO'"
   assert_fails_with "unknown requirement type rejected" 'type must be one of' \
     "$check" "$(requirements_variant bad-type 's/^type: job/type: story/')"
+  # REQ-049 the scaffold uses the format it prescribes
+  assert "scaffold's own requirements are finished job and quality files" \
+    "$PROJECT/scripts/check-requirements.sh" --release "$SCAFFOLD_ROOT/docs/requirements"
   assert "AGENTS.md defines the job story format" grep -q 'When <situation>, I want to <motivation>, so I can <expected' "$PROJECT/AGENTS.md"
   assert "kickoff writes requirements as jobs" grep -q 'Find the jobs my users hire the software for' "$PROJECT/prompts/kickoff.md"
 }

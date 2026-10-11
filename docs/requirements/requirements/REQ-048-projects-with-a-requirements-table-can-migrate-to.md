@@ -1,0 +1,18 @@
+---
+id: REQ-048
+type: job
+epic: requirements
+priority: should
+status: done
+updated: 2026-10-11
+---
+
+# Projects with a requirements table can migrate to the per-file format
+
+## Job
+
+When my project still uses the requirements table, I want a migration to the per-file format, so I can adopt it without losing history.
+
+## Acceptance criteria
+
+- scripts/migrate-requirements.sh converts every table row into a requirement file without losing ID, status, priority, date, text or acceptance criteria, moves the change log, writes the index and refuses to overwrite existing files

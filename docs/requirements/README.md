@@ -52,3 +52,4 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-11 REQ-046 done: job stories for type job, quality goals for type quality, validated; TODO warns and blocks releases
 - 2026-10-11 REQ-047 done: one file per requirement in epic folders, global IDs, generated INDEX.md, req.sh new/show/list/index, all tools switched
 - 2026-10-11 REQ-048 done: migrate-requirements.sh; scaffold's own table migrated with it
+- 2026-10-11 REQ-049 done: scaffold requirements sorted into six epics with job stories and quality goals; scaffold check runs the release-grade validation

@@ -1,0 +1,19 @@
+---
+id: REQ-014
+type: quality
+epic: quality-gates
+priority: must
+status: done
+updated: 2026-10-11
+---
+
+# Fast, offline and reproducible pre-commit checks
+
+## Quality goal
+
+Pre-commit checks inspect only staged files, need no network, use pinned rules and finish in seconds; the full run happens in CI.
+
+## Acceptance criteria
+
+- Pre-commit checks only staged files, needs no network, uses pinned rules
+- full run in CI
