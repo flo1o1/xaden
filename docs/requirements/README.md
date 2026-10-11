@@ -67,3 +67,4 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-11 REQ-015 criterion added: CI installs requirements-dev.txt only when present (audit finding)
 - 2026-10-11 REQ-010 criterion added: only `<!-- TODO` markers block a release (audit finding)
 - 2026-10-11 REQ-007 criterion added: both release scripts refuse a changelog without [Unreleased] (audit finding)
+- 2026-10-11 REQ-053 criterion added: /review points to ponytail-review as an optional second pass

@@ -449,6 +449,8 @@ test_assistant_plugins() {
     'takes precedence over them' 'Not recommended'; do
     assert "optional tools document covers: $item" grep -q -- "$item" "$doc"
   done
+  assert "/review offers ponytail-review as an optional second pass" \
+    grep -q 'Optional second pass: if the Ponytail plugin is installed' "$PROJECT/.claude/commands/review.md"
 }
 
 # REQ-054 look for mature existing solutions before building

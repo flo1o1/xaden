@@ -19,3 +19,4 @@ When I use Claude Code on a project, I want to know which public plugins add dee
 - Given a workflow framework that replaces this project's workflow, when the document mentions it, then it is listed as not recommended, with the reason.
 - Given `scripts/setup.sh` on a machine with the `claude` command, when it runs, then it points to `docs/optional-tools.md`.
 - Given a new project, when it is generated, then no plugin is installed or enabled.
+- Given the Claude Code `/review` command, when it finishes, then it offers `/ponytail-review` as an optional second pass only if Ponytail is installed, and the project prompt, rule IDs and completion report take precedence.
