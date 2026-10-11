@@ -22,25 +22,27 @@ read_committed_version() {
   git -C "$(dirname "$1")" show ":./$(basename "$1")" 2>/dev/null || cat "$1"
 }
 
+# Temporary export of the git index; removed on exit.
+SNAPSHOT=""
+
 # committed_requirements_root: a directory whose docs/requirements holds the requirement files
 # as they will be committed (git index). Outside git, the working tree itself.
 committed_requirements_root() {
-  local snapshot path
+  local prefix
   if ! git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
     printf '%s' "$ROOT"
     return 0
   fi
-  snapshot="$(mktemp -d)"
-  mkdir -p "$snapshot/docs/requirements"
-  while IFS= read -r -d '' path; do
-    mkdir -p "$snapshot/$(dirname "$path")"
-    git -C "$ROOT" show ":./$path" >"$snapshot/$path"
-  done < <(git -C "$ROOT" ls-files -z -- docs/requirements)
-  printf '%s' "$snapshot"
+  prefix="$(git -C "$ROOT" rev-parse --show-prefix)" # checkout-index writes repository paths
+  mkdir -p "$SNAPSHOT/${prefix}docs/requirements"
+  git -C "$ROOT" ls-files -z -- docs/requirements |
+    git -C "$ROOT" checkout-index -z --stdin --prefix="$SNAPSHOT/"
+  printf '%s' "$SNAPSHOT/$prefix"
 }
 
+SNAPSHOT="$(mktemp -d)"
+trap 'rm -rf "$SNAPSHOT"' EXIT
 REQUIREMENTS_ROOT="$(committed_requirements_root)"
-[ "$REQUIREMENTS_ROOT" = "$ROOT" ] || trap 'rm -rf "$REQUIREMENTS_ROOT"' EXIT
 # "ID [status, priority] title" per committed requirement.
 REQUIREMENTS_LIST="$(PROJECT_ROOT="$REQUIREMENTS_ROOT" "$SCRIPTS/req.sh" list)"
 RULES_TEXT="$(read_committed_version "$RULES_FILE")"
