@@ -55,3 +55,6 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-11 REQ-049 done: scaffold requirements sorted into six epics with job stories and quality goals; scaffold check runs the release-grade validation
 - 2026-10-11 REQ-050 added (approved): optional add-on rule sets such as Ponytail documented; project rules take precedence
 - 2026-10-11 REQ-050 done: GETTING-STARTED documents Ponytail as optional; AGENTS.md §10 keeps project rules on top; smoke test_add_on_rule_sets
+- 2026-10-11 REQ-051 added (approved): optional quality tools suggested by environment, run once adopted
+- 2026-10-11 REQ-052 added (approved): dependencies checked for existence and reputation (slopsquatting)
+- 2026-10-11 REQ-053 added (approved): optional assistant plugins documented in every project

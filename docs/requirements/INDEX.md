@@ -20,6 +20,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-041 | job | should | done | Clean-code guide covers proven design, test and refactoring practices |
 | REQ-042 | job | should | done | Projects document their architecture with rules for new code |
 | REQ-050 | job | should | done | Optional add-on rule sets such as Ponytail are documented and never override the project rules |
+| REQ-053 | job | could | approved | Optional assistant plugins for review and security are documented in every project |
 
 ## Project setup (`project-setup`)
 
@@ -47,6 +48,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-022 | job | must | done | Commit reference checks cannot be bypassed |
 | REQ-025 | quality | should | done | Scaffold tests are diagnosable and independent of user configuration |
 | REQ-044 | job | should | done | Linter configuration only gets stricter without user approval |
+| REQ-051 | job | should | approved | Optional quality tools are suggested when the project would benefit and run once adopted |
 
 ## Releases and documentation (`release-and-docs`)
 
@@ -82,3 +84,4 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-032 | job | should | done | Security reviews produce a recorded report with evidence |
 | REQ-039 | job | should | done | Security checklist and review cover the WSTG test areas missing so far |
 | REQ-040 | job | should | done | Local semgrep rules catch more insecure patterns |
+| REQ-052 | job | should | approved | Dependencies are checked for existence and reputation before they are added |
