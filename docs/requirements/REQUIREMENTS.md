@@ -43,6 +43,8 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 | REQ-036 | Assistants end work with a truthful completion report | must | done | AGENTS.md defines the report (checks run, checks skipped, unresolved findings, acceptance evidence); prompts reference it; skipped checks are never reported as passed | 2026-10-11 |
 | REQ-037 | Documentation guidance is honest about checks and covers operations | should | done | Docs state check-docs.sh validates structure only; documentation prompt and admin guide ask for timeouts, retries, cancellation, health checks, safe logs, migrations with rollback and tested restores where they apply | 2026-10-11 |
 | REQ-038 | The scaffold is published under the MIT license | should | done | Root LICENSE holds the MIT text; generated projects do not inherit it | 2026-10-11 |
+| REQ-039 | Security checklist and review cover the WSTG test areas missing so far | should | approved | security.md and the review prompt cover open redirect, parameter pollution, header injection and smuggling, further injection types, file inclusion, vertical privilege escalation, user enumeration, default credentials, session scope and URL tokens, HSTS, exposed files and methods, client-side secrets, encryption at rest, upload origin and counts, automation and wildcard DoS, ReDoS, audit trail, segregation of duties, postMessage and web storage, payments via a provider; obsolete technologies left out | 2026-10-11 |
+| REQ-040 | Local semgrep rules catch more insecure patterns | should | approved | Rules for open redirect, insecure randomness for secrets, weak password hashing, cookies without security flags, unsafe XML parsing and regular expressions built from input, each proven by fixtures in tests/semgrep for Python and JS where applicable | 2026-10-11 |
 
 ## Change log
 
@@ -76,3 +78,4 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 - 2026-10-11 REQ-036 done: completion report defined in AGENTS.md section 5, required by every working prompt
 - 2026-10-11 REQ-037 done: check-docs reports structure only; documentation prompt and admin guide cover operations
 - 2026-10-11 REQ-038 done: MIT LICENSE at the root, chosen by the user; not copied into projects
+- 2026-10-11 REQ-039..REQ-040 added: gaps found by comparing a community WSTG checklist (inbox, untrusted, not copied) with security.md and the semgrep rules.
