@@ -17,17 +17,33 @@ code: a 20-line script needs less structure than a service with many contributor
 - Abstractions earn their place: add an interface or wrapper when there are two real
   implementations, a test needs a seam, or a boundary needs a contract. Not to satisfy SOLID
   vocabulary.
+- Composition root: one place (the entry point) builds the objects and wires them together; only
+  it touches globals such as environment, clock, OS or browser APIs. Everything else receives them.
+- A unit either does work (an algorithm) or coordinates other units, not both.
+- Behaviour that varies by type or mode lives in polymorphic objects (strategies), not in the
+  same `switch`/`if` chain repeated in several places.
+- Make order dependencies visible: if B needs A first, let A return what B needs instead of
+  relying on call order (hidden temporal coupling).
+- Talk to direct collaborators only (Law of Demeter): avoid chains like `a.b().c().d()`.
+- Symmetric operations look symmetric (load/save, open/close, encode/decode).
+- Size heuristics for review (presets enforce function limits): a class beyond ~100 lines or a
+  function beyond ~30 lines usually does more than one thing.
 - Keep constructors simple. Prefer composition over inheritance.
 
 ## Naming (CC-02)
 - Name says *what/why*, not *how*. Pronounceable, searchable, no encodings.
 - Same concept → same word everywhere. Booleans read as predicates (`is_valid`).
+- Name length follows scope: short names in a three-line loop, descriptive names for anything
+  that lives long or travels far. Names match the abstraction level of their unit.
 - Replace magic numbers/strings with named constants.
 
 ## Functions (CC-01, CC-03)
 - Small; do one thing; one abstraction level; ≤ 3 parameters ideally.
 - No flag arguments, no output parameters.
 - Early returns instead of deep nesting.
+- Wrap complex conditions in a well-named function (`if should_delete(timer)`); prefer positive
+  conditions over negated ones.
+- Declare variables close to their first use (vertical separation).
 
 ## Duplication (CC-03)
 - DRY is about knowledge, not text: two places that must change together are duplication.
@@ -49,10 +65,16 @@ code: a 20-line script needs less structure than a service with many contributor
   formats, contracts at module boundaries, invariants, errors, surprising behaviour.
 - Skip docstrings that only restate the name of a small private helper.
 - Explain *why*, never *what*. Delete dead code (git remembers).
+- Warnings earn a comment: thread safety, performance traps, security consequences.
+- A wrong comment is worse than none: update or delete comments in the same change as the code.
+- One language for code, comments and commit messages; English unless the project records
+  another choice in `docs/decisions/`.
 
 ## Smells to refuse (CC-03)
-Duplicated knowledge · long methods · god classes · feature envy · primitive obsession ·
-shotgun surgery · speculative generality · dead code · inconsistent naming.
+Duplicated knowledge · long methods · god classes · long parameter lists · feature envy ·
+primitive obsession · divergent change (one class changes for many reasons) · shotgun surgery
+(one change touches many classes) · speculative generality · dead code · inconsistent naming ·
+hidden dependencies between calls · surprising behaviour (least astonishment).
 
 ## Refactoring (CC-09)
 Refactor with a purpose: when it makes the change at hand easier or safer, or when the user
@@ -61,9 +83,27 @@ do not reorganise code the change does not touch.
 - Feature: refactor first only if the feature would otherwise be hard to add.
 - Bug fix: regression test first, smallest fix, then refactor if needed.
 
+Techniques that keep the system running between steps:
+- Parallel implementation: build the new path next to the old one, switch callers, then delete
+  the old path.
+- Format changes: read old and new representation for a while, migrate, then remove the old one.
+- Code without tests: first pin current behaviour with characterization or acceptance tests,
+  introduce seams at boundaries, then decide per component: refactor, rewrite or keep.
+
 ## Tests, FIRST (CC-08)
 Fast · Isolated · Repeatable · Self-validating · Timely. Arrange–Act–Assert.
 One behaviour per test; test names state the behaviour.
+- Tiny steps: little code between red and green.
+- Test through the public interface; check results and state rather than which calls were made
+  (interaction checks only where the call is the behaviour, e.g. sending an e-mail).
+- No `if` or loops that compute expectations inside tests; a test that cannot fail is a defect.
+- Long setup or many test doubles mean the unit does too much: split it.
+- Flaky tests are bugs; fix the cause (shared state, time, order, network) instead of re-running.
+- Test doubles replace what crosses a boundary (I/O, clock, network, randomness). Prefer simple
+  hand-written fakes when several tests share them. Assert on the unit, not on the double.
+- Pyramid: many unit tests, fewer integration and acceptance tests, few end-to-end tests,
+  plus exploratory testing by a human.
+- Acceptance criteria become examples (Given / When / Then) and then acceptance tests.
 
 ## How each rule is enforced
 

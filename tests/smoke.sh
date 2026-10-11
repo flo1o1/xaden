@@ -490,6 +490,16 @@ test_clean_code_guidance() {
     bash -c "grep -q 'CC-06.* Document public APIs' '$PROJECT/AGENTS.md' && grep -q '^- Document public' '$PROJECT/docs/clean-code.md'"
   assert "CC-05 accepts result and option types" grep -q 'exceptions, result or option types' "$PROJECT/AGENTS.md"
   assert "CC-09 forbids unrelated refactoring" grep -q 'No unrelated refactoring' "$PROJECT/AGENTS.md"
+  # REQ-041 design, test and refactoring practices
+  local practice
+  for practice in 'Composition root' 'does work (an algorithm) or coordinates' 'polymorphic objects' \
+    'hidden temporal coupling' 'Law of Demeter' 'Size heuristics' 'Name length follows scope' \
+    'positive' 'A wrong comment is worse than none' 'English unless' 'Parallel implementation' \
+    'characterization' 'check results and state' 'a test that cannot fail' 'Flaky tests' \
+    'Test doubles replace' 'Pyramid' 'Given / When / Then'; do
+    assert "clean-code guide covers: $practice" grep -q "$practice" "$PROJECT/docs/clean-code.md"
+  done
+  assert "ESLint preset forbids var" grep -q '"no-var": "error"' "$PROJECT/presets/node/eslint.config.mjs"
 }
 
 # REQ-016 traceability

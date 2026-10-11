@@ -21,6 +21,7 @@ export default tseslint.config(
       "no-implied-eval": "error", // security
       "no-new-func": "error", // security
       eqeqeq: "error",
+      "no-var": "error", // block scope only; var hoisting hides intent (CC-02)
       "prefer-const": "error",
     },
   },
