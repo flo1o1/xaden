@@ -17,3 +17,4 @@ When a newer scaffold version is released, I want to update my existing project 
 
 - Projects record scaffold version
 - update script shows and applies changes to managed files only
+- Given a project checked out as a git worktree or submodule (`.git` is a file), when the update script runs, then it plans and applies the update like in a normal checkout

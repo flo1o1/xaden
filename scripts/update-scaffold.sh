@@ -40,7 +40,7 @@ parse_arguments() {
     esac
   done
   [ -n "$PROJECT" ] || die "usage: scripts/update-scaffold.sh <project-dir> [--apply]"
-  [ -d "$PROJECT/.git" ] || die "not a git project: $PROJECT"
+  [ -e "$PROJECT/.git" ] || die "not a git project: $PROJECT" # a file in worktrees and submodules
   PROJECT="$(cd "$PROJECT" && pwd)"
 }
 

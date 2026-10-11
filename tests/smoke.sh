@@ -829,6 +829,9 @@ test_scaffold_update() {
   assert "manifest lists managed files" grep -q 'prompts/feature.md' "$PROJECT/.scaffold/manifest"
   assert "manifest excludes project files" test -z "$(grep 'docs/requirements/' "$PROJECT/.scaffold/manifest" || true)"
   assert "fresh project is up to date" bash -c "'$SCAFFOLD_ROOT/scripts/update-scaffold.sh' '$PROJECT' | grep -q '0 change(s) planned'"
+  git -C "$PROJECT" worktree add -q "$WORKDIR/worktree" -b worktree-branch
+  assert "update runs in a git worktree" bash -c "'$SCAFFOLD_ROOT/scripts/update-scaffold.sh' '$WORKDIR/worktree' | grep -q '0 change(s) planned'"
+  git -C "$PROJECT" worktree remove "$WORKDIR/worktree" && git -C "$PROJECT" branch -q -D worktree-branch
 
   # A newer scaffold: one changed prompt, one new prompt, one prompt changed on both sides.
   export_template "$SCAFFOLD_ROOT" "$newer"
