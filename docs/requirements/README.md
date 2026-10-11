@@ -61,3 +61,4 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-11 REQ-051 done: check.sh prints TIP lines per stack, runs adopted optional tools; docs/optional-tools.md; smoke test_optional_tools
 - 2026-10-11 REQ-052 done: dependency policy requires registry lookup against slopsquatting; smoke test_dependency_vetting
 - 2026-10-11 REQ-053 done: docs/optional-tools.md lists Claude Code plugins and a not-recommended framework; smoke test_assistant_plugins
+- 2026-10-11 REQ-054 added (approved): look for mature existing solutions on the web before building
