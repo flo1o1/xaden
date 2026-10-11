@@ -168,6 +168,15 @@ test_release() {
   assert "tag created" git -C "$PROJECT" rev-parse v0.1.1
 }
 
+# REQ-026 local drop zone
+test_inbox() {
+  printf 'private\n' >"$PROJECT/inbox/notes.txt"
+  assert "inbox README tracked" git -C "$PROJECT" ls-files --error-unmatch inbox/README.md
+  assert "inbox contents ignored by git" git -C "$PROJECT" check-ignore -q inbox/notes.txt
+  assert "inbox contents never staged by add -A" test -z "$(git -C "$PROJECT" add -A --dry-run | grep inbox/notes.txt || true)"
+  rm -f "$PROJECT/inbox/notes.txt"
+}
+
 # REQ-002 tool-agnostic rules, REQ-005 security review, REQ-008 Obsidian vault
 test_template_contents() {
   local pointer
@@ -233,6 +242,7 @@ export GIT_COMMITTER_NAME=smoke GIT_COMMITTER_EMAIL=smoke@example.invalid
 test_bump_version
 test_new_project
 test_template_contents
+test_inbox
 test_generated_project
 test_setup_and_commit_checks
 test_staged_checks

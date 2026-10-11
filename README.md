@@ -56,6 +56,7 @@ template/             the product: copied 1:1 into every new project
   scripts/            setup, check, release, hooks, pack-context, req, context-status, stacks/
 scripts/              scaffold tools: new-project, update-scaffold, setup, check-scaffold, release-scaffold
 docs/requirements/    requirements of the scaffold itself
+inbox/                local drop zone (git-ignored contents)
 tests/smoke.sh        end-to-end test: generates a project and exercises its tooling
 AGENTS.md CLAUDE.md   rules for maintaining the scaffold
 ```
