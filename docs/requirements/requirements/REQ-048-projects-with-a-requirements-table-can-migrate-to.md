@@ -16,3 +16,4 @@ When my project still uses the requirements table, I want a migration to the per
 ## Acceptance criteria
 
 - scripts/migrate-requirements.sh converts every table row into a requirement file without losing ID, status, priority, date, text or acceptance criteria, moves the change log, writes the index and refuses to overwrite existing files
+- Given a table row whose ID is not `REQ-nnn` (e.g. `REQ-/../../x`), when the migration runs, then it stops before writing any file, so a crafted table cannot write outside `docs/requirements/`

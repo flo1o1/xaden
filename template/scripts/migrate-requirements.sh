@@ -54,6 +54,15 @@ write_readme() {
   } >"$DIR/README.md"
 }
 
+# validate_ids: dies before anything is written if a row's ID is not REQ-nnn. The ID becomes
+# part of a file path, and the table is project content (security review 2026-10-11-audit-fixes #1).
+validate_ids() {
+  local id
+  while IFS= read -r id; do
+    printf '%s' "$id" | grep -Eq '^REQ-[0-9]{3,}$' || die "invalid requirement ID in the table: $id"
+  done < <(table_rows | cut -f1)
+}
+
 # migrate_rows: writes one requirement file per table row.
 migrate_rows() {
   local id text priority status acceptance updated count=0
@@ -71,6 +80,7 @@ main() {
   [ -z "$(requirement_files "$DIR")" ] || die "requirement files already exist; nothing migrated"
   [ -e "$DIR/README.md" ] && die "docs/requirements/README.md already exists; nothing migrated"
   [ -n "$(table_rows)" ] || die "the table has no requirement rows"
+  validate_ids
   write_epic "$DIR/$EPIC" "Unsorted" \
     "TODO: Requirements migrated from the old table. Move each one into a topic epic (folder and \`epic:\` field) and describe that epic's goal as a job."
   migrate_rows

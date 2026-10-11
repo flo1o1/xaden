@@ -317,7 +317,7 @@ write_requirements_table() {
 
 # REQ-048 migration from the requirements table
 test_requirements_migration() {
-  local legacy="$WORKDIR/legacy" migrated
+  local legacy="$WORKDIR/legacy" crafted="$WORKDIR/crafted" migrated
   write_requirements_table "$legacy"
   assert "table migrates to requirement files" env PROJECT_ROOT="$legacy" "$PROJECT/scripts/migrate-requirements.sh"
   migrated="$(req_file "$legacy" REQ-001)"
@@ -334,6 +334,15 @@ test_requirements_migration() {
   write_requirements_table "$legacy"
   assert_fails_with "migration never overwrites requirement files" 'already exist' \
     env PROJECT_ROOT="$legacy" "$PROJECT/scripts/migrate-requirements.sh"
+
+  # A crafted ID must not turn into a path outside docs/requirements (review 2026-10-11-audit-fixes #1).
+  write_requirements_table "$crafted"
+  mkdir -p "$crafted/docs/requirements/unsorted/REQ-"
+  printf '%s\n' '| REQ-/../../../../escaped | Pwn | must | done | x | 2026-01-02 |' >>"$crafted/docs/requirements/REQUIREMENTS.md"
+  assert_fails_with "migration rejects an ID that is not REQ-nnn" 'invalid requirement ID' \
+    env PROJECT_ROOT="$crafted" "$PROJECT/scripts/migrate-requirements.sh"
+  assert "nothing written outside docs/requirements" test -z "$(find "$crafted" -name 'escaped*')"
+  assert "no requirement file written before the bad row was found" test -z "$(find "$crafted" -name 'REQ-001-*')"
 }
 
 # REQ-012 usable by others (setup after clone, CI commit checks)
