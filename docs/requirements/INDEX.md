@@ -38,7 +38,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-038 | job | should | done | The scaffold is published under the MIT license |
 | REQ-045 | job | must | done | The scaffold depends on no personal tools, skills or accounts |
 | REQ-056 | job | should | done | Run Xaden as one command from anywhere |
-| REQ-059 | job | should | approved | Existing projects receive assistant permission updates without losing their edits |
+| REQ-059 | job | should | done | Existing projects receive assistant permission updates without losing their edits |
 
 ## Quality gates (`quality-gates`)
 

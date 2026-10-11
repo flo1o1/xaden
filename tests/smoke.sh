@@ -913,6 +913,30 @@ test_security_exceptions() {
   git -C "$PROJECT" checkout -q -- docs/security-exceptions.md
 }
 
+# REQ-059: .claude/settings.json follows scaffold updates; a project's own edits are kept.
+test_settings_update() {
+  local newer="$WORKDIR/newer-settings" settings="$PROJECT/.claude/settings.json"
+  export_template "$SCAFFOLD_ROOT" "$newer"
+  edit_file "$newer/template/.claude/settings.json" 's/"Bash(git log:\*)"/"Bash(git log:*)", "Bash(git show:*)"/'
+  assert "update applies a new settings.json" "$newer/scripts/update-scaffold.sh" "$PROJECT" --apply
+  assert "unedited settings.json updated" grep -q 'git show' "$settings"
+  git -C "$PROJECT" reset -q --hard && git -C "$PROJECT" clean -qfdx
+
+  edit_file "$settings" 's/"Bash(git log:\*)"/"Bash(git log:*)", "Bash(make test:*)"/'
+  git -C "$PROJECT" commit -qn -am "chore: own permission"
+  assert "update applies with an edited settings.json" "$newer/scripts/update-scaffold.sh" "$PROJECT" --apply
+  assert "project's own permission kept" grep -q 'make test' "$settings"
+  assert "new settings offered for merging" grep -q 'git show' "$settings.scaffold-new"
+  git -C "$PROJECT" reset -q --hard HEAD~1 && git -C "$PROJECT" clean -qfdx
+
+  grep -v "$(printf '\t').claude/settings.json\$" "$PROJECT/.scaffold/manifest" >"$WORKDIR/manifest" &&
+    cp "$WORKDIR/manifest" "$PROJECT/.scaffold/manifest"
+  git -C "$PROJECT" commit -qn -am "chore: manifest from before settings.json was managed"
+  assert "update applies for an older project" "$newer/scripts/update-scaffold.sh" "$PROJECT" --apply
+  assert "older project's settings offered for merging" test -f "$settings.scaffold-new"
+  git -C "$PROJECT" reset -q --hard HEAD~1 && git -C "$PROJECT" clean -qfdx
+}
+
 # REQ-019: CI never leaves the job token in .git/config while project code runs
 # (security review 2026-10-11, finding 3).
 test_ci_credentials() {
@@ -959,6 +983,7 @@ test_update_safety
 test_ci_credentials
 test_xaden_command
 test_security_exceptions
+test_settings_update
 test_release
 if [ "$SKIPPED" -gt 0 ]; then
   warn "smoke test INCOMPLETE: $PASSED assertions passed, $SKIPPED fixture(s) skipped"

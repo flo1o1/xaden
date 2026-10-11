@@ -132,7 +132,8 @@ scripts/update-scaffold.sh ../my-app --apply    # stage changes; review with git
 
 With the `xaden` command, run `xaden update` (dry run) and `xaden update --apply` inside the project.
 
-Only scaffold-managed files (scripts, prompts, presets, rules, commands) are updated; code,
+Only scaffold-managed files (scripts, prompts, presets, rules, commands, Claude Code
+permissions in `.claude/settings.json`) are updated; code,
 requirements, guides, README and changelog are never touched. Merge any `*.scaffold-new` files
 it reports (your local edits are never overwritten), then commit
 `chore(scaffold): update to vX.Y.Z`. Each project records its scaffold version in `.scaffold/`.

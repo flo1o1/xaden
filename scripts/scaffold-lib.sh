@@ -4,8 +4,9 @@
 
 # Files the scaffold owns in generated projects (prefix match when ending in "/").
 # Everything else (code, requirements, guides, README, CHANGELOG, VERSION, .gitignore,
-# .claude/settings.json, .env.example) belongs to the project and is never updated.
-MANAGED_PATHS="scripts/ prompts/ presets/ .claude/commands/ .semgrep/ .github/workflows/
+# .env.example) belongs to the project and is never updated. .claude/settings.json is managed
+# (REQ-059): a project that edited it keeps its file and gets <file>.scaffold-new to merge.
+MANAGED_PATHS="scripts/ prompts/ presets/ .claude/commands/ .claude/settings.json .semgrep/ .github/workflows/
 .github/copilot-instructions.md .continue/ .clinerules .aider.conf.yml .obsidian/app.json
 .obsidian/core-plugins.json .obsidian/templates.json AGENTS.md CLAUDE.md docs/clean-code.md
 docs/security.md docs/local-llm.md docs/optional-tools.md docs/decisions/0000-template.md docs/security-reviews/0000-template.md

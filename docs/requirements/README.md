@@ -79,3 +79,4 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-11 REQ-057, REQ-058, REQ-059 added and approved: expired security exceptions fail the full check, releases blocked by unfilled security documents, settings.json updated through the scaffold update.
 - 2026-10-11 REQ-057 done: check-security-exceptions.sh in the full check; smoke test_security_exceptions
 - 2026-10-11 REQ-058 done: check-docs.sh --release covers SECURITY.md and docs/threat-model.md; smoke test_release
+- 2026-10-11 REQ-059 done: .claude/settings.json is scaffold-managed; smoke test_settings_update

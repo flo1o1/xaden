@@ -62,6 +62,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - `scripts/setup.sh` for fresh clones, commit-message checks in CI, GETTING-STARTED guide.
 
 ### Changed
+- `.claude/settings.json` is now updated by `scripts/update-scaffold.sh`, so existing projects receive corrected Claude Code permissions; a project that edited the file keeps it and gets `.claude/settings.json.scaffold-new` to merge.
 - The scaffold is now called Xaden (formerly Vibe Coding Scaffold). New projects name it in their README, first CHANGELOG entry and first commit; script names and the `.scaffold/` state folder are unchanged, so existing projects update as before.
 - Commit hooks are faster with many requirements: the traceability check reads each test file once, and the commit-msg check exports the staged requirements in one step.
 - Loosening a linter or type-checker rule, raising a threshold or adding a suppression is an approval point (AGENTS.md §5); when adopting linters on existing code, violations go into a baseline that may only shrink.
