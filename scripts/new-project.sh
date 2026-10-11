@@ -34,13 +34,10 @@ cleanup_on_failure() {
 
 # fill_placeholders <dir> <name>: replaces {{PROJECT_NAME}} and {{DATE}} in text files.
 fill_placeholders() {
-  local dir=$1 name=$2 today file tmp
+  local dir=$1 name=$2 today file
   today="$(date +%F)"
   grep -rlE '\{\{(PROJECT_NAME|DATE)\}\}' "$dir" | while IFS= read -r file; do
-    tmp="$(mktemp)"
-    sed -e "s/{{PROJECT_NAME}}/$name/g" -e "s/{{DATE}}/$today/g" "$file" >"$tmp"
-    cat "$tmp" >"$file" # keep the original file mode
-    rm -f "$tmp"
+    rewrite_file "$file" sed -e "s/{{PROJECT_NAME}}/$name/g" -e "s/{{DATE}}/$today/g"
   done
 }
 

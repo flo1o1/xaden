@@ -162,16 +162,23 @@ require() {
 # is_semver <string>: true for MAJOR.MINOR.PATCH with plain digits.
 is_semver() { printf '%s' "$1" | grep -Eq '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'; }
 
+# rewrite_file <file> <command...>: replaces the file with the command's output (the command
+# reads the file on stdin). The file keeps its mode; on failure it stays unchanged.
+rewrite_file() {
+  local file=$1 tmp status=0
+  shift
+  tmp="$(mktemp)"
+  "$@" <"$file" >"$tmp" || status=$?
+  [ "$status" -eq 0 ] && cat "$tmp" >"$file"
+  rm -f "$tmp"
+  return "$status"
+}
+
 # stamp_changelog <file> <version>: turns "Unreleased" content into a dated release section.
 stamp_changelog() {
-  local file=$1 version=$2 tmp
-  tmp="$(mktemp)"
-  awk -v v="$version" -v d="$(date +%F)" '
+  rewrite_file "$1" awk -v v="$2" -v d="$(date +%F)" '
     /^## \[Unreleased\]/ { print; print ""; print "## [" v "] - " d; next }
-    { print }
-  ' "$file" >"$tmp"
-  cat "$tmp" >"$file"
-  rm -f "$tmp"
+    { print }'
 }
 
 # --- release helpers (REQ-024): never leave a partial release behind -----------------

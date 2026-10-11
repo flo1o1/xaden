@@ -15,12 +15,9 @@ cd "$ROOT"
 
 # stamp_docs <version>: sets "Applies to version" in the user and admin guides.
 stamp_docs() {
-  local version=$1 file tmp
+  local file
   for file in docs/user-guide.md docs/admin-guide.md; do
-    tmp="$(mktemp)"
-    awk -v v="$version" '/^\*\*Applies to version:\*\*/ { print "**Applies to version:** " v; next } { print }' "$file" >"$tmp"
-    cat "$tmp" >"$file"
-    rm -f "$tmp"
+    rewrite_file "$file" awk -v v="$1" '/^\*\*Applies to version:\*\*/ { print "**Applies to version:** " v; next } { print }'
   done
 }
 
