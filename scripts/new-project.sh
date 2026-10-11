@@ -12,12 +12,6 @@ source "$TEMPLATE/scripts/lib.sh"
 # shellcheck source=SCRIPTDIR/scaffold-lib.sh
 source "$SCAFFOLD_ROOT/scripts/scaffold-lib.sh"
 
-# validate_name <name>: dies unless the name is a safe directory/package name.
-validate_name() {
-  printf '%s' "$1" | grep -Eq '^[a-z][a-z0-9-]{1,50}$' ||
-    die "invalid project name '$1' (use lowercase letters, digits, hyphens)"
-}
-
 # Set while generating; cleanup_on_failure removes them unless generation completed.
 STAGING=""
 TARGET_CREATED=""
@@ -53,7 +47,7 @@ init_repository() {
 main() {
   local name=${1:-} target
   [ -n "$name" ] || die "usage: scripts/new-project.sh <project-name> [target-dir]"
-  validate_name "$name"
+  is_project_name "$name" || die "invalid project name '$name' (use lowercase letters, digits, hyphens)"
   target="${2:-$SCAFFOLD_ROOT/../$name}"
   [ ! -e "$target" ] || die "target already exists: $target"
   has_command git || die "git is required"

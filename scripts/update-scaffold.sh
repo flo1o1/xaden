@@ -52,7 +52,7 @@ read_project_name() {
     PROJECT_NAME="$(sed -n 's/^# AGENTS\.md — //p' "$PROJECT/AGENTS.md" 2>/dev/null | head -n 1)"
     warn "no $SCAFFOLD_STATE_DIR/manifest (project predates update support): local edits cannot be told apart, every difference is a conflict"
   fi
-  printf '%s' "$PROJECT_NAME" | grep -Eq '^[a-z][a-z0-9-]{1,50}$' || die "cannot determine project name"
+  is_project_name "$PROJECT_NAME" || die "cannot determine project name"
 }
 
 # base_sum <path>: checksum recorded at generation/last update, empty if unknown.
@@ -120,9 +120,9 @@ plan_and_apply() {
   return 0
 }
 
-# record_new_state: manifest and version now describe this scaffold version.
+# record_new_state <scaffold-version>: manifest and version now describe this scaffold version.
 record_new_state() {
-  write_manifest "$PROJECT" "$TEMPLATE" "$PROJECT_NAME" "$(tr -d '[:space:]' <"$SCAFFOLD_ROOT/VERSION")"
+  write_manifest "$PROJECT" "$TEMPLATE" "$PROJECT_NAME" "$1"
   git -C "$PROJECT" add -- "$SCAFFOLD_STATE_DIR"
 }
 
@@ -142,7 +142,7 @@ main() {
 
   plan_and_apply
   if [ "$APPLY" = "1" ]; then
-    record_new_state
+    record_new_state "$to"
     info "$CHANGES change(s) staged; review: git -C '$PROJECT' diff --cached"
     echo "Commit with: git commit -m \"chore(scaffold): update to v$to\""
   else

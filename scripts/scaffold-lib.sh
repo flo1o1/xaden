@@ -15,6 +15,10 @@ inbox/README.md"
 # Where a project records which scaffold version and files it was built from.
 SCAFFOLD_STATE_DIR=".scaffold"
 
+# is_project_name <name>: true for a safe directory/package name (lowercase letters, digits,
+# hyphens; starts with a letter; 2-51 characters).
+is_project_name() { printf '%s' "$1" | grep -Eq '^[a-z][a-z0-9-]{1,50}$'; }
+
 # is_managed <relative-path>: true if the scaffold owns this path.
 is_managed() {
   local managed

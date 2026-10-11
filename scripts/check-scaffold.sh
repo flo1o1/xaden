@@ -19,14 +19,6 @@ case "${1:-}" in
   *) die "usage: scripts/check-scaffold.sh [--staged]" ;;
 esac
 
-# run_step <label> <command...>: runs a check, counting a failure instead of aborting.
-run_step() {
-  local label=$1
-  shift
-  info "$label"
-  if "$@"; then CHECKS_PASSED=$((CHECKS_PASSED + 1)); else FAILURES=$((FAILURES + 1)); fi
-}
-
 # test_semgrep_rules: proves every local rule fires on its fixtures in tests/semgrep/.
 test_semgrep_rules() {
   local workdir status=0
@@ -43,10 +35,10 @@ if [ "$MODE" = "staged" ]; then
 fi
 
 info "check mode: $MODE"
-run_step "scaffold requirements" "$TEMPLATE_SCRIPTS/check-requirements.sh" --release "$ROOT/docs/requirements" # REQ-049: no TODO: left
-run_step "scaffold traceability" env PROJECT_ROOT="$ROOT" "$TEMPLATE_SCRIPTS/check-traceability.sh"
-run_step "template requirements format" env PROJECT_ROOT="$ROOT/template" ALLOW_TEMPLATE_PLACEHOLDERS=1 "$TEMPLATE_SCRIPTS/check-requirements.sh"
-run_step "template docs structure" env PROJECT_ROOT="$ROOT/template" "$TEMPLATE_SCRIPTS/check-docs.sh"
+run_tool "scaffold requirements" "$TEMPLATE_SCRIPTS/check-requirements.sh" --release "$ROOT/docs/requirements" # REQ-049: no TODO: left
+run_tool "scaffold traceability" env PROJECT_ROOT="$ROOT" "$TEMPLATE_SCRIPTS/check-traceability.sh"
+run_tool "template requirements format" env PROJECT_ROOT="$ROOT/template" ALLOW_TEMPLATE_PLACEHOLDERS=1 "$TEMPLATE_SCRIPTS/check-requirements.sh"
+run_tool "template docs structure" env PROJECT_ROOT="$ROOT/template" "$TEMPLATE_SCRIPTS/check-docs.sh"
 lint_shell "$MODE"
 scan_secrets "$MODE"
 # tests/semgrep holds deliberately vulnerable fixtures; scan everything else.
@@ -54,11 +46,11 @@ scan_sast "$MODE" "$ROOT/template/.semgrep" '^tests/semgrep/'
 
 if [ "$MODE" = "full" ]; then
   if has_command semgrep; then
-    run_step "semgrep rule tests" test_semgrep_rules
+    run_tool "semgrep rule tests" test_semgrep_rules
   else
     record_missing_tool "semgrep rule tests" semgrep
   fi
-  run_step "smoke test" "$ROOT/tests/smoke.sh"
+  run_tool "smoke test" "$ROOT/tests/smoke.sh"
 fi
 
 finish_checks
