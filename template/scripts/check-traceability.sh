@@ -33,30 +33,35 @@ tests_citing() {
   done | paste -sd, - || true
 }
 
-# check_done_requirements_are_tested: every done requirement appears in a test.
+# cited_ids: every requirement ID the test files mention, one per line, sorted. One pass over
+# the tests, so the pre-commit hook stays fast with many requirements.
+cited_ids() {
+  test_files | while IFS= read -r file; do
+    grep -v 'traceability: ignore' "$file" 2>/dev/null | grep -oE 'REQ-[0-9]{3,}' || true
+  done | sort -u
+}
+
+# check_done_requirements_are_tested <requirement-rows> <cited-ids>: every done requirement
+# appears in a test.
 check_done_requirements_are_tested() {
   local id status
   while read -r id status; do
-    [ "$status" = "done" ] || continue
-    if [ -z "$(tests_citing "$id")" ]; then
+    if [ "$status" = "done" ] && ! printf '%s\n' "$2" | grep -qx "$id"; then
       warn "$id is done but no test references it"
       FAILURES=$((FAILURES + 1))
     fi
-  done < <(requirement_rows)
+  done <<<"$1"
 }
 
-# check_tests_cite_known_requirements: no invented IDs in tests.
+# check_tests_cite_known_requirements <requirement-rows> <cited-ids>: no invented IDs in tests.
 check_tests_cite_known_requirements() {
-  local known id
-  known="$(requirement_rows | cut -d' ' -f1)"
+  local id
   while IFS= read -r id; do
-    if ! printf '%s\n' "$known" | grep -qx "$id"; then
+    if [ -n "$id" ] && ! printf '%s\n' "$1" | grep -q "^$id "; then
       warn "tests cite $id, which is not in docs/requirements"
       FAILURES=$((FAILURES + 1))
     fi
-  done < <(test_files | while IFS= read -r file; do
-    grep -v 'traceability: ignore' "$file" 2>/dev/null | grep -oE 'REQ-[0-9]{3,}' || true
-  done | sort -u)
+  done <<<"$2"
 }
 
 # print_matrix: markdown table requirement | status | tests | commits.
@@ -75,7 +80,9 @@ if [ "${1:-}" = "--matrix" ]; then
   print_matrix
   exit 0
 fi
-check_done_requirements_are_tested
-check_tests_cite_known_requirements
+ROWS="$(requirement_rows)"
+CITED="$(cited_ids)"
+check_done_requirements_are_tested "$ROWS" "$CITED"
+check_tests_cite_known_requirements "$ROWS" "$CITED"
 [ "$FAILURES" -eq 0 ] || exit 1
 echo "traceability OK"
