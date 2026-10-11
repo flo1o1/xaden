@@ -30,7 +30,7 @@ exception_problems() {
       if (id == "ID") next
       if (id == "") { print "row without ID: " $0; next }
       if (owner == "") { print id ": no owner"; next }
-      if (expires !~ /^[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]$/) { print id ": expiry \"" expires "\" is not YYYY-MM-DD"; next }
+      if (expires !~ /^[0-9][0-9][0-9][0-9]-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/) { print id ": expiry \"" expires "\" is not YYYY-MM-DD"; next }
       if (expires < today) print id ": expired on " expires "; fix it, or renew it with a new date and reason"
     }' "$1"
 }

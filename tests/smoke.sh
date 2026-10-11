@@ -920,6 +920,9 @@ test_security_exceptions() {
   printf '%s\n' "${row/2026-06-14/end of June}" >>"$file"
   assert_fails_with "exception with an invalid date fails" "SE-001" env CHECK_DATE=2026-06-01 "$check"
   git -C "$PROJECT" checkout -q -- docs/security-exceptions.md
+  printf '%s\n' "${row/2026-06-14/2026-13-01}" >>"$file"
+  assert_fails_with "exception with an impossible month fails" "SE-001" env CHECK_DATE=2026-06-01 "$check"
+  git -C "$PROJECT" checkout -q -- docs/security-exceptions.md
 }
 
 # REQ-059: .claude/settings.json follows scaffold updates; a project's own edits are kept.
