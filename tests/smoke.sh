@@ -354,6 +354,21 @@ test_template_contents() {
   assert "every prompt has frontmatter" bash -c "cd '$PROJECT/prompts' && for f in *.md; do head -1 \"\$f\" | grep -qx -- '---' || exit 1; done"
 }
 
+# rule_ids <file>: prints the sorted, unique CC-nn IDs a file mentions.
+rule_ids() {
+  grep -o 'CC-[0-9][0-9]' "$1" | sort -u
+}
+
+# REQ-027 proportional, consistent clean-code guidance
+test_clean_code_guidance() {
+  assert "every CC rule is explained in clean-code.md and none is invented there" \
+    test "$(rule_ids "$PROJECT/AGENTS.md")" = "$(rule_ids "$PROJECT/docs/clean-code.md")"
+  assert "CC-06 scope agrees in AGENTS.md and clean-code.md" \
+    bash -c "grep -q 'CC-06.* Document public APIs' '$PROJECT/AGENTS.md' && grep -q '^- Document public' '$PROJECT/docs/clean-code.md'"
+  assert "CC-05 accepts result and option types" grep -q 'exceptions, result or option types' "$PROJECT/AGENTS.md"
+  assert "CC-09 forbids unrelated refactoring" grep -q 'No unrelated refactoring' "$PROJECT/AGENTS.md"
+}
+
 # REQ-016 traceability
 test_traceability() {
   sed 's/| must     | draft  |/| must     | done   |/' "$PROJECT/docs/requirements/REQUIREMENTS.md" >"$WORKDIR/req.md"
@@ -407,6 +422,7 @@ test_bump_version
 test_new_project
 test_generation_safety
 test_template_contents
+test_clean_code_guidance
 test_inbox
 test_generated_project
 test_setup_and_commit_checks

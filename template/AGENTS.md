@@ -39,18 +39,23 @@ Explicit user instructions in the current session override this file.
 
 Details and examples: `docs/clean-code.md` (same IDs).
 
-- **CC-01** One responsibility per class/function; functions small, one abstraction level.
+- **CC-01** One responsibility per class/function; cohesive modules; functions small, one abstraction level.
 - **CC-02** Intention-revealing names; no abbreviations, no magic numbers or strings.
-- **CC-03** No duplication (DRY), no deep nesting (use early return), no commented-out code.
-- **CC-04** Inject dependencies; no hidden globals or singletons.
-- **CC-05** Errors: raise specific exceptions, fail fast, never swallow, no `null` as error signal.
-  Catch only what you can handle.
-- **CC-06** Short docstring per class/function: purpose, parameters, data format.
-  No comments that repeat the code.
+- **CC-03** No duplicated knowledge (DRY), but do not merge code that only looks alike; abstract
+  once the shared concept is clear. No deep nesting (use early return), no commented-out code.
+- **CC-04** Inject dependencies; no hidden globals or singletons. Make side effects explicit;
+  core logic does not depend on I/O or frameworks. No interfaces or wrappers that exist only
+  to satisfy a pattern.
+- **CC-05** Errors are explicit and specific: exceptions, result or option types, whichever the
+  language uses idiomatically. Fail fast, never swallow, no `null` or magic value as error signal.
+  Handle only what you can handle.
+- **CC-06** Document public APIs and anything non-obvious: purpose, parameters and data formats,
+  contracts, invariants, errors, surprising behaviour. No comments that repeat the code.
 - **CC-07** Validate **all external input** at the system boundary: type, range, length, format.
 - **CC-08** Tests: Red → Green → Refactor; fast, isolated, repeatable, self-validating;
   Arrange–Act–Assert; one behaviour per test; reference the `REQ-nnn`.
-- **CC-09** Refactor in small steps with tests green; refactor before adding functionality.
+- **CC-09** Refactor with a purpose (the current change becomes easier or safer), in small steps
+  with tests green. No unrelated refactoring inside a feature or fix.
 
 ## 4. Tests
 
