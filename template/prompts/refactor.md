@@ -2,7 +2,7 @@
 title: Refactor
 type: prompt
 status: stable
-version: 1.0.0
+version: 1.1.0
 works-with: [claude-code, chatgpt, local-llm]
 tags: [prompt, development, clean-code]
 ---
@@ -19,7 +19,8 @@ Improve structure without changing behaviour.
 ## Steps
 1. Read `AGENTS.md` and `docs/clean-code.md`.
 2. Ensure tests cover current behaviour; add characterization tests if missing. Run them: green.
-3. List the smells found (name each: duplication, long method, god class, …) with file:line.
+3. List the smells found (name each: duplication, long method, god class, …) with file:line,
+   and why fixing each one helps (CC-09). **Approval point:** show the list and the steps.
 4. Fix one smell per step; tests green after every step. Keep the project runnable.
 5. Run `scripts/check.sh`.
 6. Commit `refactor(<scope>): <summary>`. No behaviour change → no requirement change.

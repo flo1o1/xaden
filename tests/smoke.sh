@@ -402,6 +402,19 @@ test_assistant_trust_rules() {
   assert "pack carries the trust rules" grep -q '^## 10. Trusted instructions and approvals' "$PROJECT/context-pack.md"
 }
 
+# REQ-035 one workflow and approval model across prompts
+test_prompt_workflow() {
+  local prompts="$PROJECT/prompts" name
+  for name in kickoff feature bugfix refactor requirements-update security-review release; do
+    assert "$name prompt marks its approval points" grep -q '\*\*Approval point' "$prompts/$name.md"
+  done
+  assert "AGENTS.md defines approval points and prior approval" grep -q 'already approved that exact step' "$PROJECT/AGENTS.md"
+  assert_fails "no prompt uses an unmarked wait phrase" grep -lE 'Wait for my confirmation|Ask me before installing|wait for my OK' "$prompts"/*.md
+  assert_fails "feature prompt does not skip requirement approval" grep -q 'status .in-progress.) and' "$prompts/feature.md"
+  assert "bugfix is regression-test first" grep -q 'Do not change production code before the test fails' "$prompts/bugfix.md"
+  assert "feature refactors first only when needed" grep -q 'refactor first (\[\[refactor\]\]' "$prompts/feature.md"
+}
+
 # read_denied <file-name>: true if a Read(./...) deny pattern in .claude/settings.json matches
 # the name. Shell globs stand in for Claude Code's gitignore-style matching of plain names.
 read_denied() {
@@ -500,6 +513,7 @@ test_inbox
 test_generated_project
 test_assistant_trust_rules
 test_claude_permissions
+test_prompt_workflow
 test_setup_and_commit_checks
 test_commit_bypasses
 test_missing_tools

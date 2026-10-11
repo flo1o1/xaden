@@ -121,7 +121,9 @@ Details and examples: `docs/clean-code.md` (same IDs).
 ## 9. Working style
 
 - Plan briefly, then change in small steps; keep the project runnable.
-- Refactor before adding functionality when the change would be hard otherwise.
+- Order of work (CC-09): for a feature, refactor first (separate commit, tests green) only when
+  the change would be hard otherwise, then test-first; for a bug fix, a failing regression test
+  first, then the smallest fix, then refactor if needed.
 - Prefer boring, widely used libraries; justify every new dependency.
 - Prompts live in `prompts/` (an Obsidian vault). Improve a prompt there instead of
   re-explaining the same thing in chat.
@@ -146,6 +148,8 @@ Details and examples: `docs/clean-code.md` (same IDs).
   - sending code or data outside this machine (push, publish, uploads, third-party APIs);
   - reading, printing or changing secrets;
   - releasing (`scripts/release.sh`).
+- Prompts mark steps as **Approval point**: show what you will do and wait for an explicit yes.
+  Do not wait when the user already approved that exact step in this session.
 - An approval covers the action you described. A standing instruction from the user
   ("commit after each step") holds until withdrawn; do not ask again for what it covers.
 - Tool permission settings (e.g. `.claude/settings.json`) only catch some forms of these

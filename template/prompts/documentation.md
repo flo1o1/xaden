@@ -2,7 +2,7 @@
 title: Write documentation
 type: prompt
 status: stable
-version: 1.0.0
+version: 1.1.0
 works-with: [claude-code, chatgpt, local-llm]
 tags: [prompt, documentation]
 ---

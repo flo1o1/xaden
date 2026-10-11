@@ -2,7 +2,7 @@
 title: Build a feature
 type: prompt
 status: stable
-version: 1.0.0
+version: 1.1.0
 works-with: [claude-code, chatgpt, local-llm]
 tags: [prompt, development]
 ---
@@ -18,12 +18,16 @@ Implement one capability, test-first, tracked in requirements.
 
 ## Steps
 1. Run `scripts/context-status.sh`; read `AGENTS.md` and the requirements file. Look requirements up with `scripts/req.sh show REQ-nnn`; never from memory.
-2. If the feature has no `REQ-nnn`, add one (status `in-progress`) and a change-log line first.
+2. If the feature has no `REQ-nnn`, add one (status `draft`) and a change-log line.
+   **Approval point:** show me the row; after my OK set it to `in-progress`.
    If it conflicts with an existing requirement, stop and ask me.
-3. Plan in at most 5 small steps; show the plan; wait for my OK if it touches more than 2 files.
-4. For each step: write a failing test that cites the `REQ-nnn`, make it pass, refactor
-   (Red → Green → Refactor).
-5. Validate all external input at the boundary. Raise specific exceptions.
+3. Plan in at most 5 small steps. **Approval point** if the plan touches more than 2 files or
+   adds a dependency.
+4. If the code is hard to change for this feature, refactor first ([[refactor]], separate
+   commit, tests green). Otherwise leave unrelated code alone (CC-09).
+5. For each step: write a failing test that cites the `REQ-nnn`, make it pass, refactor
+   (Red → Green → Refactor). Validate all external input at the boundary (CC-07); make errors
+   explicit (CC-05).
 6. Run `scripts/check.sh`; fix all findings.
 7. If the feature touches input, auth, data, files, network or dependencies: run the
    [[security-review]] prompt on the changed files.

@@ -2,7 +2,7 @@
 title: Security review
 type: prompt
 status: stable
-version: 1.0.0
+version: 1.1.0
 works-with: [claude-code, chatgpt, local-llm]
 tags: [prompt, security, review]
 ---
@@ -45,8 +45,9 @@ prompt is the tool-independent equivalent.)
    what an attacker does · minimal fix as code.
 5. Only claim what you verified in the code. Mark guesses as "unverified". A completed
    checklist is not proof of security; say so in the limitations.
-6. After my OK, apply fixes with a regression test each; commit `fix(security): <summary>`.
-   Update each finding's status in the report.
+6. **Approval point:** show me the findings and proposed fixes. Then apply fixes with a
+   regression test each; commit `fix(security): <summary>`. Update each finding's status in
+   the report.
 
 ## Done when
 - [ ] Every entry point reviewed or explicitly out of scope

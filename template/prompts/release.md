@@ -2,7 +2,7 @@
 title: Release
 type: prompt
 status: stable
-version: 1.0.0
+version: 1.1.0
 works-with: [claude-code, chatgpt, local-llm]
 tags: [prompt, release, semver]
 ---
@@ -22,7 +22,8 @@ Choose the correct SemVer bump and cut the release safely.
    `SECURITY.md` and `docs/threat-model.md` must not contain TODO markers either.
 5. Run [[security-review]] on everything changed since the last tag. Check
    `docs/security-exceptions.md`: an expired row blocks the release until it is fixed or I renew it.
-6. Show me the proposed bump and reason. **Wait for my confirmation.**
+6. **Approval point:** show me the proposed bump and reason. Releasing always needs my
+   explicit yes in this session.
 7. Run `scripts/release.sh <part>`. It checks, stamps changelog and guides, commits and tags. Do not push.
 
 ## Done when
