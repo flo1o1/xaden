@@ -16,3 +16,4 @@ When I release, I want semantic versions derived from Conventional Commits, so I
 ## Acceptance criteria
 
 - VERSION, CHANGELOG, Conventional Commits hook, release.sh bumps and tags
+- release.sh and release-scaffold.sh refuse a CHANGELOG without an [Unreleased] section and change nothing

@@ -26,7 +26,6 @@ main() {
   [ -n "$part" ] || die "usage: scripts/release.sh <major|minor|patch>"
   git rev-parse --git-dir >/dev/null 2>&1 || die "not a git repository"
   [ -z "$(git status --porcelain)" ] || die "working tree not clean; commit or stash first"
-  grep -q '^## \[Unreleased\]' CHANGELOG.md || die "CHANGELOG.md has no [Unreleased] section"
 
   current="$(tr -d '[:space:]' <VERSION)"
   next="$(bump_version "$current" "$part")"

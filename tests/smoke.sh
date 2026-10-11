@@ -470,6 +470,12 @@ test_release_failures() {
   assert_fails "existing tag aborts the release" "$PROJECT/scripts/release.sh" patch
   assert "nothing changed after tag conflict" test "$(git -C "$PROJECT" rev-parse HEAD)$(git -C "$PROJECT" status --porcelain)" = "$head"
   git -C "$PROJECT" tag -d v0.1.1 >/dev/null
+  # REQ-007: both release scripts share stamp_changelog, which needs an Unreleased section.
+  edit_file "$PROJECT/CHANGELOG.md" 's/^## \[Unreleased\]/## Pending/'
+  git -C "$PROJECT" commit -q -am "docs: changelog without Unreleased section"
+  assert_fails_with "changelog without Unreleased aborts the release" 'section; nothing was changed' "$PROJECT/scripts/release.sh" patch
+  assert "nothing released without Unreleased section" test "$(tr -d '[:space:]' <"$PROJECT/VERSION")$(git -C "$PROJECT" tag -l v0.1.1)" = "0.1.0"
+  git -C "$PROJECT" reset -q --hard "$head"
   mkdir -p "$hooks" && printf '#!/bin/sh\nexit 1\n' >"$hooks/pre-commit" && chmod +x "$hooks/pre-commit"
   git -C "$PROJECT" config core.hooksPath "$hooks"
   assert_fails "failing release commit aborts" "$PROJECT/scripts/release.sh" patch

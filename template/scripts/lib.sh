@@ -179,7 +179,9 @@ rewrite_file() {
 }
 
 # stamp_changelog <file> <version>: turns "Unreleased" content into a dated release section.
+# Dies without changing anything when the file has no "## [Unreleased]" section.
 stamp_changelog() {
+  grep -q '^## \[Unreleased\]' "$1" || die "$1 has no [Unreleased] section; nothing was changed"
   rewrite_file "$1" awk -v v="$2" -v d="$(date +%F)" '
     /^## \[Unreleased\]/ { print; print ""; print "## [" v "] - " d; next }
     { print }'

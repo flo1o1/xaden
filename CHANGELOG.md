@@ -15,6 +15,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - Project generation copies only git-tracked template files; untracked or ignored files (`.env`, `node_modules/`, `inbox/` content) are never copied or committed. Symlinks are refused; failed runs remove the partial project.
 
 ### Fixed
+- `scripts/release-scaffold.sh` released and tagged even when `CHANGELOG.md` had no `[Unreleased]` section, leaving the release without notes; the shared changelog stamp now refuses that for both release scripts.
 - `check-docs.sh --release` counted every "TODO" word, so a guide mentioning TODO items (e.g. of a to-do app) blocked every release; only `<!-- TODO` markers count now.
 - CI of a Python project without `requirements-dev.txt` (ruff configured in `pyproject.toml`) stopped at the install step with "No such file"; it now installs the file only when present, and `scripts/check.sh --strict` names any missing tool.
 - Commits made with `git commit -v` were rejected when the appended diff mentioned an unknown `REQ-nnn`; the commit-msg check now reads the message as git stores it, without comments and diff.
