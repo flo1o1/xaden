@@ -10,19 +10,33 @@ source "$SCAFFOLD_ROOT/template/scripts/lib.sh"
 # shellcheck source=SCRIPTDIR/../scripts/scaffold-lib.sh
 source "$SCAFFOLD_ROOT/scripts/scaffold-lib.sh"
 
+# REQ-025: isolated from the user's git configuration; failures show the command output;
+# SMOKE_REQUIRE_TOOLS=1 (set in CI) turns tool-dependent skips into failures.
+export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
 WORKDIR="$(mktemp -d)"
 trap 'rm -rf "$WORKDIR"' EXIT
-PROJECT="$WORKDIR/demo-app"
+PROJECT="$WORKDIR/demo app/demo-app" # space in the path on purpose (REQ-018)
+mkdir -p "$(dirname "$PROJECT")"
+OUTPUT="$WORKDIR/last-command.log"
 PASSED=0
+SKIPPED=0
 
-# assert <description> <command...>: runs the command, dies if it fails.
+# show_output: prints the tail of the last command's output (diagnostics on failure).
+show_output() {
+  echo "----- output of the failed command (last 40 lines) -----" >&2
+  tail -n 40 "$OUTPUT" >&2
+  echo "--------------------------------------------------------" >&2
+}
+
+# assert <description> <command...>: runs the command, dies with its output if it fails.
 assert() {
   local description=$1
   shift
-  if ("$@") >/dev/null 2>&1; then
+  if ("$@") >"$OUTPUT" 2>&1; then
     PASSED=$((PASSED + 1))
     printf 'ok   %s\n' "$description"
   else
+    show_output
     die "FAILED: $description"
   fi
 }
@@ -31,9 +45,21 @@ assert() {
 assert_fails() {
   local description=$1
   shift
-  if ("$@") >/dev/null 2>&1; then die "FAILED (expected failure): $description"; fi
+  if ("$@") >"$OUTPUT" 2>&1; then
+    show_output
+    die "FAILED (expected failure): $description"
+  fi
   PASSED=$((PASSED + 1))
   printf 'ok   %s\n' "$description"
+}
+
+# need_tool <tool> <what>: true if available; otherwise skip visibly, or fail in CI.
+need_tool() {
+  has_command "$1" && return 0
+  [ "${SMOKE_REQUIRE_TOOLS:-0}" = "1" ] && die "required tool missing in CI: $1 ($2)"
+  SKIPPED=$((SKIPPED + 1))
+  printf 'SKIP %s (%s not installed)\n' "$2" "$1"
+  return 1
 }
 
 # msg <text with \n escapes>: writes a commit message file (git passes a regular file to hooks); prints its path.
@@ -99,7 +125,7 @@ test_staged_checks() {
   printf 'x = 1\n' >"$PROJECT/clean.py"
   git -C "$PROJECT" add clean.py
   assert "staged check passes on clean file" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
-  if has_command semgrep; then
+  if need_tool semgrep "staged SAST fixture"; then
     printf 'def run(user_input):\n    return eval(user_input)\n' >"$PROJECT/unsafe.py"
     git -C "$PROJECT" add unsafe.py
     assert_fails "staged check blocks eval via local semgrep rule" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
@@ -110,7 +136,7 @@ test_staged_checks() {
 
 # REQ-003 clean-code rules, REQ-015 linter presets and mandatory stack checks
 test_stack_enforcement() {
-  if has_command ruff; then
+  if need_tool ruff "python preset fixture"; then
     printf '[project]\nname = "demo"\nversion = "0.1.0"\n' >"$PROJECT/pyproject.toml"
     printf '"""Demo."""\n' >"$PROJECT/ok.py"
     git -C "$PROJECT" add pyproject.toml ok.py
@@ -123,7 +149,7 @@ test_stack_enforcement() {
     assert "preset accepts clean code" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
     git -C "$PROJECT" reset -q --hard && git -C "$PROJECT" clean -qfd
   fi
-  if has_command npm; then
+  if need_tool npm "node stack fixture"; then
     (cd "$PROJECT" && npm init -y >/dev/null)
     git -C "$PROJECT" add package.json
     assert_fails "node without lint script fails" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
@@ -214,4 +240,8 @@ test_stack_enforcement
 test_traceability
 test_scaffold_update
 test_release
-info "smoke test passed ($PASSED assertions)"
+if [ "$SKIPPED" -gt 0 ]; then
+  warn "smoke test INCOMPLETE: $PASSED assertions passed, $SKIPPED fixture(s) skipped"
+else
+  info "smoke test passed ($PASSED assertions)"
+fi

@@ -24,15 +24,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y shellcheck
           pipx install semgrep
+          pipx install ruff
       - name: Install analysis tools (macOS)
         if: runner.os == 'macOS'
-        run: brew install shellcheck semgrep
+        run: brew install shellcheck semgrep ruff
       - name: Scaffold checks incl. smoke test
         env:
           GIT_AUTHOR_NAME: ci
           GIT_AUTHOR_EMAIL: ci@example.invalid
           GIT_COMMITTER_NAME: ci
           GIT_COMMITTER_EMAIL: ci@example.invalid
+          SMOKE_REQUIRE_TOOLS: "1"
         run: scripts/check-scaffold.sh
       - name: SAST with semgrep registry rules (broader, needs network)
         run: semgrep scan --config p/default --metrics=off --error --quiet
