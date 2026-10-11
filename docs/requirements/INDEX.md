@@ -19,7 +19,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-036 | job | must | done | Assistants end work with a truthful completion report |
 | REQ-041 | job | should | done | Clean-code guide covers proven design, test and refactoring practices |
 | REQ-042 | job | should | done | Projects document their architecture with rules for new code |
-| REQ-050 | job | should | approved | Optional add-on rule sets such as Ponytail are documented and never override the project rules |
+| REQ-050 | job | should | done | Optional add-on rule sets such as Ponytail are documented and never override the project rules |
 
 ## Project setup (`project-setup`)
 

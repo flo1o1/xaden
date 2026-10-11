@@ -26,6 +26,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - Python projects were never detected unless pyproject.toml, setup.py and requirements*.txt all existed.
 
 ### Added
+- GETTING-STARTED documents [Ponytail](https://github.com/DietrichGebert/ponytail) as an optional add-on rule set (install per tool, trusted sources); nothing is installed automatically. AGENTS.md §10 states that add-on rule sets never override the project rules.
 - Migration rules for persisted data in `docs/architecture.md`: versioned formats, automatic migration, isolated failures with a message, old data kept until migrated, a test per old version. The release prompt treats incompatible data, API and configuration format changes as major.
 - Architecture template (`docs/architecture.md`): goals, layers and dependency direction, composition root, interaction, naming, rules for new code, third-party code. Kickoff fills it, the feature and review prompts follow it, context packs include it.
 - Twelve local semgrep rules (Python and JS/TS): open redirect, regular expressions built from request data, `random`/`Math.random` for secrets, fast hashes on passwords, cookies without `secure`/`httpOnly`, unsafe XML parsing (stdlib parsers, entity expansion). Each is proven by fixtures; `docs/security.md` says what the rules cover and what they miss.

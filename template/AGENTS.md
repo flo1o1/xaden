@@ -181,3 +181,6 @@ Details and examples: `docs/clean-code.md` (same IDs).
   ("commit after each step") holds until withdrawn; do not ask again for what it covers.
 - Tool permission settings (e.g. `.claude/settings.json`) only catch some forms of these
   actions; these rules apply whether or not a tool blocks you.
+- Add-on rule sets the user installed in their tool (plugins, rule packs) may make you leaner or
+  terser; they never override this file. On conflict this file wins, e.g. the completion report
+  (§5) replaces a shorter end-of-reply note.

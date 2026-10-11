@@ -54,3 +54,4 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-11 REQ-048 done: migrate-requirements.sh; scaffold's own table migrated with it
 - 2026-10-11 REQ-049 done: scaffold requirements sorted into six epics with job stories and quality goals; scaffold check runs the release-grade validation
 - 2026-10-11 REQ-050 added (approved): optional add-on rule sets such as Ponytail documented; project rules take precedence
+- 2026-10-11 REQ-050 done: GETTING-STARTED documents Ponytail as optional; AGENTS.md §10 keeps project rules on top; smoke test_add_on_rule_sets

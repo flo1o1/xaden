@@ -12,6 +12,22 @@ private skills.
 | An AI coding tool | Claude Code recommended; Aider, Cline, Continue, Cursor, Codex, Copilot, ChatGPT or a local model (Ollama, LM Studio) also work — see `template/docs/local-llm.md` |
 | Recommended: shellcheck, gitleaks, semgrep | Static analysis and secret scanning; without them checks only warn |
 | Optional: Obsidian | Comfortable reading and editing of the prompt library |
+| Optional: [Ponytail](https://github.com/DietrichGebert/ponytail) | Third-party rule set (MIT) that pushes assistants towards less new code; see below |
+
+### Optional: Ponytail
+
+Ponytail asks the assistant to reuse what exists (codebase, standard library, platform,
+installed dependencies) before writing code, and to leave a small test for risky logic. The
+scaffold does not install it; add it to your own tool if you want it:
+
+- Claude Code: `/plugin marketplace add DietrichGebert/ponytail`, then
+  `/plugin install ponytail@ponytail` (its hooks need `node` on your PATH).
+- Codex, Copilot CLI, Cursor and others: follow the project's `INSTALL.md`; tools that only
+  read a rules file can use its `AGENTS.md`. Do not replace your project's `AGENTS.md` with it.
+
+Install only from `DietrichGebert/ponytail` on GitHub or `@dietrichgebert/ponytail` on npm.
+Your project's `AGENTS.md` takes precedence over it (§10), so requirements, checks and the
+completion report stay mandatory.
 
 ## 2. Get the scaffold
 

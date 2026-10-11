@@ -579,6 +579,16 @@ test_assistant_trust_rules() {
   assert "pack carries the trust rules" grep -q '^## 10. Trusted instructions and approvals' "$PROJECT/context-pack.md"
 }
 
+# REQ-050 optional add-on rule sets: documented, never installed, never above AGENTS.md
+test_add_on_rule_sets() {
+  local guide="$SCAFFOLD_ROOT/GETTING-STARTED.md"
+  assert "guide lists Ponytail as optional" grep -q '^| Optional: \[Ponytail\]' "$guide"
+  assert "guide gives the Claude Code install" grep -q 'plugin install ponytail@ponytail' "$guide"
+  assert "guide names the AGENTS.md route for other tools" grep -q "can use its .AGENTS.md." "$guide"
+  assert_fails "new projects enable no plugin" grep -qi 'plugin' "$PROJECT/.claude/settings.json"
+  assert "AGENTS.md ranks add-on rule sets below itself" grep -q 'they never override this file' "$PROJECT/AGENTS.md"
+}
+
 # REQ-035 one workflow and approval model across prompts
 test_prompt_workflow() {
   local prompts="$PROJECT/prompts" name
@@ -720,6 +730,7 @@ test_job_stories
 test_requirement_files
 test_requirements_migration
 test_assistant_trust_rules
+test_add_on_rule_sets
 test_claude_permissions
 test_prompt_workflow
 test_setup_and_commit_checks
