@@ -5,13 +5,17 @@
 # - `feat` needs a "Refs: REQ-nnn" trailer; `fix` needs one or "Refs: none".
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# shellcheck source=scripts/lib.sh
-source "$ROOT/scripts/lib.sh"
+# SCRIPTS: where the tooling lives. ROOT: the repository it works on; PROJECT_ROOT lets
+# another repository (e.g. the scaffold itself) reuse these scripts.
+SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="${PROJECT_ROOT:-$(cd "$SCRIPTS/.." && pwd)}"
+# shellcheck source=SCRIPTDIR/lib.sh
+source "$SCRIPTS/lib.sh"
 
 MESSAGE_FILE=${1:-}
 [ -f "$MESSAGE_FILE" ] || die "usage: scripts/verify-refs.sh <commit-message-file>"
 REQUIREMENTS="$ROOT/docs/requirements/REQUIREMENTS.md"
+RULES_FILE="${RULES_FILE:-$ROOT/AGENTS.md}"  # where CC-nn rules are defined
 
 # check_cited_ids: every cited ID must exist in the source of truth.
 check_cited_ids() {
@@ -19,7 +23,7 @@ check_cited_ids() {
   while IFS= read -r id; do
     case "$id" in
       REQ-*) grep -Eq "^\| *$id " "$REQUIREMENTS" || die "commit cites unknown requirement $id" ;;
-      CC-*) grep -Eq "^- \*\*$id\*\*" "$ROOT/AGENTS.md" || die "commit cites unknown rule $id" ;;
+      CC-*) grep -Eq "^- \*\*$id\*\*" "$RULES_FILE" || die "commit cites unknown rule $id" ;;
     esac
   done < <(grep -oE 'REQ-[0-9]{3,}|CC-[0-9]{2}' "$MESSAGE_FILE" | sort -u)
 }

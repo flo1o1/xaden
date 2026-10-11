@@ -4,9 +4,12 @@
 # Usage: scripts/verify-commits.sh <git-revision-range>   e.g. origin/main..HEAD
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# shellcheck source=scripts/lib.sh
-source "$ROOT/scripts/lib.sh"
+# SCRIPTS: where the tooling lives. ROOT: the repository it works on; PROJECT_ROOT lets
+# another repository (e.g. the scaffold itself) reuse these scripts.
+SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="${PROJECT_ROOT:-$(cd "$SCRIPTS/.." && pwd)}"
+# shellcheck source=SCRIPTDIR/lib.sh
+source "$SCRIPTS/lib.sh"
 
 RANGE=${1:-}
 [ -n "$RANGE" ] || die "usage: scripts/verify-commits.sh <revision-range>"
@@ -17,7 +20,7 @@ trap 'rm -f "$message_file"' EXIT
 failed=0
 for commit in $(git -C "$ROOT" rev-list --no-merges "$RANGE"); do
   git -C "$ROOT" log -1 --format=%B "$commit" >"$message_file"
-  if ! "$ROOT/scripts/hooks/commit-msg" "$message_file"; then
+  if ! "$SCRIPTS/hooks/commit-msg" "$message_file"; then
     warn "commit $(git -C "$ROOT" log -1 --format='%h %s' "$commit") failed the message checks"
     failed=$((failed + 1))
   fi

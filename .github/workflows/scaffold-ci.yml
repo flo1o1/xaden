@@ -1,0 +1,50 @@
+name: scaffold-ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+      - name: Install analysis tools (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          pipx install semgrep
+      - name: Install analysis tools (macOS)
+        if: runner.os == 'macOS'
+        run: brew install shellcheck semgrep
+      - name: Scaffold checks incl. smoke test
+        env:
+          GIT_AUTHOR_NAME: ci
+          GIT_AUTHOR_EMAIL: ci@example.invalid
+          GIT_COMMITTER_NAME: ci
+          GIT_COMMITTER_EMAIL: ci@example.invalid
+        run: scripts/check-scaffold.sh
+      - name: Commit messages
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            range="origin/$BASE_REF..HEAD"
+          elif git cat-file -e "$BEFORE_SHA^{commit}" 2>/dev/null; then
+            range="$BEFORE_SHA..HEAD"
+          else
+            range="HEAD~1..HEAD"
+          fi
+          PROJECT_ROOT="$PWD" RULES_FILE="$PWD/template/AGENTS.md" template/scripts/verify-commits.sh "$range"

@@ -42,6 +42,18 @@ run_tool() {
 # is_semver <string>: true for MAJOR.MINOR.PATCH with plain digits.
 is_semver() { printf '%s' "$1" | grep -Eq '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'; }
 
+# stamp_changelog <file> <version>: turns "Unreleased" content into a dated release section.
+stamp_changelog() {
+  local file=$1 version=$2 tmp
+  tmp="$(mktemp)"
+  awk -v v="$version" -v d="$(date +%F)" '
+    /^## \[Unreleased\]/ { print; print ""; print "## [" v "] - " d; next }
+    { print }
+  ' "$file" >"$tmp"
+  cat "$tmp" >"$file"
+  rm -f "$tmp"
+}
+
 # bump_version <current> <major|minor|patch>: prints the next SemVer.
 bump_version() {
   local current=$1 part=$2 major minor patch

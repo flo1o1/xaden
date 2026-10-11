@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Scaffold maintainer pre-commit hook. Full run incl. smoke test: scripts/check-scaffold.sh
+set -euo pipefail
+"$(git rev-parse --show-toplevel)/scripts/check-scaffold.sh" --quick

@@ -4,8 +4,8 @@
 set -euo pipefail
 
 SCAFFOLD_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# shellcheck source=scripts/lib.sh
-source "$SCAFFOLD_ROOT/scripts/lib.sh"
+# shellcheck source=SCRIPTDIR/../template/scripts/lib.sh
+source "$SCAFFOLD_ROOT/template/scripts/lib.sh"
 
 WORKDIR="$(mktemp -d)"
 trap 'rm -rf "$WORKDIR"' EXIT
@@ -50,7 +50,8 @@ test_new_project() {
   assert_fails "reject bad project name" "$SCAFFOLD_ROOT/scripts/new-project.sh" "Bad Name" "$WORKDIR/x"
   assert "create project" "$SCAFFOLD_ROOT/scripts/new-project.sh" demo-app "$PROJECT"
   assert "no placeholders left" test -z "$(grep -rl '{{PROJECT_NAME}}' "$PROJECT" --exclude-dir=.git || true)"
-  assert "scaffold-only files removed" test ! -e "$PROJECT/tests"
+  assert "scaffold-only files not copied" test ! -e "$PROJECT/tests" -a ! -e "$PROJECT/template" -a ! -e "$PROJECT/scripts/new-project.sh"
+  assert "project gets template rules" grep -q 'CC-09' "$PROJECT/AGENTS.md"
   assert "own git repo with first commit" git -C "$PROJECT" log --oneline -1
   assert "hooks path configured" test "$(git -C "$PROJECT" config core.hooksPath)" = "scripts/hooks"
 }

@@ -4,9 +4,12 @@
 # Usage: scripts/check-docs.sh [--release]
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# shellcheck source=scripts/lib.sh
-source "$ROOT/scripts/lib.sh"
+# SCRIPTS: where the tooling lives. ROOT: the repository it works on; PROJECT_ROOT lets
+# another repository (e.g. the scaffold itself) reuse these scripts.
+SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="${PROJECT_ROOT:-$(cd "$SCRIPTS/.." && pwd)}"
+# shellcheck source=SCRIPTDIR/lib.sh
+source "$SCRIPTS/lib.sh"
 
 RELEASE_MODE=0
 [ "${1:-}" = "--release" ] && RELEASE_MODE=1

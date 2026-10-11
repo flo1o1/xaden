@@ -5,9 +5,12 @@
 # Output: context-pack.md (gitignored); also copied to the clipboard if a tool exists.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# shellcheck source=scripts/lib.sh
-source "$ROOT/scripts/lib.sh"
+# SCRIPTS: where the tooling lives. ROOT: the repository it works on; PROJECT_ROOT lets
+# another repository (e.g. the scaffold itself) reuse these scripts.
+SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="${PROJECT_ROOT:-$(cd "$SCRIPTS/.." && pwd)}"
+# shellcheck source=SCRIPTDIR/lib.sh
+source "$SCRIPTS/lib.sh"
 OUT="$ROOT/context-pack.md"
 
 # strip_frontmatter <file>: prints the file without a leading YAML block.
@@ -36,7 +39,7 @@ main() {
   {
     echo "# CONTEXT STATUS"
     echo
-    "$ROOT/scripts/context-status.sh"
+    "$SCRIPTS/context-status.sh"
     echo
     echo "INSTRUCTION: Begin your first reply with the exact line starting \"CONTEXT CHECK\" above."
     echo "Use ONLY the rules (CC-nn) and requirements (REQ-nnn) below. If something is not below, say so and ask."

@@ -5,22 +5,13 @@
 #   major = breaking change, minor = backwards-compatible feature, patch = bug fix
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# shellcheck source=scripts/lib.sh
-source "$ROOT/scripts/lib.sh"
+# SCRIPTS: where the tooling lives. ROOT: the repository it works on; PROJECT_ROOT lets
+# another repository (e.g. the scaffold itself) reuse these scripts.
+SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="${PROJECT_ROOT:-$(cd "$SCRIPTS/.." && pwd)}"
+# shellcheck source=SCRIPTDIR/lib.sh
+source "$SCRIPTS/lib.sh"
 cd "$ROOT"
-
-# stamp_changelog <version>: turns "Unreleased" content into a dated release section.
-stamp_changelog() {
-  local version=$1 today tmp
-  today="$(date +%F)"
-  tmp="$(mktemp)"
-  awk -v v="$version" -v d="$today" '
-    /^## \[Unreleased\]/ { print; print ""; print "## [" v "] - " d; next }
-    { print }
-  ' CHANGELOG.md >"$tmp"
-  mv "$tmp" CHANGELOG.md
-}
 
 # stamp_docs <version>: sets "Applies to version" in the user and admin guides.
 stamp_docs() {
@@ -43,9 +34,9 @@ main() {
   current="$(tr -d '[:space:]' <VERSION)"
   next="$(bump_version "$current" "$part")"
 
-  "$ROOT/scripts/check.sh"
-  "$ROOT/scripts/check-docs.sh" --release || die "documentation incomplete; run the documentation prompt (/docs)"
-  stamp_changelog "$next"
+  "$SCRIPTS/check.sh"
+  "$SCRIPTS/check-docs.sh" --release || die "documentation incomplete; run the documentation prompt (/docs)"
+  stamp_changelog CHANGELOG.md "$next"
   stamp_docs "$next"
   printf '%s\n' "$next" >VERSION
   git add VERSION CHANGELOG.md docs/user-guide.md docs/admin-guide.md

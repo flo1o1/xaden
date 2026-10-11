@@ -9,7 +9,7 @@ private skills.
 |--------|-----|
 | Linux or macOS (Windows: WSL or Git Bash, untested) | Scripts are bash + POSIX tools |
 | git, bash, awk, sed, tar, grep, cksum | Preinstalled on Linux/macOS |
-| An AI coding tool | Claude Code recommended; Aider, Cline, Continue, Cursor, Codex, Copilot, ChatGPT or a local model (Ollama, LM Studio) also work — see `docs/local-llm.md` |
+| An AI coding tool | Claude Code recommended; Aider, Cline, Continue, Cursor, Codex, Copilot, ChatGPT or a local model (Ollama, LM Studio) also work — see `template/docs/local-llm.md` |
 | Recommended: shellcheck, gitleaks, semgrep | Static analysis and secret scanning; without them checks only warn |
 | Optional: Obsidian | Comfortable reading and editing of the prompt library |
 
@@ -18,7 +18,7 @@ private skills.
 ```bash
 git clone <scaffold-repository-url> vibe-scaffold
 cd vibe-scaffold
-scripts/setup.sh     # activates hooks, lists missing tools with install commands
+scripts/setup.sh     # lists missing tools with install commands
 tests/smoke.sh       # proves the scaffold works on your machine
 ```
 
@@ -30,7 +30,8 @@ cd ../my-app
 ```
 
 Prefer GitHub's "Use this template" button? Then clone your copy and run
-`scripts/new-project.sh my-app` from it the same way; do not develop inside the scaffold itself.
+`scripts/new-project.sh my-app` from it the same way. Never develop your project inside the
+scaffold: everything a project gets comes from `template/`.
 
 ## 4. Kickoff
 

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Scaffold maintainer commit-msg hook: the template's checks, resolved against the
+# scaffold's own requirements and the template's CC rules.
+set -euo pipefail
+root="$(git rev-parse --show-toplevel)"
+PROJECT_ROOT="$root" RULES_FILE="$root/template/AGENTS.md" exec "$root/template/scripts/hooks/commit-msg" "$1"

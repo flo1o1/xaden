@@ -4,6 +4,9 @@ A tool-agnostic starter for AI-assisted ("vibe") coding that keeps quality, secu
 traceability under control. Works with Claude Code, ChatGPT, Aider, Cline, Continue,
 Cursor, Codex, Copilot and local models (Ollama, LM Studio).
 
+Everything a new project receives lives in [`template/`](template/). Paths in the table are
+relative to it.
+
 ## What you get
 
 | Need | Solution |
@@ -25,7 +28,7 @@ New here? Read **[GETTING-STARTED.md](GETTING-STARTED.md)** — prerequisites to
 ## Create a project
 
 ```bash
-scripts/setup.sh                         # once after cloning: hooks + tool check
+scripts/setup.sh                         # once after cloning: maintainer hooks + tool check
 scripts/new-project.sh my-app            # creates ../my-app with git, hooks, first commit
 scripts/new-project.sh my-app ~/code/x   # custom location
 ```
@@ -43,20 +46,26 @@ Windows: use WSL or Git Bash (optional, untested).
 brew install shellcheck gitleaks semgrep      # macOS
 ```
 
-## Test the scaffold itself
-
-```bash
-tests/smoke.sh
-```
-
 ## Layout
 
 ```
-AGENTS.md  CLAUDE.md  .aider.conf.yml  .clinerules  .continue/  .github/
-.claude/commands/     slash commands wrapping prompts/
-prompts/              Obsidian vault content (open repo root as vault)
-docs/                 user-guide, admin-guide, requirements, decisions (ADR), clean-code, security, local-llm
-scripts/              setup, check, release, hooks, new-project, pack-context, req, context-status
+template/             the product: copied 1:1 into every new project
+  AGENTS.md CLAUDE.md .aider.conf.yml .clinerules .continue/ .github/ .claude/ .obsidian/
+  prompts/            prompt library (open template/ or a project as Obsidian vault)
+  docs/               user-guide, admin-guide, requirements, ADRs, clean-code, security, local-llm
+  scripts/            setup, check, release, hooks, pack-context, req, context-status, stacks/
+scripts/              scaffold tools: new-project, setup, check-scaffold, release-scaffold
+docs/requirements/    requirements of the scaffold itself
+tests/smoke.sh        end-to-end test: generates a project and exercises its tooling
+AGENTS.md CLAUDE.md   rules for maintaining the scaffold
 ```
 
-See `docs/local-llm.md` for non-Claude tools.
+See `template/docs/local-llm.md` for non-Claude tools.
+
+## Maintaining the scaffold
+
+```bash
+scripts/setup.sh              # maintainer hooks (.githooks/) + tool check
+scripts/check-scaffold.sh     # full check incl. smoke test (pre-commit runs --quick)
+scripts/release-scaffold.sh minor
+```

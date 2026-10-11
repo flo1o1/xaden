@@ -36,5 +36,3 @@ jobs:
             range="HEAD~1..HEAD"   # first push of a branch: check the newest commit
           fi
           scripts/verify-commits.sh "$range"
-      - name: Scaffold self-test (only present in the scaffold repository)
-        run: if [ -x tests/smoke.sh ]; then tests/smoke.sh; fi

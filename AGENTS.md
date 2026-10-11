@@ -1,99 +1,16 @@
-# AGENTS.md — {{PROJECT_NAME}}
+# AGENTS.md — Vibe Coding Scaffold (maintainers)
 
-Rules for any AI coding assistant (Claude Code, ChatGPT, Codex, Cursor, Aider,
-Cline, Continue, local models). Read fully before changing anything.
-Explicit user instructions in the current session override this file.
+This repository **is the scaffold**. Read this before changing it.
 
-## 0. Grounding (never invent rules or requirements)
-
-- The only valid rules are the `CC-nn` items in section 3 and the sections of this file.
-  The only valid requirements are the `REQ-nnn` rows in `docs/requirements/REQUIREMENTS.md`.
-- Never quote a rule or requirement from memory. Look it up: `scripts/req.sh show REQ-nnn`,
-  `scripts/req.sh list`, or read the file. If it is not in the files, it does not exist: say so and ask.
-- Cite IDs when you act ("per CC-05", "implements REQ-003"). Commits are rejected when they cite
-  an unknown ID, and `feat` commits must carry a `Refs: REQ-nnn` trailer.
-- Cannot read files or run scripts (plain chat)? Say so. Work only from the pasted context pack.
-
-## 1. Session start
-
-1. Run `scripts/context-status.sh`. Begin your first reply with its `CONTEXT CHECK <fingerprint>`
-   line (shows the user you loaded the real files). No shell access: copy the line from the
-   pasted context pack instead.
-2. Read `docs/requirements/REQUIREMENTS.md` (source of truth for *what* to build).
-3. Read the `Unreleased` section of `CHANGELOG.md` (what changed since last release).
-4. If a request is ambiguous or conflicts with a requirement: **ask, do not guess**.
-
-## 2. Requirements tracking (mandatory)
-
-- Every behaviour the user asks for has a requirement `REQ-nnn` in
-  `docs/requirements/REQUIREMENTS.md`.
-- When the user adds, changes, or drops something during a session:
-  **update the requirements file first, then write code.**
-- IDs are stable. Never delete or renumber; set status `dropped` instead.
-- Add one line to the `Change log` section of the requirements file per change.
-- Run `scripts/check-requirements.sh` after editing; it validates the format.
-
-## 3. Clean code rules
-
-Details and examples: `docs/clean-code.md` (same IDs).
-
-- **CC-01** One responsibility per class/function; functions small, one abstraction level.
-- **CC-02** Intention-revealing names; no abbreviations, no magic numbers or strings.
-- **CC-03** No duplication (DRY), no deep nesting (use early return), no commented-out code.
-- **CC-04** Inject dependencies; no hidden globals or singletons.
-- **CC-05** Errors: raise specific exceptions, fail fast, never swallow, no `null` as error signal.
-  Catch only what you can handle.
-- **CC-06** Short docstring per class/function: purpose, parameters, data format.
-  No comments that repeat the code.
-- **CC-07** Validate **all external input** at the system boundary: type, range, length, format.
-- **CC-08** Tests: Red → Green → Refactor; fast, isolated, repeatable, self-validating;
-  Arrange–Act–Assert; one behaviour per test; reference the `REQ-nnn`.
-- **CC-09** Refactor in small steps with tests green; refactor before adding functionality.
-
-## 4. Tests
-
-- Follow CC-08. Test first when feasible.
-- Every requirement has acceptance criteria; they become tests.
-
-## 5. Static analysis (mandatory before "done")
-
-- Run `scripts/check.sh`. Fix findings; never silence a rule without a one-line reason.
-- Do not claim success unless the check passed. Report failures verbatim.
-
-## 6. Security (mandatory)
-
-- Follow `docs/security.md` while coding (secrets, injection, authz, crypto, deps).
-- After finishing a feature that touches input, auth, data, files, network, or
-  dependencies — and before every release — run a security review:
-  - Claude Code: `/security` (uses the `alice-security-engineer` skill if installed).
-  - Any other LLM: paste `prompts/security-review.md` plus the changed files.
-- Never hardcode or print secrets. Never commit `.env`. Ask before adding dependencies.
-
-## 7. Versioning and git
-
-- Semantic Versioning in `VERSION` (`MAJOR.MINOR.PATCH`). Do not edit it by hand;
-  `scripts/release.sh <major|minor|patch>` does it — only run when the user asks.
-- Conventional Commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`; `!` or
-  `BREAKING CHANGE:` for breaking changes. Enforced by the commit-msg hook.
-- Add a user-visible bullet to `CHANGELOG.md` → `Unreleased` for every `feat`/`fix`.
-- Commit each coherent step. Never force-push, never rewrite published history.
-
-## 8. Documentation (mandatory)
-
-- Two guides are part of the product: `docs/user-guide.md` (end users) and
-  `docs/admin-guide.md` (install, system requirements, configuration, security hardening,
-  deployment, backup, monitoring, upgrade, uninstall).
-- A feature is not done until the guides describe it. Update them in the same change.
-- Fill the `<!-- TODO -->` markers with verified facts; ask if a fact is unknown. Never invent
-  system requirements or commands. Prompt: `prompts/documentation.md` (`/docs` in Claude Code).
-- `scripts/check-docs.sh` enforces the section structure; releases are blocked while TODO
-  markers remain. `scripts/release.sh` stamps the version into both guides.
-
-## 9. Working style
-
-- Plan briefly, then change in small steps; keep the project runnable.
-- Refactor before adding functionality when the change would be hard otherwise.
-- Prefer boring, widely used libraries; justify every new dependency.
-- Prompts live in `prompts/` (an Obsidian vault). Improve a prompt there instead of
-  re-explaining the same thing in chat.
-- Setup/commands for this project: see `README.md`.
+- `template/` is the product: every file there is copied into new projects.
+  Its rules (`template/AGENTS.md`) apply here too, especially the clean-code rules
+  `CC-01`…`CC-09` in its section 3 and the grounding rules in its section 0.
+- The scaffold's own requirements are in `docs/requirements/REQUIREMENTS.md` (this
+  repository, not the template). Update them first when scope changes; look them up with
+  `PROJECT_ROOT=. template/scripts/req.sh show REQ-nnn`, never from memory.
+- Commits: Conventional Commits; `feat` needs `Refs: REQ-nnn` from **this** repository's
+  requirements; `CC-nn` IDs are resolved against `template/AGENTS.md`.
+- Before "done": `scripts/check-scaffold.sh` (full run including `tests/smoke.sh`).
+- Template changes must work on Linux and macOS (bash 3.2, POSIX awk/sed/tar, no GNU-only flags).
+- Never put scaffold-maintenance content into `template/`, and never put project content at the root.
+- Versioning: `VERSION` + `CHANGELOG.md` at the root; release with `scripts/release-scaffold.sh`.

@@ -4,7 +4,10 @@
 # at least one requirement row. Exit 1 on any violation.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# SCRIPTS: where the tooling lives. ROOT: the repository it works on; PROJECT_ROOT lets
+# another repository (e.g. the scaffold itself) reuse these scripts.
+SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="${PROJECT_ROOT:-$(cd "$SCRIPTS/.." && pwd)}"
 FILE="${1:-$ROOT/docs/requirements/REQUIREMENTS.md}"
 
 [ -f "$FILE" ] || { echo "ERROR: $FILE not found" >&2; exit 1; }
