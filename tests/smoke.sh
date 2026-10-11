@@ -136,6 +136,19 @@ test_generated_project() {
     'Safe parsing' 'Data retention' '## Web applications \*(web)\*'; do
     assert "security checklist covers: $topic" grep -q "$topic" "$PROJECT/docs/security.md"
   done
+  # REQ-039 WSTG test areas missing so far, in checklist and review prompt
+  for topic in 'open redirect' 'parameter pollution' 'response splitting' 'request smuggling' \
+    'LDAP' 'file inclusion' 'vertical privilege escalation' 'user enumeration' 'default or shared accounts' \
+    'session tokens in URLs' 'Strict-Transport-Security' '\.git/' 'is public: no secrets there' \
+    'at rest' 'separate origin' 'upload frequency' 'Anti-automation' 'LIKE' 'ReDoS' 'audit trail' \
+    'Separate duties' 'postMessage' 'localStorage' 'PCI DSS'; do
+    assert "security checklist covers: $topic" grep -qi "$topic" "$PROJECT/docs/security.md"
+  done
+  for topic in 'open redirects' 'privilege escalation' 'user enumeration' 'ReDoS' 'request' \
+    'smuggling' 'postMessage' 'segregation of duties'; do
+    assert "security review checks: $topic" grep -qi "$topic" "$PROJECT/prompts/security-review.md"
+  done
+  assert_fails "obsolete technologies left out" grep -Eqi 'flash|silverlight|cvss v2' "$PROJECT/docs/security.md" "$PROJECT/prompts/security-review.md"
   # REQ-030 dependency policy with accountable exceptions
   for topic in '^## Dependencies' 'Lockfiles' 'Licenses' 'install scripts' 'Updates'; do
     assert "dependency policy covers: $topic" grep -q "$topic" "$PROJECT/docs/security.md"

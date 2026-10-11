@@ -22,15 +22,26 @@ prompt is the tool-independent equivalent.)
    CLI args, files, env, message queues) and trust boundaries against the code; if the code has
    ones the threat model lacks, update the threat model and say so.
 2. For each entry point, trace untrusted data to sinks and check (OWASP WSTG categories):
-   - Input validation and output encoding; injection (SQL, OS command, template, path, LDAP)
-   - Authentication, session expiry and revocation, password reset, password/token storage
-   - Authorization: server-side checks per request, per object and per tenant (IDOR), default
-     deny; negative tests exist
-   - Cryptography and TLS; randomness; hard-coded secrets; secrets in logs
-   - File upload/download, archive extraction, path and symlink traversal, SSRF (redirects,
-     private addresses, DNS rebinding), safe parsing, deserialization
-   - Web only: CSRF (not SameSite alone), CORS, security headers
-   - Business-logic abuse (race conditions, replay, rate and resource limits, mass assignment)
+   - Input validation (server repeats client checks, parameter pollution) and output encoding
+   - Injection: SQL, NoSQL, OS command, LDAP, XPath, template/expression language, mail and
+     HTTP headers (CR/LF), file inclusion, ReDoS
+   - Authentication: user enumeration, brute force and lockout, default accounts, password
+     change and reset, MFA, out-of-band notifications
+   - Sessions: expiry, revocation, new ID on login and privilege change, no tokens in URLs,
+     "remember me", parallel sessions
+   - Authorization: server-side checks per request, per object and per tenant (IDOR), vertical
+     privilege escalation, routes without a rule; default deny; negative tests exist
+   - Cryptography and TLS; randomness; hard-coded and client-side secrets; secrets in logs;
+     encryption at rest
+   - File upload/download (counts, frequency, serving origin, download authorization), archive
+     extraction, path and symlink traversal, SSRF (redirects, private addresses, DNS rebinding),
+     safe parsing, deserialization
+   - Web only: XSS (reflected, stored, DOM), CSRF (not SameSite alone), clickjacking, CORS,
+     HSTS and headers, cookie scope, open redirects, exposed files and HTTP methods, request
+     smuggling, `postMessage` origins, tokens in web storage
+   - Business-logic abuse (workflow order, race conditions, replay, rate and resource limits,
+     anti-automation, `LIKE` wildcards, mass assignment, segregation of duties, audit trail)
+   - Test data in production and production data in test; card data (provider or PCI DSS)
    - Data retention, deletion and what gets logged
    - Error handling and information leakage; debug flags
    - Dependencies: new or outdated packages, known CVEs, install scripts
