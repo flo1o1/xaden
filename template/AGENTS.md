@@ -80,6 +80,9 @@ Details and examples: `docs/clean-code.md` (same IDs).
 ## 6. Security (mandatory)
 
 - Follow `docs/security.md` while coding (secrets, injection, authz, crypto, deps).
+- `docs/threat-model.md` records assets, entry points, trust boundaries and the OWASP ASVS level.
+  Update it when a change adds an entry point, a sensitive data type, an external service or a
+  deployment target.
 - After finishing a feature that touches input, auth, data, files, network, or
   dependencies — and before every release — run a security review:
   - Claude Code: `/security` (uses the `alice-security-engineer` skill if installed).

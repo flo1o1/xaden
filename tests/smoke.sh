@@ -115,6 +115,15 @@ test_generated_project() {
   assert "pack includes the security checklist" grep -q 'Secure coding checklist' "$PROJECT/context-pack.md"
   assert "pack includes unreleased changes" grep -q 'Project created from vibe-coding scaffold' "$PROJECT/context-pack.md"
   assert "pack lists what it excludes" grep -q 'NOT INCLUDED' "$PROJECT/context-pack.md"
+  # REQ-028 threat model at kickoff
+  assert "project has a threat model with an ASVS level" grep -q 'ASVS level' "$PROJECT/docs/threat-model.md"
+  assert "kickoff fills the threat model" grep -q 'docs/threat-model.md' "$PROJECT/prompts/kickoff.md"
+  assert "security review reads the threat model" grep -q 'docs/threat-model.md' "$PROJECT/prompts/security-review.md"
+  assert "pack includes the threat model" grep -q '^# THREAT MODEL' "$PROJECT/context-pack.md"
+  mv "$PROJECT/docs/threat-model.md" "$WORKDIR/threat-model.md"
+  assert "pack names a missing threat model" bash -c "'$PROJECT/scripts/pack-context.sh' && grep -q 'threat-model.md (MISSING' '$PROJECT/context-pack.md'"
+  mv "$WORKDIR/threat-model.md" "$PROJECT/docs/threat-model.md"
+  "$PROJECT/scripts/pack-context.sh" feature >/dev/null 2>&1
   cp "$PROJECT/context-pack.md" "$WORKDIR/pack-before.md"
   assert_fails "unknown prompt name rejected" "$PROJECT/scripts/pack-context.sh" feature no-such-prompt
   assert "failed pack keeps the previous pack" cmp -s "$PROJECT/context-pack.md" "$WORKDIR/pack-before.md"

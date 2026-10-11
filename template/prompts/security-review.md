@@ -18,8 +18,9 @@ prompt is the tool-independent equivalent.)
 - Scope: {{changed files, or whole project}}
 
 ## Steps
-1. Read `docs/security.md`. Identify entry points (HTTP routes, CLI args, files, env, message
-   queues) and trust boundaries.
+1. Read `docs/threat-model.md` and `docs/security.md`. Confirm the entry points (HTTP routes,
+   CLI args, files, env, message queues) and trust boundaries against the code; if the code has
+   ones the threat model lacks, update the threat model and say so.
 2. For each entry point, trace untrusted data to sinks and check (OWASP WSTG categories):
    - Input validation and output encoding; injection (SQL, OS command, template, path, LDAP)
    - Authentication, session management, password/token storage

@@ -18,6 +18,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - Python projects were never detected unless pyproject.toml, setup.py and requirements*.txt all existed.
 
 ### Added
+- Threat model template (`docs/threat-model.md`): assets, sensitive data, entry points, trust boundaries, attackers, deployment assumptions, OWASP ASVS level. Kickoff fills it, security reviews read it, context packs include it.
 - `inbox/` drop zone in scaffold and projects: contents are git-ignored; assistants treat them as untrusted data.
 - Initial scaffold: AGENTS.md rules for any LLM, Claude Code commands, Obsidian prompt vault.
 - Static analysis runner (`scripts/check.sh`), requirements tracking and validation.

@@ -22,17 +22,21 @@ Turn my idea into tracked requirements, a stack decision, and a first runnable s
 3. Write requirements into `docs/requirements/REQUIREMENTS.md` (replace the placeholder
    REQ-001): small, testable, with priority and acceptance criteria. Run
    `scripts/check-requirements.sh`.
-4. Propose a stack with 2 alternatives and a one-line trade-off each. Wait for my choice.
-5. Record the decision in `docs/decisions/0001-stack.md` (copy `docs/decisions/0000-template.md`).
-6. Create the minimal skeleton: source dir, one test, dependency file. Run
+4. Fill `docs/threat-model.md` from my answers: assets, sensitive data, entry points, trust
+   boundaries, attackers, deployment assumptions. Propose an OWASP ASVS level with a one-line
+   reason. Write "unknown" and ask me where you lack facts; never invent them.
+5. Propose a stack with 2 alternatives and a one-line trade-off each. Wait for my choice.
+6. Record the decision in `docs/decisions/0001-stack.md` (copy `docs/decisions/0000-template.md`).
+7. Create the minimal skeleton: source dir, one test, dependency file. Run
    `scripts/apply-preset.sh python|node` for the clean-code linter config (other stacks: create
    an equivalent config mapping CC-01…CC-08, see `docs/clean-code.md`). Ask me before installing
    the tools it lists. Keep it runnable. Run `scripts/check.sh`.
-7. Update `README.md` (what it is, how to run, how to test) and `CHANGELOG.md`.
+8. Update `README.md` (what it is, how to run, how to test) and `CHANGELOG.md`.
    Run [[documentation]] to fill installation and system requirements in both guides.
-8. Commit: `chore: bootstrap <stack> skeleton`.
+9. Commit: `chore: bootstrap <stack> skeleton`.
 
 ## Done when
 - [ ] Requirements approved by me
+- [ ] Threat model filled; open questions listed
 - [ ] Skeleton runs; `scripts/check.sh` passes
 - [ ] Decision record and README written
