@@ -41,6 +41,11 @@ check_stacks() {
   done
 }
 
+if [ "$MODE" = "staged" ]; then
+  enter_staged_snapshot "$ROOT" # checks see exactly the staged content (REQ-020)
+  ROOT="$SNAPSHOT"
+fi
+
 info "check mode: $MODE"
 check_project_files
 lint_shell "$MODE"

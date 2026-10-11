@@ -24,7 +24,7 @@ requirement_rows() {
 }
 
 # test_files: tracked (incl. staged) test files, one per line.
-test_files() { git ls-files | grep -E "$TEST_FILE_PATTERN" || true; }
+test_files() { list_project_files | tr '\0' '\n' | grep -E "$TEST_FILE_PATTERN" || true; }
 
 # tests_citing <REQ-nnn>: test files that mention the ID (word match), comma-separated.
 tests_citing() {

@@ -14,16 +14,24 @@ source "$SCRIPTS/lib.sh"
 
 MESSAGE_FILE=${1:-}
 [ -f "$MESSAGE_FILE" ] || die "usage: scripts/verify-refs.sh <commit-message-file>"
-REQUIREMENTS="$ROOT/docs/requirements/REQUIREMENTS.md"
 RULES_FILE="${RULES_FILE:-$ROOT/AGENTS.md}"  # where CC-nn rules are defined
+
+# read_committed_version <path>: the file as it will be committed (git index) when tracked,
+# otherwise the working-tree file. Unstaged edits must not validate a commit (REQ-020).
+read_committed_version() {
+  git -C "$(dirname "$1")" show ":./$(basename "$1")" 2>/dev/null || cat "$1"
+}
+
+REQUIREMENTS_TEXT="$(read_committed_version "$ROOT/docs/requirements/REQUIREMENTS.md")"
+RULES_TEXT="$(read_committed_version "$RULES_FILE")"
 
 # check_cited_ids: every cited ID must exist in the source of truth.
 check_cited_ids() {
   local id
   while IFS= read -r id; do
     case "$id" in
-      REQ-*) grep -Eq "^\| *$id " "$REQUIREMENTS" || die "commit cites unknown requirement $id" ;;
-      CC-*) grep -Eq "^- \*\*$id\*\*" "$RULES_FILE" || die "commit cites unknown rule $id" ;;
+      REQ-*) printf '%s\n' "$REQUIREMENTS_TEXT" | grep -Eq "^\| *$id " || die "commit cites unknown requirement $id" ;;
+      CC-*) printf '%s\n' "$RULES_TEXT" | grep -Eq "^- \*\*$id\*\*" || die "commit cites unknown rule $id" ;;
     esac
   done < <(grep -oE 'REQ-[0-9]{3,}|CC-[0-9]{2}' "$MESSAGE_FILE" | sort -u)
 }

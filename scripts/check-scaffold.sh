@@ -31,17 +31,22 @@ run_step() {
 test_semgrep_rules() {
   local workdir status=0
   workdir="$(mktemp -d)"
-  cp template/.semgrep/rules.yml tests/semgrep/rules.* "$workdir/"
+  cp "$ROOT"/template/.semgrep/rules.yml "$ROOT"/tests/semgrep/rules.* "$workdir/"
   semgrep --test --metrics=off --disable-version-check "$workdir" || status=$?
   rm -rf "$workdir"
   return "$status"
 }
 
+if [ "$MODE" = "staged" ]; then
+  enter_staged_snapshot "$ROOT" # checks see exactly the staged content (REQ-020)
+  ROOT="$SNAPSHOT"
+fi
+
 info "check mode: $MODE"
 run_step "scaffold requirements" "$TEMPLATE_SCRIPTS/check-requirements.sh" "$ROOT/docs/requirements/REQUIREMENTS.md"
 run_step "scaffold traceability" env PROJECT_ROOT="$ROOT" "$TEMPLATE_SCRIPTS/check-traceability.sh"
-run_step "template requirements format" "$TEMPLATE_SCRIPTS/check-requirements.sh"
-run_step "template docs structure" "$TEMPLATE_SCRIPTS/check-docs.sh"
+run_step "template requirements format" env PROJECT_ROOT="$ROOT/template" "$TEMPLATE_SCRIPTS/check-requirements.sh"
+run_step "template docs structure" env PROJECT_ROOT="$ROOT/template" "$TEMPLATE_SCRIPTS/check-docs.sh"
 lint_shell "$MODE"
 scan_secrets "$MODE"
 # tests/semgrep holds deliberately vulnerable fixtures; scan everything else.

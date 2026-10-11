@@ -229,6 +229,39 @@ test_missing_tools() {
   assert "summary lists the skipped check" bash -c "cd '$PROJECT' && PATH='$restricted' scripts/check.sh 2>&1 | grep -q 'skipped: secret scan'"
 }
 
+# REQ-020 staged snapshot: checks and commit-msg validate what will be committed
+test_staged_snapshot() {
+  local requirements="$PROJECT/docs/requirements/REQUIREMENTS.md" before_status before_diff
+  cp "$requirements" "$WORKDIR/req-original.md"
+  # staged content broken, working tree fixed: must fail
+  sed 's/| draft  |/| bogus  |/' "$WORKDIR/req-original.md" >"$requirements"
+  git -C "$PROJECT" add docs/requirements/REQUIREMENTS.md
+  cp "$WORKDIR/req-original.md" "$requirements"
+  before_status="$(git -C "$PROJECT" status --porcelain)"
+  before_diff="$(git -C "$PROJECT" diff)"
+  assert_fails "staged invalid requirement not hidden by unstaged fix" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
+  assert "working tree and index untouched by staged check" test "$(git -C "$PROJECT" status --porcelain)$(git -C "$PROJECT" diff)" = "$before_status$before_diff"
+  git -C "$PROJECT" reset -q --hard
+  # staged content fine, working tree broken: must pass
+  sed 's/| draft  |/| bogus  |/' "$WORKDIR/req-original.md" >"$requirements"
+  assert "unstaged breakage does not fail the staged check" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
+  git -C "$PROJECT" checkout -q -- docs
+  if need_tool semgrep "staged SAST snapshot fixture"; then
+    printf 'def run(user_input):\n    return eval(user_input)\n' >"$PROJECT/hidden.py"
+    git -C "$PROJECT" add hidden.py
+    printf 'def run(user_input):\n    return user_input\n' >"$PROJECT/hidden.py"
+    assert_fails "staged eval not hidden by unstaged fix" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
+    git -C "$PROJECT" reset -q --hard && git -C "$PROJECT" clean -qfd
+  fi
+  # requirement only in the working tree cannot validate a commit
+  awk '{ print } /^\| REQ-001/ { print "| REQ-002 | Second | must | approved | Testable | 2026-10-11 |" }' \
+    "$WORKDIR/req-original.md" >"$requirements"
+  assert_fails "REQ only in unstaged file rejected by commit-msg" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat: x\n\nRefs: REQ-002\n')"
+  git -C "$PROJECT" add docs/requirements/REQUIREMENTS.md
+  assert "same REQ accepted once staged" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat: x\n\nRefs: REQ-002\n')"
+  git -C "$PROJECT" reset -q --hard
+}
+
 # REQ-026 local drop zone
 test_inbox() {
   printf 'private\n' >"$PROJECT/inbox/notes.txt"
@@ -308,6 +341,7 @@ test_generated_project
 test_setup_and_commit_checks
 test_missing_tools
 test_staged_checks
+test_staged_snapshot
 test_stack_enforcement
 test_traceability
 test_scaffold_update

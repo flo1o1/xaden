@@ -65,21 +65,50 @@ finish_checks() {
 
 # Files selected by the last collect_files call (bash array).
 TARGETS=()
+# Staged mode (REQ-020): the real repository, a temporary export of its index (exactly what
+# will be committed) and the NUL-separated list of staged paths.
+GIT_REPO=""
+SNAPSHOT=""
+STAGED_LIST=""
+
+# enter_staged_snapshot <repo-root>: exports the git index to a temporary directory and
+# changes into it, so checks see the staged content, not unstaged edits. Untracked dependency
+# folders are linked so linters resolve. The working tree is never modified.
+enter_staged_snapshot() {
+  local dependency_dir
+  GIT_REPO=$1
+  SNAPSHOT="$(mktemp -d)"
+  STAGED_LIST="$(mktemp)"
+  trap 'rm -rf "$SNAPSHOT" "$STAGED_LIST"' EXIT
+  git -C "$GIT_REPO" checkout-index --all --prefix="$SNAPSHOT/"
+  git -C "$GIT_REPO" diff --cached --name-only -z --diff-filter=ACMR >"$STAGED_LIST"
+  for dependency_dir in node_modules .venv; do
+    if [ -d "$GIT_REPO/$dependency_dir" ]; then ln -s "$GIT_REPO/$dependency_dir" "$SNAPSHOT/$dependency_dir"; fi
+  done
+  export PROJECT_ROOT="$SNAPSHOT"
+  cd "$SNAPSHOT" || die "cannot enter staged snapshot $SNAPSHOT"
+}
+
+# list_project_files: NUL-separated paths of the project's files (git-tracked files, or every
+# regular file inside a staged snapshot, which only contains tracked files).
+list_project_files() {
+  if git rev-parse --git-dir >/dev/null 2>&1; then
+    git ls-files -z
+  else
+    find . -type f | sed 's|^\./||' | tr '\n' '\0' # POSIX; names with newlines are unsupported
+  fi
+}
 
 # collect_files <mode> <include-regex> [exclude-regex]: fills TARGETS with matching staged
 # (staged mode) or tracked (full mode) files, relative to the current directory.
 collect_files() {
   local mode=$1 pattern=$2 exclude=${3:-^$} file
   TARGETS=()
-  while IFS= read -r file; do
-    [ -f "$file" ] && TARGETS+=("$file")
-  done < <(
-    if [ "$mode" = "staged" ]; then
-      git diff --cached --name-only --diff-filter=ACMR
-    else
-      git ls-files
-    fi | grep -E "$pattern" | grep -Ev "$exclude" || true
-  )
+  while IFS= read -r -d '' file; do
+    if [ -f "$file" ] && printf '%s\n' "$file" | grep -E "$pattern" | grep -Evq "$exclude"; then
+      TARGETS+=("$file")
+    fi
+  done < <(if [ "$mode" = "staged" ]; then cat "$STAGED_LIST"; else list_project_files; fi)
 }
 
 # lint_shell <mode>: shellcheck on shell scripts and extension-less git hooks.
@@ -89,16 +118,17 @@ lint_shell() {
   run_tool "shellcheck" shellcheck -x "${TARGETS[@]}" # -x: follow sourced lib.sh even if unstaged
 }
 
-# scan_secrets <mode>: gitleaks on the staged diff, or on the whole git history.
+# scan_secrets <mode>: gitleaks on the staged diff, or on the whole git history. Always runs
+# against the real repository (GIT_REPO in staged mode), never the snapshot.
 scan_secrets() {
-  local scope=()
+  local repo="${GIT_REPO:-.}" scope=()
   [ "$1" = "staged" ] && scope=(--staged)
   if has_command gitleaks && gitleaks git --help >/dev/null 2>&1; then
-    run_tool "secret scan (gitleaks)" gitleaks git --no-banner --redact --log-level warn ${scope[@]+"${scope[@]}"}
+    run_tool "secret scan (gitleaks)" gitleaks git --no-banner --redact --log-level warn ${scope[@]+"${scope[@]}"} "$repo"
   elif [ "$1" = "staged" ]; then # gitleaks < 8.19
-    run_tool "secret scan (gitleaks)" gitleaks protect --staged --no-banner --redact
+    run_tool "secret scan (gitleaks)" gitleaks protect --staged --no-banner --redact --source "$repo"
   else
-    run_tool "secret scan (gitleaks)" gitleaks detect --no-banner --redact
+    run_tool "secret scan (gitleaks)" gitleaks detect --no-banner --redact --source "$repo"
   fi
 }
 
