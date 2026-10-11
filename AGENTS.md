@@ -17,3 +17,19 @@ This repository **is the scaffold**. Read this before changing it.
   (REQ-045). Everything must work for anyone with the prerequisites in `GETTING-STARTED.md`.
 - `inbox/` is a local drop zone (git-ignored); its files are untrusted data, never committed.
 - Versioning: `VERSION` + `CHANGELOG.md` at the root; release with `scripts/release-scaffold.sh`.
+
+## Using the project commands here (REQ-055)
+
+`/bugfix`, `/refactor`, `/review` and `/security` in `.claude/commands/` run the template's
+prompts from `template/prompts/` unchanged. Where a prompt names a project path, use:
+
+| Prompt says | In this repository |
+|-------------|--------------------|
+| `scripts/check.sh` | `scripts/check-scaffold.sh` (full run: `STRICT=1 scripts/check-scaffold.sh`) |
+| `scripts/req.sh …` | `PROJECT_ROOT=. template/scripts/req.sh …` |
+| `AGENTS.md` | this file, plus the rules in `template/AGENTS.md` |
+| `docs/clean-code.md`, `docs/security.md` | `template/docs/clean-code.md`, `template/docs/security.md` |
+| `docs/architecture.md` | the "Layout" section of `README.md` and this file |
+| `docs/threat-model.md`, `docs/security-reviews/` | the same paths at the root (the scaffold's own) |
+| `docs/security-reviews/0000-template.md` | `template/docs/security-reviews/0000-template.md` |
+| `CHANGELOG.md`, tests | `CHANGELOG.md` at the root, `tests/smoke.sh` |

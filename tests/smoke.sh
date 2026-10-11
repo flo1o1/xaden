@@ -453,6 +453,19 @@ test_assistant_plugins() {
     grep -q 'Optional second pass: if the Ponytail plugin is installed' "$PROJECT/.claude/commands/review.md"
 }
 
+# REQ-055 maintainers use the project commands on the scaffold itself
+test_scaffold_commands() {
+  local name prompt
+  for name in bugfix refactor review security; do
+    prompt="$(sed -n 's|^@template/prompts/\(.*\)$|\1|p' "$SCAFFOLD_ROOT/.claude/commands/$name.md")"
+    assert "/$name includes an existing template prompt" test -n "$prompt" -a -f "$SCAFFOLD_ROOT/template/prompts/$prompt"
+  done
+  assert "AGENTS.md maps prompt paths for the scaffold" grep -q '^## Using the project commands here' "$SCAFFOLD_ROOT/AGENTS.md"
+  assert "scaffold threat model names entry points" grep -q '^## Entry points' "$SCAFFOLD_ROOT/docs/threat-model.md"
+  assert_fails "projects get no scaffold commands" grep -rq 'template/prompts' "$PROJECT/.claude/commands"
+  assert_fails "projects get no scaffold threat model" grep -q 'Vibe Coding Scaffold' "$PROJECT/docs/threat-model.md"
+}
+
 # REQ-054 look for mature existing solutions before building
 test_look_before_build() {
   local item
@@ -844,6 +857,7 @@ test_optional_tools
 test_dependency_vetting
 test_assistant_plugins
 test_look_before_build
+test_scaffold_commands
 test_traceability
 test_scaffold_update
 test_release

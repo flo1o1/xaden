@@ -72,3 +72,4 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-11 REQ-014 criterion added: pre-commit snapshot skips large unchanged files (audit finding)
 - 2026-10-11 REQ-045 criterion reworded: prerequisites live in GETTING-STARTED.md, README.md only points there
 - 2026-10-11 REQ-055 added (approved): maintainers use /bugfix, /refactor, /review, /security on the scaffold; /docs left out by user decision
+- 2026-10-11 REQ-055 done: root .claude/commands wrap template prompts, path map in AGENTS.md, scaffold docs/threat-model.md; smoke test_scaffold_commands
