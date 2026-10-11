@@ -27,6 +27,7 @@ Turn my idea into tracked requirements, a stack decision, and a first runnable s
 6. Create the minimal skeleton: source dir, one test, linter/formatter/type-checker config,
    dependency file. Keep it runnable. Run `scripts/check.sh`.
 7. Update `README.md` (what it is, how to run, how to test) and `CHANGELOG.md`.
+   Run [[documentation]] to fill installation and system requirements in both guides.
 8. Commit: `chore: bootstrap <stack> skeleton`.
 
 ## Done when

@@ -62,7 +62,18 @@ Explicit user instructions in the current session override this file.
 - Add a user-visible bullet to `CHANGELOG.md` → `Unreleased` for every `feat`/`fix`.
 - Commit each coherent step. Never force-push, never rewrite published history.
 
-## 8. Working style
+## 8. Documentation (mandatory)
+
+- Two guides are part of the product: `docs/user-guide.md` (end users) and
+  `docs/admin-guide.md` (install, system requirements, configuration, security hardening,
+  deployment, backup, monitoring, upgrade, uninstall).
+- A feature is not done until the guides describe it. Update them in the same change.
+- Fill the `<!-- TODO -->` markers with verified facts; ask if a fact is unknown. Never invent
+  system requirements or commands. Prompt: `prompts/documentation.md` (`/docs` in Claude Code).
+- `scripts/check-docs.sh` enforces the section structure; releases are blocked while TODO
+  markers remain. `scripts/release.sh` stamps the version into both guides.
+
+## 9. Working style
 
 - Plan briefly, then change in small steps; keep the project runnable.
 - Refactor before adding functionality when the change would be hard otherwise.

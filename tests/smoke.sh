@@ -51,6 +51,8 @@ test_new_project() {
 
 test_generated_project() {
   assert "checks pass" "$PROJECT/scripts/check.sh"
+  assert "docs structure valid" "$PROJECT/scripts/check-docs.sh"
+  assert_fails "docs check --release flags TODOs" "$PROJECT/scripts/check-docs.sh" --release
   assert "pack-context works" "$PROJECT/scripts/pack-context.sh" feature
   assert_fails "pack-context rejects path traversal" "$PROJECT/scripts/pack-context.sh" ../AGENTS
   assert_fails "bad commit message rejected" "$PROJECT/scripts/hooks/commit-msg" <(echo "did stuff")
@@ -61,8 +63,12 @@ test_generated_project() {
 }
 
 test_release() {
+  assert_fails "release blocked by TODO markers in docs" "$PROJECT/scripts/release.sh" patch
+  sed -i.bak '/TODO/d' "$PROJECT"/docs/*-guide.md && rm -f "$PROJECT"/docs/*.bak
+  git -C "$PROJECT" commit -q -am "docs: fill guides"
   assert "release patch" "$PROJECT/scripts/release.sh" patch
   assert "VERSION bumped" test "$(tr -d '[:space:]' <"$PROJECT/VERSION")" = "0.1.1"
+  assert "guide stamped with version" grep -q 'Applies to version:\*\* 0.1.1' "$PROJECT/docs/user-guide.md"
   assert "tag created" git -C "$PROJECT" rev-parse v0.1.1
 }
 

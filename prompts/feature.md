@@ -26,10 +26,12 @@ Implement one capability, test-first, tracked in requirements.
 6. Run `scripts/check.sh`; fix all findings.
 7. If the feature touches input, auth, data, files, network or dependencies: run the
    [[security-review]] prompt on the changed files.
-8. Set requirement status to `done`, add a `CHANGELOG.md` → Unreleased bullet, commit
+8. Update `docs/user-guide.md` (usage) and, if config/ports/dependencies/deployment changed,
+   `docs/admin-guide.md` — see [[documentation]].
+9. Set requirement status to `done`, add a `CHANGELOG.md` → Unreleased bullet, commit
    `feat(<scope>): <summary>`.
 
 ## Done when
 - [ ] Acceptance criteria met and tested
 - [ ] `scripts/check.sh` passes
-- [ ] Requirements, changelog, security review handled
+- [ ] Requirements, changelog, docs, security review handled

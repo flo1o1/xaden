@@ -15,6 +15,8 @@ cd "$ROOT"
 check_generic() {
   info "requirements format"
   "$ROOT/scripts/check-requirements.sh" || FAILURES=$((FAILURES + 1))
+  info "documentation structure"
+  "$ROOT/scripts/check-docs.sh" || FAILURES=$((FAILURES + 1))
 
   local shell_files
   # Paths contain no spaces by construction (scripts/, tests/).
@@ -25,7 +27,7 @@ check_generic() {
   fi
 
   run_tool "secret scan (gitleaks)" gitleaks detect --no-banner --redact
-  run_tool "SAST (semgrep)" semgrep scan --config auto --metrics=off --error --quiet
+  run_tool "SAST (semgrep)" semgrep scan --config p/default --metrics=off --error --quiet
 }
 
 # check_stacks: source each stack file; each defines stack_check.

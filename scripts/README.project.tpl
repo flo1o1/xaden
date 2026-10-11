@@ -22,6 +22,7 @@ Tools without file access: `scripts/pack-context.sh kickoff` and paste `context-
 |------|---------|
 | `AGENTS.md` | Rules for every AI assistant (`CLAUDE.md` imports it) |
 | `docs/requirements/REQUIREMENTS.md` | Tracked requirements, updated every session |
+| `docs/user-guide.md`, `docs/admin-guide.md` | End-user and operator documentation (install, system requirements, config, upgrade) |
 | `prompts/` | Reusable prompts; open the folder in Obsidian |
 | `scripts/` | check, release, hooks, context packing |
 | `CHANGELOG.md`, `VERSION` | SemVer history |

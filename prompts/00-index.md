@@ -18,6 +18,7 @@ Every prompt has frontmatter (`status`, `version`, `works-with`) visible in Obsi
 | [[requirements-update]] | Scope changed mid-session | `/requirements` |
 | [[code-review]] | Review a diff against clean-code rules | `/review` |
 | [[security-review]] | Security audit (OWASP WSTG based) | `/security` |
+| [[documentation]] | Write/update user and admin guides | `/docs` |
 | [[release]] | Cut a SemVer release | `/release` |
 
 Related: [[prompt-template]] · rules in `AGENTS.md` · requirements in `docs/requirements/REQUIREMENTS.md`

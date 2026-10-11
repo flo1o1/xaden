@@ -14,6 +14,7 @@ Cursor, Codex, Copilot and local models (Ollama, LM Studio).
 | Security | `docs/security.md`, `/security` (alice-security-engineer skill), tool-agnostic `prompts/security-review.md` |
 | Requirements tracking | `docs/requirements/REQUIREMENTS.md`, validated by `scripts/check-requirements.sh`; the AI must update it when scope changes |
 | Semantic versioning | `VERSION`, `CHANGELOG.md`, Conventional Commits hook, `scripts/release.sh` |
+| User + admin docs | `docs/user-guide.md`, `docs/admin-guide.md` (install, system requirements, config, hardening, upgrade); filled by `/docs`, checked by `scripts/check-docs.sh`, release blocked while incomplete |
 | Git | New projects get their own repo with hooks installed |
 | Obsidian | Open the folder as a vault; prompts have frontmatter, wikilinks, a template folder |
 | Chat UIs / small models | `scripts/pack-context.sh` builds one pasteable file |
@@ -50,7 +51,7 @@ tests/smoke.sh
 AGENTS.md  CLAUDE.md  .aider.conf.yml  .clinerules  .continue/  .github/
 .claude/commands/     slash commands wrapping prompts/
 prompts/              Obsidian vault content (open repo root as vault)
-docs/                 requirements, decisions (ADR), clean-code, security, local-llm
+docs/                 user-guide, admin-guide, requirements, decisions (ADR), clean-code, security, local-llm
 scripts/              check, release, hooks, new-project, pack-context
 ```
 
