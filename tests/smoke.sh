@@ -136,6 +136,14 @@ test_generated_project() {
   done
   assert "exceptions need owner and expiry" grep -q '| Owner | Expires (YYYY-MM-DD) |' "$PROJECT/docs/security-exceptions.md"
   assert "release prompt blocks on expired exceptions" grep -q 'security-exceptions.md' "$PROJECT/prompts/release.md"
+  # REQ-031 vulnerability reporting and incident policy
+  for topic in '^## Reporting a vulnerability' '^## Secret rotation' '^## Incident response basics' 'SBOM'; do
+    assert "SECURITY.md covers: $topic" grep -q "$topic" "$PROJECT/SECURITY.md"
+  done
+  local owned
+  for owned in SECURITY.md docs/threat-model.md docs/security-exceptions.md; do
+    assert_fails "$owned is project-owned, never overwritten by updates" is_managed "$owned"
+  done
   "$PROJECT/scripts/pack-context.sh" feature >/dev/null 2>&1
   cp "$PROJECT/context-pack.md" "$WORKDIR/pack-before.md"
   assert_fails "unknown prompt name rejected" "$PROJECT/scripts/pack-context.sh" feature no-such-prompt

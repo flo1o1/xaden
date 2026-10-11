@@ -23,6 +23,7 @@ Tools without file access: `scripts/pack-context.sh kickoff` and paste `context-
 | `AGENTS.md` | Rules for every AI assistant (`CLAUDE.md` imports it) |
 | `docs/requirements/REQUIREMENTS.md` | Tracked requirements, updated every session |
 | `docs/user-guide.md`, `docs/admin-guide.md` | End-user and operator documentation (install, system requirements, config, upgrade) |
+| `SECURITY.md` | How to report vulnerabilities; secret rotation; incident basics |
 | `docs/threat-model.md` | Assets, entry points, trust boundaries, ASVS level; filled at kickoff |
 | `docs/security.md`, `docs/security-exceptions.md` | Secure coding checklist and dependency policy; accepted vulnerabilities with owner and expiry |
 | `prompts/` | Reusable prompts; open the folder in Obsidian |

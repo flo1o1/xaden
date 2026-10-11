@@ -19,6 +19,7 @@ Choose the correct SemVer bump and cut the release safely.
 3. Confirm all `done` requirements are reflected in the changelog. Show me
    `scripts/check-traceability.sh --matrix`.
 4. Run `scripts/check-docs.sh --release`; if it fails, run [[documentation]] first.
+   `SECURITY.md` and `docs/threat-model.md` must not contain TODO markers either.
 5. Run [[security-review]] on everything changed since the last tag. Check
    `docs/security-exceptions.md`: an expired row blocks the release until it is fixed or I renew it.
 6. Show me the proposed bump and reason. **Wait for my confirmation.**

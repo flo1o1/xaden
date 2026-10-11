@@ -28,7 +28,8 @@ to the code: installation, system requirements, configuration, usage, security, 
    Never write real secrets.
 6. Usage (user): one subsection per `done` requirement, task-oriented, with an example.
 7. Admin security section: summarize `docs/security.md` as concrete setup steps and note
-   the date of the last security review.
+   the date of the last security review. Fill the TODO markers in `SECURITY.md` (supported
+   versions, contact, secrets list, incident roles); ask me for contacts and promises.
 8. Update `**Applies to version:**` only through `scripts/release.sh` (it stamps it).
 9. Run `scripts/check-docs.sh` (add `--release` to find leftover TODOs). Add a
    `CHANGELOG.md` → Unreleased bullet only for user-visible doc changes.
