@@ -18,3 +18,4 @@ When I hand software to users and operators, I want user and admin guides with i
 - Guide templates with required sections
 - /docs fills them
 - release blocked while TODOs remain
+- only `<!-- TODO` markers block a release; the word TODO in guide prose does not

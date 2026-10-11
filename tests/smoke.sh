@@ -499,6 +499,9 @@ test_release() {
   fi
   sed -i.bak '/TODO/d' "$PROJECT"/docs/*-guide.md && rm -f "$PROJECT"/docs/*.bak
   git -C "$PROJECT" commit -q -am "docs: fill guides"
+  printf 'Mark a TODO item as done.\n' >>"$PROJECT/docs/user-guide.md"
+  assert "the word TODO in guide prose does not block a release" "$PROJECT/scripts/check-docs.sh" --release
+  git -C "$PROJECT" checkout -q -- docs/user-guide.md
   test_release_failures
   assert "release patch" "$PROJECT/scripts/release.sh" patch
   assert "VERSION bumped" test "$(tr -d '[:space:]' <"$PROJECT/VERSION")" = "0.1.1"

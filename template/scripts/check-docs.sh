@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Validates user and admin documentation.
-# Always: required headings exist. With --release: no unfilled "TODO" markers remain.
+# Always: required headings exist. With --release: no unfilled "<!-- TODO" markers remain.
 # Structure only: it cannot tell whether the written content is correct (REQ-037).
 # Usage: scripts/check-docs.sh [--release]
 set -euo pipefail
@@ -30,10 +30,10 @@ check_headings() {
   done < <(printf '%s\n' "$2" | tr '|' '\n')
 }
 
-# check_filled <file>: counts a failure if TODO markers remain.
+# check_filled <file>: counts a failure if "<!-- TODO" markers remain; the word TODO in prose is fine.
 check_filled() {
   local count
-  count=$(grep -c 'TODO' "$1" || true)
+  count=$(grep -c '<!-- TODO' "$1" || true)
   if [ "$count" -gt 0 ]; then
     warn "$1: $count unfilled TODO marker(s)"
     FAILURES=$((FAILURES + 1))
