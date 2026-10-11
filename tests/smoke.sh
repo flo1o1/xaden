@@ -13,6 +13,8 @@ source "$SCAFFOLD_ROOT/scripts/scaffold-lib.sh"
 # REQ-025: isolated from the user's git configuration; failures show the command output;
 # SMOKE_REQUIRE_TOOLS=1 (set in CI) turns tool-dependent skips into failures.
 export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
+# Strictness is chosen per test call; an inherited STRICT=1 (CI) must not leak into fixtures.
+unset STRICT
 WORKDIR="$(mktemp -d)"
 trap 'rm -rf "$WORKDIR"' EXIT
 PROJECT="$WORKDIR/demo app/demo-app" # space in the path on purpose (REQ-018)
