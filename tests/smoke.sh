@@ -652,6 +652,8 @@ test_commit_bypasses() {
   assert "plain Merge message still accepted" "$hook" "$(msg 'Merge branch x\n')"
   assert "IDs in comments and the git commit -v diff are ignored" "$hook" \
     "$(msg 'docs: x\n\n# REQ-779 in a comment\n# ------------------------ >8 ------------------------\n+REQ-780 in the diff\n')" # traceability: ignore
+  assert "fix with 'Refs: none' accepted" "$hook" "$(msg 'fix: x\n\nRefs: none\n')"
+  assert_fails_with "fix with a word merely containing none rejected" "Refs: none" "$hook" "$(msg 'fix: x\n\nRefs: nonexistent\n')"
   set_status REQ-001 approved
   git -C "$PROJECT" commit -q -am "docs(requirements): approve REQ-001"
   assert "Refs in prose is not a trailer" bash -c "'$hook' '$(msg 'feat: x\n\nRefs: REQ-001\n\nMore prose after it.\n')' 2>&1 | grep -q \"need a 'Refs: REQ-nnn' trailer\""

@@ -19,3 +19,4 @@ When commits reference requirements, I want reference checks that special prefix
 - Refs are parsed as git trailers
 - CI validates every commit of a first push
 - IDs in comment lines and in the diff that `git commit -v` appends are not checked
+- Given a `fix` commit, when its `Refs:` trailer is neither a requirement ID nor exactly `none` (e.g. `Refs: nonexistent`), then the commit is rejected

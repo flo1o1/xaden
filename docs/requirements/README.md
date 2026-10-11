@@ -82,3 +82,4 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-11 REQ-059 done: .claude/settings.json is scaffold-managed; smoke test_settings_update
 - 2026-10-11 REQ-048 criterion added: migration rejects table IDs that are not REQ-nnn (security review 2026-10-11-audit-fixes #1)
 - 2026-10-11 REQ-057 criterion sharpened: expiry dates with an impossible month or day fail (security review 2026-10-11-audit-fixes #2)
+- 2026-10-11 REQ-022 criterion added: only the exact value `none` replaces a requirement in a fix trailer (security review 2026-10-11-audit-fixes #3)

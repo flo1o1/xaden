@@ -87,7 +87,7 @@ check_required_trailer() {
   refs=$(git interpret-trailers --parse <"$CLEAN_MESSAGE_FILE" | grep -E '^Refs:' || true)
   case "$type" in
     feat) printf '%s' "$refs" | grep -Eq 'REQ-[0-9]{3,}' || die "feat commits need a 'Refs: REQ-nnn' trailer" ;;
-    fix) printf '%s' "$refs" | grep -Eq 'REQ-[0-9]{3,}|none' || die "fix commits need 'Refs: REQ-nnn' or 'Refs: none'" ;;
+    fix) printf '%s' "$refs" | grep -Eq 'REQ-[0-9]{3,}|^Refs:[[:space:]]*none[[:space:]]*$' || die "fix commits need 'Refs: REQ-nnn' or 'Refs: none'" ;;
   esac
   case "$type" in feat | fix) check_referenced_status "$refs" ;; esac
 }
