@@ -33,6 +33,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - Python projects were never detected unless pyproject.toml, setup.py and requirements*.txt all existed.
 
 ### Added
+- Caveman (shorter assistant replies) is documented as an optional add-on next to Ponytail, with the rule that project files stay in normal prose.
 - Maintainers can run `/bugfix`, `/refactor`, `/review` and `/security` on the scaffold itself: root commands include the template prompts unchanged, `AGENTS.md` maps their project paths, and `docs/threat-model.md` describes the scaffold's own attack surface.
 - `/review` in Claude Code offers Ponytail's `/ponytail-review` as an optional second pass when the plugin is installed; the project's review prompt and completion report stay authoritative.
 - "Look before you build" rule (AGENTS.md §9, feature prompt): before writing something others have likely solved, assistants search for mature existing solutions and offer them as options with name, summary, license, website and maturity; adopting one follows the dependency approval and registry check.

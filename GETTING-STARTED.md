@@ -14,6 +14,7 @@ private skills.
 | Optional: Obsidian | Comfortable reading and editing of the prompt library |
 | Optional: extra checks and plugins | `scripts/check.sh` suggests the ones that fit your project (`TIP:` lines); list in `template/docs/optional-tools.md` |
 | Optional: [Ponytail](https://github.com/DietrichGebert/ponytail) | Third-party rule set (MIT) that pushes assistants towards less new code; see below |
+| Optional: [Caveman](https://github.com/JuliusBrussee/caveman) | Third-party rule set (Apache-2.0) that makes assistant replies shorter; see below |
 
 ### Optional: Ponytail
 
@@ -29,6 +30,22 @@ scaffold does not install it; add it to your own tool if you want it:
 Install only from `DietrichGebert/ponytail` on GitHub or `@dietrichgebert/ponytail` on npm.
 Your project's `AGENTS.md` takes precedence over it (§10), so requirements, checks and the
 completion report stay mandatory.
+
+### Optional: Caveman
+
+Caveman makes the assistant answer in short, compressed sentences, which saves output tokens
+and reading time. Code, commit messages and pull requests stay in normal language, and it
+switches back to full sentences for security warnings and irreversible actions. The scaffold
+does not install it:
+
+- Claude Code: `/plugin marketplace add JuliusBrussee/caveman`, then
+  `/plugin install caveman@caveman` (its hooks need `node` on your PATH).
+- Other tools: follow the project's `INSTALL.md`.
+
+Install only from `JuliusBrussee/caveman` on GitHub. Keep project files in normal prose: do not
+run its `/caveman-compress` on `AGENTS.md`, `CLAUDE.md`, requirements or guides, and do not
+commit the always-on rule files `/caveman-init` writes. Your project's `AGENTS.md` takes
+precedence over it (§10), so the completion report stays complete.
 
 ## 2. Get the scaffold
 

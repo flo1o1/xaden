@@ -48,6 +48,7 @@ takes precedence over them (§10). Install from the named sources only.
 | Anthropic `code-review`, `security-guidance`, `pr-review-toolkit` | Parallel review agents for logic and edge cases; security review of diffs | `/plugin install code-review@claude-plugins-official` (same for the others) |
 | [Trail of Bits](https://github.com/trailofbits/skills) | Security analysis by an audit firm: CodeQL and semgrep workflows, SARIF parsing, GitHub Actions auditing | `/plugin marketplace add trailofbits/skills`, then pick plugins in `/plugin` |
 | [Ponytail](https://github.com/DietrichGebert/ponytail) | Smallest complete change: reuse before writing, one test for risky logic | `/plugin marketplace add DietrichGebert/ponytail`, then `/plugin install ponytail@ponytail` |
+| [Caveman](https://github.com/JuliusBrussee/caveman) | Shorter replies, fewer output tokens; code, commits and project files stay in normal prose | `/plugin marketplace add JuliusBrussee/caveman`, then `/plugin install caveman@caveman` |
 
 Not recommended: frameworks that bring their own complete workflow (for example Superpowers,
 with its own brainstorm, plan, TDD and review phases). They duplicate the workflow in

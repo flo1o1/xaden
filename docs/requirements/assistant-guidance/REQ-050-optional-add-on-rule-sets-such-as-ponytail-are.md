@@ -18,3 +18,4 @@ When my AI tool supports add-on rule sets such as Ponytail (leaner code, reuse b
 - Given the getting-started guide, when I read the prerequisites, then Ponytail is listed as optional, with its install commands for Claude Code and the AGENTS.md route for other tools.
 - Given a new project, when it is generated, then nothing installs or enables Ponytail automatically and no plugin is configured in `.claude/settings.json`.
 - Given a generated project's AGENTS.md, when an add-on rule set conflicts with it, then AGENTS.md wins (for example, the completion report replaces a shorter end-of-reply note).
+- Given the getting-started guide, when I read the optional add-ons, then Caveman (terser replies) is listed as optional with its install command and source, and the guide says that project files (rule files, requirements, guides) stay in normal prose and are never compressed or extended by it.

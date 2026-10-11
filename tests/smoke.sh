@@ -695,6 +695,9 @@ test_add_on_rule_sets() {
   assert "guide lists Ponytail as optional" grep -q '^| Optional: \[Ponytail\]' "$guide"
   assert "guide gives the Claude Code install" grep -q 'plugin install ponytail@ponytail' "$guide"
   assert "guide names the AGENTS.md route for other tools" grep -q "can use its .AGENTS.md." "$guide"
+  assert "guide lists Caveman as optional" grep -q '^| Optional: \[Caveman\]' "$guide"
+  assert "guide keeps project files out of Caveman compression" grep -q 'Keep project files in normal prose' "$guide"
+  assert "optional tools document lists Caveman" grep -q 'plugin install caveman@caveman' "$PROJECT/docs/optional-tools.md"
   assert_fails "new projects enable no plugin" grep -qi 'plugin' "$PROJECT/.claude/settings.json"
   assert "AGENTS.md ranks add-on rule sets below itself" grep -q 'they never override this file' "$PROJECT/AGENTS.md"
 }
