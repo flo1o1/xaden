@@ -21,6 +21,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
+          persist-credentials: false # later steps run project code; keep the job token out of .git/config
       - name: Install analysis tools
         run: |
           sudo apt-get update

@@ -83,9 +83,9 @@ Verification standard: OWASP ASVS (what to build), OWASP WSTG (how to test it).
 | Commit cites invented requirements or slips past checks | trust in the gates | ID and trailer checks on every commit, re-run in CI | REQ-011, REQ-022, smoke `test_commit_bypasses` |
 | Malicious `BASE_REF` in CI | CI runner | value validated before use | REQ-022, smoke "CI rejects a malformed base ref" |
 | Update overwrites a project's own edits | project integrity | three-way comparison; conflicts written as `*.scaffold-new` | REQ-017, smoke `test_scaffold_update` |
-| Symlink in a project redirects an update's writes outside the project | users' machines | open, see `docs/security-reviews/2026-10-11-scaffold-scripts.md` #1 | REQ-017 |
-| Edited manifest makes an update delete project-owned files | project integrity | open, see review #2 | REQ-017 |
-| Repository token left in `.git/config` while CI runs project code | CI runner | open, see review #3 | REQ-019 |
+| Symlink in a project redirects an update's writes outside the project | users' machines | writes refused when the path or a parent is a symlink (review 2026-10-11 #1) | REQ-017, smoke `test_update_safety` |
+| Edited manifest makes an update delete project-owned files | project integrity | manifest paths outside `MANAGED_PATHS` ignored (review #2) | REQ-017, smoke `test_update_safety` |
+| Repository token left in `.git/config` while CI runs project code | CI runner | `persist-credentials: false` on every checkout (review #3) | REQ-019, smoke `test_ci_credentials` |
 | Tampered gitleaks download in CI | CI runner | pinned version, SHA-256 verified | REQ-019 |
 | Instructions hidden in `inbox/` or pasted content | users' machines, secrets | `inbox/` ignored by git; AGENTS.md §10 treats it as data | REQ-026, REQ-033 |
 

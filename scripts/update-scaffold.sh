@@ -61,10 +61,12 @@ base_sum() {
 }
 
 # candidate_paths: managed paths in the new template plus those recorded in the manifest.
+# The manifest is project content: paths it lists outside MANAGED_PATHS are ignored.
 candidate_paths() {
   {
     managed_template_files "$TEMPLATE"
-    cut -f2 "$PROJECT/$SCAFFOLD_STATE_DIR/manifest" 2>/dev/null || true
+    { cut -f2 "$PROJECT/$SCAFFOLD_STATE_DIR/manifest" 2>/dev/null || true; } |
+      while IFS= read -r file; do if is_managed "$file"; then printf '%s\n' "$file"; fi; done
   } | sort -u
 }
 
@@ -92,6 +94,11 @@ classify() {
 # apply_action <action> <path>: performs one planned action inside the project.
 apply_action() {
   local action=$1 path=$2
+  if [ "$action" = conflict ]; then
+    refuse_symlink_on_path "$PROJECT" "$path.scaffold-new"
+  else
+    refuse_symlink_on_path "$PROJECT" "$path"
+  fi
   case "$action" in
     add | update)
       mkdir -p "$(dirname "$PROJECT/$path")"

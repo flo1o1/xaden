@@ -86,10 +86,29 @@ render_file() { sed -e "s/{{PROJECT_NAME}}/$2/g" "$1"; }
 # content_sum: checksum of stdin (POSIX cksum: CRC and size).
 content_sum() { cksum | awk '{ print $1 "-" $2 }'; }
 
+# has_symlink_on_path <root> <relative-path>: true if the path or any directory between <root>
+# and it is a symbolic link. Writing there could leave <root>: a project's committed files are
+# untrusted (security review 2026-10-11).
+has_symlink_on_path() {
+  local current=$1 rest=$2
+  while [ -n "$rest" ]; do
+    current="$current/${rest%%/*}"
+    [ -L "$current" ] && return 0
+    case "$rest" in */*) rest=${rest#*/} ;; *) rest="" ;; esac
+  done
+  return 1
+}
+
+# refuse_symlink_on_path <root> <relative-path>: dies before a write that could leave <root>.
+refuse_symlink_on_path() {
+  ! has_symlink_on_path "$1" "$2" || die "refusing to write through a symbolic link: $2"
+}
+
 # write_manifest <project-dir> <template-dir> <project-name> <scaffold-version>:
 # records the checksum of every managed file as the template renders it now.
 write_manifest() {
   local project=$1 template=$2 name=$3 version=$4 file
+  for file in version project-name manifest; do refuse_symlink_on_path "$project" "$SCAFFOLD_STATE_DIR/$file"; done
   mkdir -p "$project/$SCAFFOLD_STATE_DIR"
   printf '%s\n' "$version" >"$project/$SCAFFOLD_STATE_DIR/version"
   printf '%s\n' "$name" >"$project/$SCAFFOLD_STATE_DIR/project-name"

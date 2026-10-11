@@ -831,6 +831,39 @@ test_scaffold_update() {
   git -C "$PROJECT" reset -q --hard HEAD~1 && git -C "$PROJECT" clean -qfdx
 }
 
+# REQ-017: an update stays inside the project and only touches managed files, whatever the
+# project's committed files say (security review 2026-10-11, findings 1 and 2).
+test_update_safety() {
+  local outside="$WORKDIR/outside.txt"
+  printf 'keep me\n' >"$outside"
+  printf '\nlocal edit\n' >>"$PROJECT/.clinerules"
+  grep -v "$(printf '\t').clinerules\$" "$PROJECT/.scaffold/manifest" >"$WORKDIR/manifest" &&
+    cp "$WORKDIR/manifest" "$PROJECT/.scaffold/manifest"
+  ln -s "$outside" "$PROJECT/.clinerules.scaffold-new"
+  git -C "$PROJECT" add -A && git -C "$PROJECT" commit -qn -m "chore: symlinked conflict file"
+  assert_fails_with "update refuses to write through a symlink" "symbolic link" \
+    "$SCAFFOLD_ROOT/scripts/update-scaffold.sh" "$PROJECT" --apply
+  assert "file behind the symlink unchanged" test "$(cat "$outside")" = "keep me"
+  git -C "$PROJECT" reset -q --hard HEAD~1 && git -C "$PROJECT" clean -qfdx
+
+  mkdir -p "$PROJECT/src" && printf 'print(1)\n' >"$PROJECT/src/app.py"
+  printf '%s\tsrc/app.py\n' "$(content_sum <"$PROJECT/src/app.py")" >>"$PROJECT/.scaffold/manifest"
+  git -C "$PROJECT" add -A && git -C "$PROJECT" commit -qn -m "chore: manifest lists a project file"
+  assert "update applies with a foreign manifest entry" "$SCAFFOLD_ROOT/scripts/update-scaffold.sh" "$PROJECT" --apply
+  assert "project file listed in the manifest kept" test -f "$PROJECT/src/app.py"
+  git -C "$PROJECT" reset -q --hard HEAD~1 && git -C "$PROJECT" clean -qfdx
+}
+
+# REQ-019: CI never leaves the job token in .git/config while project code runs
+# (security review 2026-10-11, finding 3).
+test_ci_credentials() {
+  local workflow
+  for workflow in "$SCAFFOLD_ROOT/.github/workflows/scaffold-ci.yml" "$SCAFFOLD_ROOT/template/.github/workflows/ci.yml"; do
+    assert "$(basename "$workflow"): checkout does not persist credentials" \
+      test "$(grep -c 'uses: actions/checkout@' "$workflow")" = "$(grep -c 'persist-credentials: false' "$workflow")"
+  done
+}
+
 # git needs an identity inside the sandbox project.
 export GIT_AUTHOR_NAME=smoke GIT_AUTHOR_EMAIL=smoke@example.invalid
 export GIT_COMMITTER_NAME=smoke GIT_COMMITTER_EMAIL=smoke@example.invalid
@@ -863,6 +896,8 @@ test_look_before_build
 test_scaffold_commands
 test_traceability
 test_scaffold_update
+test_update_safety
+test_ci_credentials
 test_release
 if [ "$SKIPPED" -gt 0 ]; then
   warn "smoke test INCOMPLETE: $PASSED assertions passed, $SKIPPED fixture(s) skipped"

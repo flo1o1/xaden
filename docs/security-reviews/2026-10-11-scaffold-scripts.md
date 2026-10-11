@@ -73,9 +73,9 @@ Verified safe (no finding):
 
 | # | Severity | Location | Issue (what an attacker does) | Status |
 |---|----------|----------|-------------------------------|--------|
-| 1 | medium | `scripts/update-scaffold.sh:96-103`, `scripts/scaffold-lib.sh:91-98` | A contributor commits a symlink at a managed path, at a parent directory of one, at `<managed>.scaffold-new` or at `.scaffold`. When a maintainer runs `update-scaffold.sh --apply`, the script writes template text through the link and overwrites any file the user can write outside the project (e.g. `~/.bashrc`, `~/.ssh/authorized_keys`). Content is the template's, not the attacker's: loss of data or access, no code execution. Verified by proof of concept. | open |
-| 2 | low | `scripts/update-scaffold.sh:63-69` | `candidate_paths` takes every path from the project's `.scaffold/manifest` without `is_managed`. A contributor adds a manifest line for a project-owned file (e.g. `src/app.py` with its checksum); the next update stages its deletion. Visible in `git diff --cached` and recoverable from git, so impact is limited. Verified by proof of concept. | open |
-| 3 | low | `.github/workflows/scaffold-ci.yml:18`, `template/.github/workflows/ci.yml:21` | `actions/checkout` keeps the job token in `.git/config` (`persist-credentials` defaults to true) while later steps run repository and dependency code (`npm ci` install scripts, `pip install -e .`, tests). A malicious dependency reads the token. Impact is bounded by `contents: read` and short token lifetime; on push to `main` the token can still read private repositories' content. | open |
+| 1 | medium | `scripts/update-scaffold.sh:96-103`, `scripts/scaffold-lib.sh:91-98` | A contributor commits a symlink at a managed path, at a parent directory of one, at `<managed>.scaffold-new` or at `.scaffold`. When a maintainer runs `update-scaffold.sh --apply`, the script writes template text through the link and overwrites any file the user can write outside the project (e.g. `~/.bashrc`, `~/.ssh/authorized_keys`). Content is the template's, not the attacker's: loss of data or access, no code execution. Verified by proof of concept. | fixed, smoke `test_update_safety` |
+| 2 | low | `scripts/update-scaffold.sh:63-69` | `candidate_paths` takes every path from the project's `.scaffold/manifest` without `is_managed`. A contributor adds a manifest line for a project-owned file (e.g. `src/app.py` with its checksum); the next update stages its deletion. Visible in `git diff --cached` and recoverable from git, so impact is limited. Verified by proof of concept. | fixed, smoke `test_update_safety` |
+| 3 | low | `.github/workflows/scaffold-ci.yml:18`, `template/.github/workflows/ci.yml:21` | `actions/checkout` keeps the job token in `.git/config` (`persist-credentials` defaults to true) while later steps run repository and dependency code (`npm ci` install scripts, `pip install -e .`, tests). A malicious dependency reads the token. Impact is bounded by `contents: read` and short token lifetime; on push to `main` the token can still read private repositories' content. | fixed, smoke `test_ci_credentials` |
 
 ### Proposed fixes
 
@@ -131,6 +131,8 @@ Regression test: smoke check that every `actions/checkout` step in both workflow
 
 ## Remediation summary
 
-Fixed: none yet. Accepted: none. Open: #1 (medium), #2 (low), #3 (low), awaiting maintainer
-approval of the fixes above. Next review: before the next scaffold release, or when a script gains
+Fixed with maintainer approval in the `fix(security)` commit after `fe5ca49`: #1, #2 (`scripts/update-scaffold.sh`,
+`scripts/scaffold-lib.sh`, smoke `test_update_safety`), #3 (both workflows, smoke
+`test_ci_credentials`). Accepted: none. Open: none. An update that hits a symlink stops at that
+file; actions applied before it stay staged (`git reset --hard` undoes them). Next review: before the next scaffold release, or when a script gains
 a new entry point or write location.
