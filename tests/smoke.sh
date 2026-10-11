@@ -854,6 +854,35 @@ test_update_safety() {
   git -C "$PROJECT" reset -q --hard HEAD~1 && git -C "$PROJECT" clean -qfdx
 }
 
+# REQ-056: `xaden` runs the scaffold's and the current project's scripts from any directory.
+test_xaden_command() {
+  local bin="$WORKDIR/xaden-bin" elsewhere="$WORKDIR/elsewhere" xaden
+  xaden="$bin/xaden"
+  mkdir -p "$elsewhere"
+  assert "install warns when the directory is not on PATH" \
+    bash -c "'$SCAFFOLD_ROOT/scripts/install.sh' '$bin' 2>&1 | grep -q 'not on PATH'"
+  assert "install links xaden to this checkout" test "$(readlink "$xaden")" = "$SCAFFOLD_ROOT/scripts/xaden.sh"
+  assert "xaden version prints the scaffold version" \
+    test "$("$xaden" version)" = "$(tr -d '[:space:]' <"$SCAFFOLD_ROOT/VERSION")"
+  assert "xaden help lists the commands" bash -c "'$xaden' help | grep -q 'new <name>'"
+  assert_fails "unknown xaden command fails" "$xaden" fly
+  assert_fails_with "project command outside a project fails" "inside a project" \
+    bash -c "cd '$elsewhere' && '$xaden' check"
+
+  assert "xaden new creates the project in the current directory" bash -c "cd '$elsewhere' && '$xaden' new xaden-app"
+  assert "new project has its first commit" git -C "$elsewhere/xaden-app" log -1 --format=%s
+  assert "project command runs from a subdirectory" \
+    bash -c "cd '$elsewhere/xaden-app/docs' && '$xaden' req list | grep -q '^REQ-001 '"
+  assert "xaden update runs for the surrounding project" \
+    bash -c "cd '$elsewhere/xaden-app/docs' && '$xaden' update | grep -q '0 change(s) planned'"
+
+  mkdir -p "$WORKDIR/other-bin" && ln -s /bin/echo "$WORKDIR/other-bin/xaden"
+  assert_fails "uninstall keeps a xaden link to something else" "$SCAFFOLD_ROOT/scripts/install.sh" --uninstall "$WORKDIR/other-bin"
+  assert "foreign link left in place" test -L "$WORKDIR/other-bin/xaden"
+  assert "uninstall removes the link" "$SCAFFOLD_ROOT/scripts/install.sh" --uninstall "$bin"
+  assert_fails "link gone after uninstall" test -L "$xaden"
+}
+
 # REQ-019: CI never leaves the job token in .git/config while project code runs
 # (security review 2026-10-11, finding 3).
 test_ci_credentials() {
@@ -898,6 +927,7 @@ test_traceability
 test_scaffold_update
 test_update_safety
 test_ci_credentials
+test_xaden_command
 test_release
 if [ "$SKIPPED" -gt 0 ]; then
   warn "smoke test INCOMPLETE: $PASSED assertions passed, $SKIPPED fixture(s) skipped"

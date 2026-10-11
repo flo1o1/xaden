@@ -50,11 +50,30 @@ precedence over it (§10), so the completion report stays complete.
 ## 2. Get the scaffold
 
 ```bash
-git clone <scaffold-repository-url> vibe-scaffold
-cd vibe-scaffold
+git clone <scaffold-repository-url> xaden
+cd xaden
 scripts/setup.sh     # lists missing tools with install commands
 tests/smoke.sh       # proves the scaffold works on your machine
+scripts/install.sh   # optional: the `xaden` command, see below
 ```
+
+### Optional: the `xaden` command
+
+`scripts/install.sh` links `xaden` into `~/.local/bin` (or the directory you pass) so you can
+use the scaffold from any directory. It writes nothing else; `git pull` in the checkout updates
+the command, and `scripts/install.sh --uninstall` removes the link. If the directory is not on
+your `PATH`, the script prints the line to add to your shell profile. Keep the checkout where it
+is: the link points into it.
+
+| Command | Does |
+|---------|------|
+| `xaden new my-app [dir]` | `scripts/new-project.sh`, creating `./my-app` (or `dir`) |
+| `xaden update [--apply]` | `scripts/update-scaffold.sh` for the project you are in |
+| `xaden setup`, `check`, `req`, `pack`, `release` | the project's own `scripts/setup.sh`, `check.sh`, `req.sh`, `pack-context.sh`, `release.sh`, from anywhere inside it |
+| `xaden version`, `xaden help` | scaffold version, command list |
+
+Project commands run that project's scripts, just as typing them would: use them only in
+projects you trust.
 
 ## 3. Create your project
 
@@ -63,6 +82,8 @@ scripts/new-project.sh my-app        # creates ../my-app with its own git repo a
 scripts/new-project.sh my-app ~/code/x   # or at a location of your choice
 cd ../my-app
 ```
+
+With the `xaden` command: `cd ~/code && xaden new my-app` creates `~/code/my-app`.
 
 Only files tracked by git in `template/` are copied (including uncommitted edits to them);
 untracked or ignored files such as `.env`, `node_modules/` or `inbox/` content never are.
@@ -108,6 +129,8 @@ Pull the newest scaffold, then from the scaffold directory:
 scripts/update-scaffold.sh ../my-app            # dry run
 scripts/update-scaffold.sh ../my-app --apply    # stage changes; review with git diff --cached
 ```
+
+With the `xaden` command, run `xaden update` (dry run) and `xaden update --apply` inside the project.
 
 Only scaffold-managed files (scripts, prompts, presets, rules, commands) are updated; code,
 requirements, guides, README and changelog are never touched. Merge any `*.scaffold-new` files

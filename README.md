@@ -34,7 +34,7 @@ template/             the product: copied 1:1 into every new project
   prompts/            prompt library (open template/ or a project as Obsidian vault)
   docs/               user-guide, admin-guide, requirements, ADRs, clean-code, security, local-llm
   scripts/            setup, check, release, hooks, pack-context, req, context-status, stacks/
-scripts/              scaffold tools: new-project, update-scaffold, setup, check-scaffold, release-scaffold
+scripts/              scaffold tools: xaden + install, new-project, update-scaffold, setup, check-scaffold, release-scaffold
 docs/requirements/    requirements of the scaffold itself
 inbox/                local drop zone (git-ignored contents)
 tests/smoke.sh        end-to-end test: generates a project and exercises its tooling

@@ -3,7 +3,7 @@ id: REQ-056
 type: job
 epic: project-setup
 priority: should
-status: approved
+status: done
 updated: 2026-10-11
 ---
 
@@ -15,7 +15,7 @@ When I start or maintain a project somewhere on my machine, I want to type `xade
 
 ## Acceptance criteria
 
-- Given the scaffold is cloned, when I run `scripts/install.sh`, then a `xaden` link to the checkout's `bin/xaden` exists in `~/.local/bin` (or the directory I pass), no other file outside the checkout is changed, and the script says how to add the directory to `PATH` when it is missing there
+- Given the scaffold is cloned, when I run `scripts/install.sh`, then a `xaden` link to the checkout's `scripts/xaden.sh` exists in `~/.local/bin` (or the directory I pass), no other file outside the checkout is changed, and the script says how to add the directory to `PATH` when it is missing there
 - Given `xaden` is installed, when I run `xaden new my-app` in any directory, then the project is created in `./my-app` exactly as `scripts/new-project.sh my-app ./my-app` would create it
 - Given I am anywhere inside a generated project, when I run `xaden update [--apply]`, then `scripts/update-scaffold.sh` runs for that project's root
 - Given I am anywhere inside a generated project, when I run `xaden setup`, `xaden check`, `xaden req …`, `xaden pack …` or `xaden release …`, then the project's own `scripts/<name>.sh` runs (`pack` runs `pack-context.sh`) from the project root with my arguments unchanged

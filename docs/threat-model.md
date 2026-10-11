@@ -29,7 +29,8 @@ may meet secrets in the working tree (`.env`, `inbox/`), which they must not cop
 
 - CLI arguments: project name and target directory (`new-project.sh`), project directory and
   `--apply` (`update-scaffold.sh`), bump part (`release*.sh`), prompt names (`pack-context.sh`),
-  requirement IDs, epics and titles (`req.sh`).
+  requirement IDs, epics and titles (`req.sh`); command and arguments of `xaden`, target
+  directory of `install.sh`.
 - Files the scripts read: `template/` (exported to projects), requirement files, commit message
   files, `CHANGELOG.md`, `VERSION`, a project's `.scaffold/manifest` and `package.json` /
   `pyproject.toml` (which decide which tools run).
@@ -61,7 +62,8 @@ may meet secrets in the working tree (`.env`, `inbox/`), which they must not cop
 ## Deployment assumptions
 
 Runs as the invoking user; no `sudo` except tool installation in CI. CI jobs use
-`permissions: contents: read`. Nothing is pushed or published by the scripts.
+`permissions: contents: read`. Nothing is pushed or published by the scripts. `scripts/install.sh` writes one symbolic link
+(`~/.local/bin/xaden` by default) and nothing else outside the checkout.
 
 ## Security baseline
 
@@ -86,6 +88,8 @@ Verification standard: OWASP ASVS (what to build), OWASP WSTG (how to test it).
 | Symlink in a project redirects an update's writes outside the project | users' machines | writes refused when the path or a parent is a symlink (review 2026-10-11 #1) | REQ-017, smoke `test_update_safety` |
 | Edited manifest makes an update delete project-owned files | project integrity | manifest paths outside `MANAGED_PATHS` ignored (review #2) | REQ-017, smoke `test_update_safety` |
 | Repository token left in `.git/config` while CI runs project code | CI runner | `persist-credentials: false` on every checkout (review #3) | REQ-019, smoke `test_ci_credentials` |
+| `install.sh` replaces a user's own `xaden` file, or `--uninstall` removes one | users' machines | never overwrites an existing name; removes only a link to this checkout | REQ-056, smoke `test_xaden_command` |
+| `xaden` project commands run a malicious project's scripts | users' machines | same trust as running `scripts/*.sh` by hand; documented in GETTING-STARTED ("only in projects you trust"); commands are a fixed list | REQ-056 |
 | Tampered gitleaks download in CI | CI runner | pinned version, SHA-256 verified | REQ-019 |
 | Instructions hidden in `inbox/` or pasted content | users' machines, secrets | `inbox/` ignored by git; AGENTS.md §10 treats it as data | REQ-026, REQ-033 |
 

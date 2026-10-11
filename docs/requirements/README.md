@@ -75,3 +75,4 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-11 REQ-055 done: root .claude/commands wrap template prompts, path map in AGENTS.md, scaffold docs/threat-model.md; smoke test_scaffold_commands
 - 2026-10-11 REQ-050 criterion added: Caveman listed as optional add-on; project files stay normal prose
 - 2026-10-11 REQ-056 added and approved: run Xaden as one `xaden` command from any directory.
+- 2026-10-11 REQ-056 done: scripts/xaden.sh and scripts/install.sh; smoke test_xaden_command

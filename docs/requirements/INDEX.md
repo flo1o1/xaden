@@ -37,7 +37,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-026 | job | should | done | Local drop zone for files that must never be committed |
 | REQ-038 | job | should | done | The scaffold is published under the MIT license |
 | REQ-045 | job | must | done | The scaffold depends on no personal tools, skills or accounts |
-| REQ-056 | job | should | approved | Run Xaden as one command from anywhere |
+| REQ-056 | job | should | done | Run Xaden as one command from anywhere |
 
 ## Quality gates (`quality-gates`)
 
