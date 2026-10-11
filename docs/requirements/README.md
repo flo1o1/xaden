@@ -64,3 +64,4 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-11 REQ-054 added (approved): look for mature existing solutions on the web before building
 - 2026-10-11 REQ-054 done: AGENTS.md §9 look-before-you-build rule, feature prompt step 3; smoke test_look_before_build
 - 2026-10-11 REQ-022 criterion added: comments and the `git commit -v` diff are not checked for IDs (audit finding)
+- 2026-10-11 REQ-015 criterion added: CI installs requirements-dev.txt only when present (audit finding)

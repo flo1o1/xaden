@@ -367,6 +367,8 @@ test_staged_checks() {
 
 # REQ-003 clean-code rules, REQ-015 linter presets and mandatory stack checks
 test_stack_enforcement() {
+  assert "CI installs requirements-dev.txt only when present" \
+    grep -q 'if \[ -f requirements-dev.txt \]; then python -m pip install -r requirements-dev.txt' "$PROJECT/.github/workflows/ci.yml"
   if need_tool ruff "python preset fixture"; then
     printf '[project]\nname = "demo"\nversion = "0.1.0"\n' >"$PROJECT/pyproject.toml"
     printf '"""Demo."""\n' >"$PROJECT/ok.py"

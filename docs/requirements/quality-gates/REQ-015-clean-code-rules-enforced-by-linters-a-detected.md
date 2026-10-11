@@ -17,3 +17,4 @@ When a project uses a known stack, I want clean-code rules enforced by linters a
 
 - Stack presets map CC rules to linter settings
 - missing lint/type/test steps fail check.sh
+- CI installs requirements-dev.txt only when it exists; a Python project configured in pyproject.toml reaches check.sh, which names any missing tool
