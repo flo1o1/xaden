@@ -100,6 +100,28 @@ test_staged_checks() {
   rm -f "$PROJECT/clean.py" "$PROJECT/unsafe.py"
 }
 
+test_stack_enforcement() {
+  if has_command ruff; then
+    printf '[project]\nname = "demo"\nversion = "0.1.0"\n' >"$PROJECT/pyproject.toml"
+    printf '"""Demo."""\n' >"$PROJECT/ok.py"
+    git -C "$PROJECT" add pyproject.toml ok.py
+    assert_fails "python without ruff config fails" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
+    assert "python preset applies" "$PROJECT/scripts/apply-preset.sh" python
+    printf '"""Demo."""\n\n\ndef f(a, b, c, d, e):\n    """Too many args."""\n    return a\n' >"$PROJECT/bad.py"
+    git -C "$PROJECT" add ruff.toml bad.py
+    assert_fails "preset rejects too many parameters (CC-01)" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
+    git -C "$PROJECT" rm -q --cached bad.py
+    assert "preset accepts clean code" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
+    git -C "$PROJECT" reset -q --hard && git -C "$PROJECT" clean -qfd
+  fi
+  if has_command npm; then
+    (cd "$PROJECT" && npm init -y >/dev/null)
+    git -C "$PROJECT" add package.json
+    assert_fails "node without lint script fails" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
+    git -C "$PROJECT" reset -q --hard && git -C "$PROJECT" clean -qfd
+  fi
+}
+
 test_release() {
   assert_fails "release blocked by TODO markers in docs" "$PROJECT/scripts/release.sh" patch
   sed -i.bak '/TODO/d' "$PROJECT"/docs/*-guide.md && rm -f "$PROJECT"/docs/*.bak
@@ -119,5 +141,6 @@ test_new_project
 test_generated_project
 test_setup_and_commit_checks
 test_staged_checks
+test_stack_enforcement
 test_release
 info "smoke test passed ($PASSED assertions)"

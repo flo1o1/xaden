@@ -87,6 +87,25 @@ scan_sast() {
     semgrep scan --config "$2" --metrics=off --disable-version-check --error --quiet "${TARGETS[@]}"
 }
 
+# run_required_tool <label> <binary> [args...]: like run_tool, but a missing binary always
+# fails. Used for tools a detected stack depends on, so "not installed" never looks green.
+run_required_tool() {
+  local saved_strict=$STRICT
+  STRICT=1
+  run_tool "$@"
+  STRICT=$saved_strict
+}
+
+# require <condition-description> <command...>: counts a failure unless the command succeeds.
+require() {
+  local description=$1
+  shift
+  if ! "$@" >/dev/null 2>&1; then
+    warn "missing: $description"
+    FAILURES=$((FAILURES + 1))
+  fi
+}
+
 # is_semver <string>: true for MAJOR.MINOR.PATCH with plain digits.
 is_semver() { printf '%s' "$1" | grep -Eq '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'; }
 

@@ -24,8 +24,10 @@ Turn my idea into tracked requirements, a stack decision, and a first runnable s
    `scripts/check-requirements.sh`.
 4. Propose a stack with 2 alternatives and a one-line trade-off each. Wait for my choice.
 5. Record the decision in `docs/decisions/0001-stack.md` (copy `docs/decisions/0000-template.md`).
-6. Create the minimal skeleton: source dir, one test, linter/formatter/type-checker config,
-   dependency file. Keep it runnable. Run `scripts/check.sh`.
+6. Create the minimal skeleton: source dir, one test, dependency file. Run
+   `scripts/apply-preset.sh python|node` for the clean-code linter config (other stacks: create
+   an equivalent config mapping CC-01…CC-08, see `docs/clean-code.md`). Ask me before installing
+   the tools it lists. Keep it runnable. Run `scripts/check.sh`.
 7. Update `README.md` (what it is, how to run, how to test) and `CHANGELOG.md`.
    Run [[documentation]] to fill installation and system requirements in both guides.
 8. Commit: `chore: bootstrap <stack> skeleton`.

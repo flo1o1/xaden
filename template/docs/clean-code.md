@@ -45,4 +45,21 @@ Refactor first, then add the feature.
 Fast · Isolated · Repeatable · Self-validating · Timely. Arrange–Act–Assert.
 One behaviour per test; test names state the behaviour.
 
+## How each rule is enforced
+
+The rules are instructions to assistants; where a tool can check them, `scripts/check.sh`
+does (presets: `scripts/apply-preset.sh python|node`).
+
+| Rule | Python (ruff preset) | JS/TS (ESLint preset) | Otherwise |
+|------|----------------------|-----------------------|-----------|
+| CC-01 | C901 complexity ≤ 8, PLR0913 args ≤ 4, PLR0912/0915 branches/statements | complexity ≤ 8, max-params 4, max-lines-per-function 40 | review |
+| CC-02 | N naming, PLR2004 magic values | camelcase, no-magic-numbers | review |
+| CC-03 | ERA commented code, RET/SIM early return, F unused, max-nested-blocks 3 | max-depth 3, no-else-return, no-unused-vars | review |
+| CC-04 | — | — | review |
+| CC-05 | BLE blind except, TRY, S110 swallowed exceptions | no-empty | review |
+| CC-06 | D docstrings (Google style) | — | review |
+| CC-07 | S (bandit), local semgrep rules | local semgrep rules | security review |
+| CC-08 | pytest must run; `tests/` must exist | `test` script must exist and pass | traceability check |
+| CC-09 | — | — | review |
+
 Based on R. C. Martin, *Clean Code*, and K. Beck, *Test-Driven Development by Example*.

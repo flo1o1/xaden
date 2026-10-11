@@ -1,0 +1,40 @@
+# Clean-code preset for Python (scripts/apply-preset.sh python).
+# Each rule group is mapped to the AGENTS.md rule it enforces. Tighten, never loosen silently:
+# a project-specific relaxation needs a comment with the reason.
+line-length = 100
+
+[lint]
+select = [
+  "E", "W", "F",   # pycodestyle + pyflakes: errors, unused names (CC-03)
+  "I",             # import order
+  "N",             # pep8-naming (CC-02)
+  "C90",           # mccabe complexity (CC-01, CC-03)
+  "PLR",           # pylint refactor: too many args/branches/statements, magic values (CC-01, CC-02)
+  "RET", "SIM",    # early return, simplifications (CC-03)
+  "ERA",           # commented-out code (CC-03)
+  "BLE", "TRY",    # blind except, exception anti-patterns (CC-05)
+  "D",             # docstrings (CC-06)
+  "B",             # bugbear: likely bugs
+  "S",             # bandit security rules (docs/security.md)
+  "ARG",           # unused arguments (CC-03)
+]
+ignore = [
+  "D203", "D213",  # conflicting docstring layouts; D211/D212 are used instead
+  "TRY003",        # long messages in exceptions are fine
+]
+
+[lint.mccabe]
+max-complexity = 8            # CC-01: functions do one thing
+
+[lint.pylint]
+max-args = 4                  # CC-01: ≤ 3 parameters ideally, 4 hard limit
+max-branches = 8
+max-statements = 30
+max-returns = 4
+max-nested-blocks = 3         # CC-03: no deep nesting
+
+[lint.pydocstyle]
+convention = "google"         # CC-06: purpose, Args, Returns, Raises
+
+[lint.per-file-ignores]
+"tests/**" = ["S101", "D", "PLR2004"]   # asserts, docstrings and literal values are fine in tests
