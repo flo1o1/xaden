@@ -15,6 +15,7 @@ Cursor, Codex, Copilot and local models (Ollama, LM Studio).
 | Requirements tracking | `docs/requirements/REQUIREMENTS.md`, validated by `scripts/check-requirements.sh`; the AI must update it when scope changes |
 | Semantic versioning | `VERSION`, `CHANGELOG.md`, Conventional Commits hook, `scripts/release.sh` |
 | User + admin docs | `docs/user-guide.md`, `docs/admin-guide.md` (install, system requirements, config, hardening, upgrade); filled by `/docs`, checked by `scripts/check-docs.sh`, release blocked while incomplete |
+| Model can't invent rules/requirements | Numbered rules (`CC-nn`) and requirements (`REQ-nnn`); Claude Code imports them into every session; `scripts/req.sh` and `scripts/context-status.sh` (fingerprint handshake); commit hook rejects unknown IDs and requires `Refs: REQ-nnn` on `feat`; `pack-context.sh` includes everything for chat UIs |
 | Git | New projects get their own repo with hooks installed |
 | Obsidian | Open the folder as a vault; prompts have frontmatter, wikilinks, a template folder |
 | Chat UIs / small models | `scripts/pack-context.sh` builds one pasteable file |

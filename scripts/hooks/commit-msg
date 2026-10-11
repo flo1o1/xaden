@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Git commit-msg hook: enforce Conventional Commits (drives SemVer decisions).
+# Git commit-msg hook: enforce Conventional Commits (drives SemVer decisions)
+# and verify that cited requirement/rule IDs exist (guards against invented IDs).
 set -euo pipefail
 
 first_line="$(head -n 1 "$1")"
@@ -15,3 +16,6 @@ if ! printf '%s' "$first_line" | grep -Eq "$pattern"; then
   echo "  types: feat fix refactor docs test chore perf build ci style revert" >&2
   exit 1
 fi
+
+# Cited REQ-/CC- IDs must exist; feat/fix must reference a requirement.
+"$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/scripts/verify-refs.sh" "$1"

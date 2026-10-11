@@ -22,7 +22,7 @@ Fix the root cause, prove it with a regression test.
 3. Find the root cause (state it in one sentence). No symptom patches.
 4. Make the smallest change that turns the test green. Refactor only afterwards.
 5. Run `scripts/check.sh`.
-6. Commit `fix(<scope>): <summary>`; add a `CHANGELOG.md` → Unreleased "Fixed" bullet.
+6. Commit `fix(<scope>): <summary>` with trailer `Refs: REQ-nnn` (or `Refs: none`); add a `CHANGELOG.md` → Unreleased "Fixed" bullet.
 7. If the bug was a security flaw, say so and run [[security-review]].
 
 ## Done when

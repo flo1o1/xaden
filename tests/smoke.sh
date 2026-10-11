@@ -33,6 +33,12 @@ assert_fails() {
   printf 'ok   %s\n' "$description"
 }
 
+# msg <text with \n escapes>: writes a commit message file (git passes a regular file to hooks); prints its path.
+msg() {
+  printf '%b' "$1" >"$WORKDIR/commit-msg.txt"
+  printf '%s' "$WORKDIR/commit-msg.txt"
+}
+
 test_bump_version() {
   assert "bump patch" test "$(bump_version 1.2.3 patch)" = "1.2.4"
   assert "bump minor resets patch" test "$(bump_version 1.2.3 minor)" = "1.3.0"
@@ -55,8 +61,16 @@ test_generated_project() {
   assert_fails "docs check --release flags TODOs" "$PROJECT/scripts/check-docs.sh" --release
   assert "pack-context works" "$PROJECT/scripts/pack-context.sh" feature
   assert_fails "pack-context rejects path traversal" "$PROJECT/scripts/pack-context.sh" ../AGENTS
-  assert_fails "bad commit message rejected" "$PROJECT/scripts/hooks/commit-msg" <(echo "did stuff")
-  assert "good commit message accepted" "$PROJECT/scripts/hooks/commit-msg" <(echo "feat(api): add endpoint")
+  assert_fails "bad commit message rejected" "$PROJECT/scripts/hooks/commit-msg" "$(msg "did stuff\n")"
+  assert "feat with valid Refs accepted" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat(api): add endpoint\n\nRefs: REQ-001\n')"
+  assert_fails "feat without Refs rejected" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat(api): add endpoint\n')"
+  assert_fails "invented requirement ID rejected" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat(api): add x\n\nRefs: REQ-042\n')"
+  assert_fails "invented rule ID rejected" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'refactor: tidy per CC-77\n')"
+  assert "fix with Refs none accepted" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'fix: typo\n\nRefs: none\n')"
+  assert "req.sh shows known requirement" "$PROJECT/scripts/req.sh" show REQ-001
+  assert_fails "req.sh rejects unknown requirement" "$PROJECT/scripts/req.sh" show REQ-999
+  assert "context status lists rules" grep -q 'CC-09' <("$PROJECT/scripts/context-status.sh")
+  assert "pack carries fingerprint and clean-code details" grep -q 'CLEAN CODE DETAILS' "$PROJECT/context-pack.md"
 
   sed 's/ draft / bogus /' "$PROJECT/docs/requirements/REQUIREMENTS.md" >"$WORKDIR/bad.md"
   assert_fails "invalid requirement status rejected" "$PROJECT/scripts/check-requirements.sh" "$WORKDIR/bad.md"

@@ -33,7 +33,16 @@ copy_to_clipboard() {
 main() {
   local name
   : >"$OUT"
+  {
+    echo "# CONTEXT STATUS"
+    echo
+    "$ROOT/scripts/context-status.sh"
+    echo
+    echo "INSTRUCTION: Begin your first reply with the exact line starting \"CONTEXT CHECK\" above."
+    echo "Use ONLY the rules (CC-nn) and requirements (REQ-nnn) below. If something is not below, say so and ask."
+  } >>"$OUT"
   append_section "PROJECT RULES (AGENTS.md)" "$ROOT/AGENTS.md"
+  append_section "CLEAN CODE DETAILS (docs/clean-code.md)" "$ROOT/docs/clean-code.md"
   append_section "REQUIREMENTS" "$ROOT/docs/requirements/REQUIREMENTS.md"
   for name in "$@"; do
     printf '%s' "$name" | grep -Eq '^[a-z0-9-]+$' || die "invalid prompt name: $name"

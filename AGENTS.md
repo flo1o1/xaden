@@ -4,11 +4,24 @@ Rules for any AI coding assistant (Claude Code, ChatGPT, Codex, Cursor, Aider,
 Cline, Continue, local models). Read fully before changing anything.
 Explicit user instructions in the current session override this file.
 
+## 0. Grounding (never invent rules or requirements)
+
+- The only valid rules are the `CC-nn` items in section 3 and the sections of this file.
+  The only valid requirements are the `REQ-nnn` rows in `docs/requirements/REQUIREMENTS.md`.
+- Never quote a rule or requirement from memory. Look it up: `scripts/req.sh show REQ-nnn`,
+  `scripts/req.sh list`, or read the file. If it is not in the files, it does not exist: say so and ask.
+- Cite IDs when you act ("per CC-05", "implements REQ-003"). Commits are rejected when they cite
+  an unknown ID, and `feat` commits must carry a `Refs: REQ-nnn` trailer.
+- Cannot read files or run scripts (plain chat)? Say so. Work only from the pasted context pack.
+
 ## 1. Session start
 
-1. Read `docs/requirements/REQUIREMENTS.md` (source of truth for *what* to build).
-2. Read the `Unreleased` section of `CHANGELOG.md` (what changed since last release).
-3. If a request is ambiguous or conflicts with a requirement: **ask, do not guess**.
+1. Run `scripts/context-status.sh`. Begin your first reply with its `CONTEXT CHECK <fingerprint>`
+   line (shows the user you loaded the real files). No shell access: copy the line from the
+   pasted context pack instead.
+2. Read `docs/requirements/REQUIREMENTS.md` (source of truth for *what* to build).
+3. Read the `Unreleased` section of `CHANGELOG.md` (what changed since last release).
+4. If a request is ambiguous or conflicts with a requirement: **ask, do not guess**.
 
 ## 2. Requirements tracking (mandatory)
 
@@ -20,24 +33,27 @@ Explicit user instructions in the current session override this file.
 - Add one line to the `Change log` section of the requirements file per change.
 - Run `scripts/check-requirements.sh` after editing; it validates the format.
 
-## 3. Clean code
+## 3. Clean code rules
 
-- One responsibility per class/function; functions small, one abstraction level.
-- Intention-revealing names; no abbreviations, no magic numbers/strings.
-- No duplication (DRY), no deep nesting (early return), no hidden dependencies
-  (inject them), no commented-out code.
-- Errors: raise specific exceptions, fail fast, never swallow, no `null` returns
-  as error signal. Catch only what you can handle.
-- Comments: short docstring per class/function (purpose, parameters, data format).
+Details and examples: `docs/clean-code.md` (same IDs).
+
+- **CC-01** One responsibility per class/function; functions small, one abstraction level.
+- **CC-02** Intention-revealing names; no abbreviations, no magic numbers or strings.
+- **CC-03** No duplication (DRY), no deep nesting (use early return), no commented-out code.
+- **CC-04** Inject dependencies; no hidden globals or singletons.
+- **CC-05** Errors: raise specific exceptions, fail fast, never swallow, no `null` as error signal.
+  Catch only what you can handle.
+- **CC-06** Short docstring per class/function: purpose, parameters, data format.
   No comments that repeat the code.
-- Validate **all external input** at the system boundary (type, range, length, format).
-- Details: `docs/clean-code.md`.
+- **CC-07** Validate **all external input** at the system boundary: type, range, length, format.
+- **CC-08** Tests: Red → Green → Refactor; fast, isolated, repeatable, self-validating;
+  Arrange–Act–Assert; one behaviour per test; reference the `REQ-nnn`.
+- **CC-09** Refactor in small steps with tests green; refactor before adding functionality.
 
 ## 4. Tests
 
-- Work in small Red → Green → Refactor steps. Test first when feasible.
-- Tests are fast, isolated, repeatable, self-validating. Arrange–Act–Assert, one behaviour per test.
-- Every requirement has acceptance criteria; tests should reference the `REQ-nnn`.
+- Follow CC-08. Test first when feasible.
+- Every requirement has acceptance criteria; they become tests.
 
 ## 5. Static analysis (mandatory before "done")
 

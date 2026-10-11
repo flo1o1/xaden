@@ -17,7 +17,7 @@ Implement one capability, test-first, tracked in requirements.
 - Related requirement: {{REQ-nnn or "new"}}
 
 ## Steps
-1. Read `AGENTS.md` and the requirements file.
+1. Run `scripts/context-status.sh`; read `AGENTS.md` and the requirements file. Look requirements up with `scripts/req.sh show REQ-nnn`; never from memory.
 2. If the feature has no `REQ-nnn`, add one (status `in-progress`) and a change-log line first.
    If it conflicts with an existing requirement, stop and ask me.
 3. Plan in at most 5 small steps; show the plan; wait for my OK if it touches more than 2 files.
@@ -29,7 +29,7 @@ Implement one capability, test-first, tracked in requirements.
 8. Update `docs/user-guide.md` (usage) and, if config/ports/dependencies/deployment changed,
    `docs/admin-guide.md` — see [[documentation]].
 9. Set requirement status to `done`, add a `CHANGELOG.md` → Unreleased bullet, commit
-   `feat(<scope>): <summary>`.
+   `feat(<scope>): <summary>` with the trailer `Refs: REQ-nnn` (the hook rejects unknown IDs).
 
 ## Done when
 - [ ] Acceptance criteria met and tested
