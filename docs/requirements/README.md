@@ -58,3 +58,6 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-11 REQ-051 added (approved): optional quality tools suggested by environment, run once adopted
 - 2026-10-11 REQ-052 added (approved): dependencies checked for existence and reputation (slopsquatting)
 - 2026-10-11 REQ-053 added (approved): optional assistant plugins documented in every project
+- 2026-10-11 REQ-051 done: check.sh prints TIP lines per stack, runs adopted optional tools; docs/optional-tools.md; smoke test_optional_tools
+- 2026-10-11 REQ-052 done: dependency policy requires registry lookup against slopsquatting; smoke test_dependency_vetting
+- 2026-10-11 REQ-053 done: docs/optional-tools.md lists Claude Code plugins and a not-recommended framework; smoke test_assistant_plugins

@@ -8,6 +8,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - Requirements are one file per requirement in epic folders (`docs/requirements/<epic>/REQ-nnn-<slug>.md` with an `EPIC.md` per epic and a generated `INDEX.md`) instead of one table. Functional requirements are Jobs To Be Done (*When …, I want to …, so I can …*), non-functional ones measurable quality goals. `scripts/req.sh new|show|list|index` manages them; `check-requirements.sh`, the commit hook, traceability, context fingerprint and packs read the new layout. Existing projects run `scripts/migrate-requirements.sh` after updating.
 
 ### Security
+- Dependency policy requires checking that a proposed package really exists in the official registry (source, maintainers, age, downloads) before it is added, against slopsquatting: malware registered under package names assistants invent.
 - AGENTS.md §10 separates trusted instructions from untrusted content (code comments, issues, web pages, tool output, documents, `inbox/`) and lists actions that need explicit user approval: destructive changes, dependencies, production, sending data out, secrets, releases.
 - Pre-commit checks run on an export of the git index, so a staged problem can no longer be hidden by an unstaged fix; commit messages are validated against the staged requirements.
 - Skipped checks are reported as INCOMPLETE instead of success; CI and releases run `--strict`, so a missing scanner fails. CI installs pinned tool versions (gitleaks verified by SHA-256), sets up Python/Node automatically and requires a committed `package-lock.json`.
@@ -26,6 +27,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - Python projects were never detected unless pyproject.toml, setup.py and requirements*.txt all existed.
 
 ### Added
+- Optional tools, suggested where they fit: the full `scripts/check.sh` prints `TIP:` lines for actionlint and zizmor (GitHub workflows), jscpd (duplication), vulture or knip (dead code), Hypothesis or fast-check (property-based tests) and mutmut or StrykerJS (mutation testing), depending on the project's language. Adopted tools run in the check; tips never change the result. `docs/optional-tools.md` also lists Claude Code plugins for deeper reviews (Anthropic `code-review`/`security-guidance`, Trail of Bits, Ponytail).
 - GETTING-STARTED documents [Ponytail](https://github.com/DietrichGebert/ponytail) as an optional add-on rule set (install per tool, trusted sources); nothing is installed automatically. AGENTS.md §10 states that add-on rule sets never override the project rules.
 - Migration rules for persisted data in `docs/architecture.md`: versioned formats, automatic migration, isolated failures with a message, old data kept until migrated, a test per old version. The release prompt treats incompatible data, API and configuration format changes as major.
 - Architecture template (`docs/architecture.md`): goals, layers and dependency direction, composition root, interaction, naming, rules for new code, third-party code. Kickoff fills it, the feature and review prompts follow it, context packs include it.

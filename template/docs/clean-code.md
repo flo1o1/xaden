@@ -106,6 +106,11 @@ One behaviour per test; test names state the behaviour.
 - Pyramid: many unit tests, fewer integration and acceptance tests, few end-to-end tests,
   plus exploratory testing by a human.
 - Acceptance criteria become examples (Given / When / Then) and then acceptance tests.
+- Parsers, conversions and calculations: add property-based tests (Hypothesis, fast-check) that
+  check a rule for many generated inputs, e.g. "decode(encode(x)) == x" or "total never negative".
+- Coverage shows what ran, not what was checked. Mutation testing (mutmut, StrykerJS) makes small
+  changes to the code and reports those no test notices; use it before releases on risky modules.
+  Setup: `docs/optional-tools.md`.
 
 ## How each rule is enforced
 

@@ -12,6 +12,7 @@ private skills.
 | An AI coding tool | Claude Code recommended; Aider, Cline, Continue, Cursor, Codex, Copilot, ChatGPT or a local model (Ollama, LM Studio) also work — see `template/docs/local-llm.md` |
 | Recommended: shellcheck, gitleaks, semgrep | Static analysis and secret scanning; without them checks only warn |
 | Optional: Obsidian | Comfortable reading and editing of the prompt library |
+| Optional: extra checks and plugins | `scripts/check.sh` suggests the ones that fit your project (`TIP:` lines); list in `template/docs/optional-tools.md` |
 | Optional: [Ponytail](https://github.com/DietrichGebert/ponytail) | Third-party rule set (MIT) that pushes assistants towards less new code; see below |
 
 ### Optional: Ponytail

@@ -10,6 +10,8 @@ SKIPPED_CHECKS=""
 STRICT="${STRICT:-0}"
 
 info() { printf '==> %s\n' "$*"; }
+# tip <text>: names an optional tool that fits this project (REQ-051); never changes a result.
+tip() { printf 'TIP: %s\n' "$*"; }
 warn() { printf 'WARN: %s\n' "$*" >&2; }
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 
@@ -63,6 +65,8 @@ finish_checks() {
 # Modes: "staged" = pre-commit (staged files only, offline, seconds);
 #        "full"   = everything (CI, release, before declaring work done).
 
+# Source files the SAST rules and the duplication tip look at.
+SOURCE_FILE_PATTERN='\.(py|js|jsx|mjs|cjs|ts|tsx)$'
 # Files selected by the last collect_files call (bash array).
 TARGETS=()
 # Staged mode (REQ-020): the real repository, a temporary export of its index (exactly what
@@ -134,7 +138,7 @@ scan_secrets() {
 
 # scan_sast <mode> <rules-dir> [exclude-regex]: semgrep with versioned local rules only (no network).
 scan_sast() {
-  collect_files "$1" '\.(py|js|jsx|mjs|cjs|ts|tsx)$' "${3:-^$}"
+  collect_files "$1" "$SOURCE_FILE_PATTERN" "${3:-^$}"
   [ ${#TARGETS[@]} -eq 0 ] && return 0
   SEMGREP_ENABLE_VERSION_CHECK=0 run_tool "SAST (semgrep, local rules)" \
     semgrep scan --config "$2" --metrics=off --disable-version-check --error --quiet "${TARGETS[@]}"

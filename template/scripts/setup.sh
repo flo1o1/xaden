@@ -56,6 +56,8 @@ main() {
     info "all recommended analysis tools found"
   fi
   echo "Language tools (ruff, mypy, npm, ...) are checked by scripts/check.sh once your stack exists."
+  echo "Optional tools that fit your project appear as TIP lines in scripts/check.sh; list: docs/optional-tools.md."
+  if has_command claude; then echo "Claude Code plugins for deeper reviews: docs/optional-tools.md."; fi
 }
 
 main "$@"

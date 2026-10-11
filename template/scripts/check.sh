@@ -41,6 +41,16 @@ check_stacks() {
   done
 }
 
+# show_tips: optional tools that fit this project (REQ-051); full run only, result unchanged.
+show_tips() {
+  local stack_file
+  for stack_file in "$SCRIPTS"/stacks/*.sh; do
+    # shellcheck disable=SC1090 # stack files are discovered at runtime
+    source "$stack_file"
+    stack_tips
+  done
+}
+
 if [ "$MODE" = "staged" ]; then
   enter_staged_snapshot "$ROOT" # checks see exactly the staged content (REQ-020)
   ROOT="$SNAPSHOT"
@@ -52,5 +62,6 @@ lint_shell "$MODE"
 scan_secrets "$MODE"
 scan_sast "$MODE" "$ROOT/.semgrep"
 check_stacks
+if [ "$MODE" = "full" ]; then show_tips; fi
 
 finish_checks

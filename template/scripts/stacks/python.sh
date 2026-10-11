@@ -13,6 +13,14 @@ python_detected() {
   [ -f pyproject.toml ] || [ -f setup.py ] || ls requirements*.txt >/dev/null 2>&1
 }
 
+# python_uses_vulture: true once the project configured vulture (opt-in, REQ-051).
+python_uses_vulture() { grep -q '^\[tool\.vulture\]' pyproject.toml 2>/dev/null; }
+
+# python_declares <package>: true if pyproject.toml or a requirements file names the package.
+python_declares() {
+  grep -qiE "(^|[^a-z0-9_-])$1([^a-z0-9_-]|$)" pyproject.toml requirements*.txt 2>/dev/null
+}
+
 # stack_check <mode>: staged = lint/format staged files; full = also types, security, audit, tests.
 stack_check() {
   python_detected || return 0
@@ -28,4 +36,17 @@ stack_check() {
   run_required_tool "python: pytest" pytest -q
   run_tool "python: bandit" bandit -q -r . -x ./.venv,./node_modules,./tests
   run_tool "python: pip-audit (network)" pip-audit
+  if python_uses_vulture; then run_tool "python: vulture (dead code)" vulture; fi
+}
+
+# stack_tips: optional tools that fit a Python project and are not adopted yet.
+stack_tips() {
+  python_detected || return 0
+  python_uses_vulture ||
+    tip "python: vulture finds dead code. Add vulture to requirements-dev.txt and [tool.vulture] (paths, min_confidence = 80) to pyproject.toml"
+  python_declares hypothesis ||
+    tip "python: Hypothesis property-based tests find edge cases that example tests miss. Add hypothesis to requirements-dev.txt"
+  python_declares mutmut ||
+    tip "python: mutmut shows which code changes no test notices. Add mutmut to requirements-dev.txt; run 'mutmut run' before releases"
+  return 0
 }

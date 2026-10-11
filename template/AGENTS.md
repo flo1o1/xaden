@@ -86,6 +86,8 @@ Details and examples: `docs/clean-code.md` (same IDs).
 - Adopting a linter on existing code: record the current violations in the tool's baseline or
   suppression file; it may only shrink, and new code never adds to it. Recurring security mistakes
   become a rule in `.semgrep/rules.yml` (offline, versioned).
+- `TIP:` lines in the full run name optional tools that fit this project (`docs/optional-tools.md`).
+  Mention new ones to the user once, with what they would catch; install nothing without approval.
 - Every run ends with a summary: passed, failed, skipped. A run with skipped checks is
   INCOMPLETE, never a success; CI and releases use `--strict`, where missing tools fail.
 - Do not claim success unless the check passed. Report failures and skipped checks verbatim.

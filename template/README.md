@@ -43,3 +43,5 @@ scripts/release.sh patch   # or minor / major
 
 shellcheck, gitleaks, semgrep, plus per stack: ruff, mypy, bandit, pip-audit, pytest (Python)
 or npm scripts `lint` / `typecheck` / `test` (Node/TypeScript).
+More optional checks and assistant plugins, suggested by `scripts/check.sh` when they fit:
+`docs/optional-tools.md`.

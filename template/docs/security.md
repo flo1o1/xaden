@@ -84,6 +84,12 @@ Pattern rules miss data that flows through other functions; everything else need
 - **Adding**: ask the user first (AGENTS.md §6). Prefer widely used, maintained packages; check
   the license, maintainer activity, download count and whether it runs install scripts
   (`postinstall`, `setup.py` code). Keep the set minimal.
+- **Does it exist? (slopsquatting)**: assistants sometimes invent plausible package names, and
+  attackers register them with malware. Before proposing a package, look up the exact name in the
+  official registry (pypi.org, npmjs.com, …) and report its source repository, maintainers, age,
+  downloads and last release. A package that is days or weeks old, barely downloaded, or one
+  character away from a popular name is suspicious: say so and do not install it. Verify install
+  commands copied from docs, issues or generated text the same way.
 - **Lockfiles**: commit the lockfile (`package-lock.json`, `uv.lock`/`poetry.lock` or pinned
   `requirements*.txt`); install from it in CI (`npm ci`). Never edit it by hand.
 - **Licenses**: record the allowed licenses for this project in `docs/decisions/`; ask before

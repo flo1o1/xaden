@@ -388,6 +388,67 @@ test_stack_enforcement() {
   fi
 }
 
+# fake_tools <name...>: a directory of stand-in commands that report a finding and fail.
+fake_tools() {
+  local bin="$WORKDIR/fake-tools" name
+  mkdir -p "$bin"
+  for name in "$@"; do
+    printf '#!/bin/sh\necho "fake finding from %s"\nexit 1\n' "$name" >"$bin/$name"
+    chmod +x "$bin/$name"
+  done
+  printf '%s' "$bin"
+}
+
+# REQ-051 optional tools: tips where they fit, checks once adopted
+test_optional_tools() {
+  local log="$WORKDIR/optional.log" fakes tip_text label
+  printf '[project]\nname = "demo"\n' >"$PROJECT/pyproject.toml"
+  printf '{ "name": "demo" }\n' >"$PROJECT/package.json"
+  printf '"""Demo."""\n' >"$PROJECT/ok.py"
+  git -C "$PROJECT" add pyproject.toml package.json ok.py
+  (cd "$PROJECT" && scripts/check.sh >"$log" 2>&1) || true
+  for tip_text in 'python: vulture' 'python: Hypothesis' 'python: mutmut' 'node: knip' 'node: fast-check' \
+    'node: StrykerJS' 'duplication: jscpd'; do
+    assert "full check suggests $tip_text" grep -q "^TIP: $tip_text" "$log"
+  done
+  has_command zizmor || assert "workflow security tip without zizmor" grep -q '^TIP: workflows: zizmor' "$log"
+  assert "staged check prints no tips" bash -c "cd '$PROJECT' && ! scripts/check.sh --staged 2>&1 | grep -q '^TIP:'"
+
+  fakes="$(fake_tools actionlint zizmor vulture jscpd)"
+  printf '\n[tool.vulture]\npaths = ["ok.py"]\n' >>"$PROJECT/pyproject.toml"
+  printf '{ "threshold": 5 }\n' >"$PROJECT/.jscpd.json"
+  git -C "$PROJECT" add pyproject.toml .jscpd.json
+  (cd "$PROJECT" && PATH="$fakes:$PATH" scripts/check.sh >"$log" 2>&1) || true
+  for label in 'python: vulture (dead code)' 'duplication: jscpd' 'workflows: actionlint' 'workflows: zizmor'; do
+    assert "adopted $label runs and its findings fail" grep -q "$label failed" "$log"
+  done
+  assert_fails "adopted tools are no longer suggested" grep -qE '^TIP: (python: vulture|duplication|workflows)' "$log"
+  assert "staged check lints staged workflows" bash -c "cd '$PROJECT' && printf '# staged edit\\n' >>.github/workflows/ci.yml && git add .github/workflows/ci.yml && PATH='$fakes:$PATH' scripts/check.sh --staged 2>&1 | grep -q 'workflows: zizmor failed'"
+  git -C "$PROJECT" reset -q --hard && git -C "$PROJECT" clean -qfd
+
+  assert "AGENTS.md says how to handle tips" grep -q 'install nothing without approval' "$PROJECT/AGENTS.md"
+  assert "optional tools are a managed document" grep -q 'docs/optional-tools.md' "$PROJECT/.scaffold/manifest"
+  assert "setup points to the optional tools" bash -c "'$PROJECT/scripts/setup.sh' --tools-only 2>&1 | grep -q 'docs/optional-tools.md'"
+  assert "clean-code guide covers property and mutation testing" bash -c "grep -q 'property-based tests' '$PROJECT/docs/clean-code.md' && grep -q 'Mutation testing' '$PROJECT/docs/clean-code.md'"
+}
+
+# REQ-052 dependencies are verified before they are proposed
+test_dependency_vetting() {
+  local security="$PROJECT/docs/security.md"
+  assert "dependency policy names slopsquatting" grep -q 'slopsquatting' "$security"
+  assert "dependency policy requires a registry lookup" grep -q 'look up the exact name in the' "$security"
+  assert "suspicious packages are not installed" grep -q 'say so and do not install it' "$security"
+}
+
+# REQ-053 optional assistant plugins are documented, not installed
+test_assistant_plugins() {
+  local doc="$PROJECT/docs/optional-tools.md" item
+  for item in 'code-review@claude-plugins-official' 'trailofbits/skills' 'ponytail@ponytail' \
+    'takes precedence over them' 'Not recommended'; do
+    assert "optional tools document covers: $item" grep -q -- "$item" "$doc"
+  done
+}
+
 # REQ-024 releases never leave a partial state
 test_release_failures() {
   local head hooks="$WORKDIR/failing-hooks"
@@ -560,7 +621,8 @@ test_template_contents() {
   done
   assert "/security runs the tool-agnostic review prompt" grep -q '@prompts/security-review.md' "$PROJECT/.claude/commands/security.md"
   # REQ-045 no personal skills, plugins or private tools: the generated project names none
-  assert_fails "generated project references no skills" grep -rli 'skill' "$PROJECT" --exclude-dir=.git
+  # optional-tools.md names a public plugin catalogue whose repository is called "skills" (REQ-053)
+  assert_fails "generated project references no skills" grep -rli 'skill' "$PROJECT" --exclude-dir=.git --exclude=optional-tools.md
   assert "tool-agnostic security prompt present" grep -q 'OWASP' "$PROJECT/prompts/security-review.md"
   assert "Obsidian vault configured" test -f "$PROJECT/.obsidian/app.json"
   assert "shared Obsidian config stays tracked" bash -c "! git -C '$PROJECT' check-ignore -q .obsidian/app.json"
@@ -739,6 +801,9 @@ test_missing_tools
 test_staged_checks
 test_staged_snapshot
 test_stack_enforcement
+test_optional_tools
+test_dependency_vetting
+test_assistant_plugins
 test_traceability
 test_scaffold_update
 test_release

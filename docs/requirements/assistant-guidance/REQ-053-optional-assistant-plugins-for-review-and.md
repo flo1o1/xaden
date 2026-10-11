@@ -3,7 +3,7 @@ id: REQ-053
 type: job
 epic: assistant-guidance
 priority: could
-status: approved
+status: done
 updated: 2026-10-11
 ---
 
