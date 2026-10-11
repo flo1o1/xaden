@@ -4,7 +4,8 @@ The scaffold's own threat model, read by `/security` in this repository (REQ-055
 projects get their own from `template/docs/threat-model.md`. Update this file when a change
 adds an entry point, a downloaded tool or a new place the scripts write to.
 
-**Last reviewed:** 2026-10-11, security review `docs/security-reviews/2026-10-11-scaffold-scripts.md`.
+**Last reviewed:** 2026-10-11, security review `docs/security-reviews/2026-10-11-xaden-command.md`
+(previous: `2026-10-11-scaffold-scripts.md`).
 
 ## System summary
 
@@ -32,7 +33,8 @@ may meet secrets in the working tree (`.env`, `inbox/`), which they must not cop
   requirement IDs, epics and titles (`req.sh`); command and arguments of `xaden`, target
   directory of `install.sh`.
 - Files the scripts read: `template/` (exported to projects), requirement files, commit message
-  files, `CHANGELOG.md`, `VERSION`, a project's `.scaffold/manifest` and `package.json` /
+  files, `CHANGELOG.md`, `VERSION`, `docs/security-exceptions.md`, `SECURITY.md`, a project's
+  `.scaffold/manifest` and `package.json` /
   `pyproject.toml` (which decide which tools run).
 - Environment: `PROJECT_ROOT`, `RULES_FILE`, `STRICT`, `PATH`; in CI `EVENT_NAME`, `BASE_REF`,
   `BEFORE_SHA`, `DEFAULT_BRANCH`, filled from GitHub event data.
@@ -95,6 +97,11 @@ Verification standard: OWASP ASVS (what to build), OWASP WSTG (how to test it).
 
 ## Accepted risks
 
+- `xaden setup|check|req|pack|release` run the current repository's own `scripts/*.sh`, the
+  same trust as running them by hand; use them only in projects you trust (review
+  2026-10-11-xaden-command #1).
+- `update-scaffold.sh` changes a project's Claude Code permissions (`.claude/settings.json`,
+  REQ-059) when the project left the file unchanged; edited files are kept.
 - The macOS CI job installs Homebrew's current shellcheck, semgrep, ruff and gitleaks without
   pinning; the Linux job is the pinned reference.
 - semgrep and ruff are pinned by version from PyPI, not by hash.
