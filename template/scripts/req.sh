@@ -46,7 +46,7 @@ show_requirement() {
 # refreshes the index. Prints the new file's path.
 new_requirement() {
   local epic=$1 type=$2 title=$3 id path statement="$TODO_JOB"
-  printf '%s' "$epic" | grep -Eq '^[a-z0-9][a-z0-9-]*$' || die "epic must be lowercase words with dashes: $epic"
+  is_epic_name "$epic" || die "epic must be lowercase words with dashes: $epic"
   case " $REQUIREMENT_TYPES " in *" $type "*) ;; *) die "type must be one of: $REQUIREMENT_TYPES" ;; esac
   [ -n "$title" ] || die "title is empty"
   [ "$type" = "quality" ] && statement="$TODO_QUALITY"

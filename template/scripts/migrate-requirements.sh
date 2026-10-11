@@ -67,7 +67,7 @@ migrate_rows() {
 
 main() {
   [ -f "$TABLE" ] || die "no requirements table at docs/requirements/REQUIREMENTS.md"
-  printf '%s' "$EPIC" | grep -Eq '^[a-z0-9][a-z0-9-]*$' || die "epic must be lowercase words with dashes: $EPIC"
+  is_epic_name "$EPIC" || die "epic must be lowercase words with dashes: $EPIC"
   [ -z "$(requirement_files "$DIR")" ] || die "requirement files already exist; nothing migrated"
   [ -e "$DIR/README.md" ] && die "docs/requirements/README.md already exists; nothing migrated"
   [ -n "$(table_rows)" ] || die "the table has no requirement rows"

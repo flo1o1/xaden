@@ -14,6 +14,9 @@ REQUIREMENT_STATUSES="draft approved in-progress done dropped"
 INDEX_FILE="INDEX.md"
 EPIC_FILE="EPIC.md"
 
+# is_epic_name <name>: true for an epic folder name (lowercase words joined by dashes).
+is_epic_name() { printf '%s' "$1" | grep -Eq '^[a-z0-9][a-z0-9-]*$'; }
+
 # epic_dirs <requirements-dir>: one epic folder per line, sorted.
 epic_dirs() {
   find "$1" -mindepth 1 -maxdepth 1 -type d ! -name '.*' ! -name '_*' | LC_ALL=C sort
