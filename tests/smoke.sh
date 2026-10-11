@@ -78,6 +78,12 @@ test_bump_version() {
   assert_fails "reject invalid semver" bump_version "1.2" patch
 }
 
+# REQ-038 MIT license for the scaffold only
+test_license() {
+  assert "scaffold is MIT licensed" grep -qx 'MIT License' "$SCAFFOLD_ROOT/LICENSE"
+  assert "generated projects do not inherit the scaffold license" test ! -e "$PROJECT/LICENSE"
+}
+
 # REQ-001 project creation, REQ-013 template separation
 test_new_project() {
   assert_fails "reject bad project name" "$SCAFFOLD_ROOT/scripts/new-project.sh" "Bad Name" "$WORKDIR/x"
@@ -520,6 +526,7 @@ export GIT_COMMITTER_NAME=smoke GIT_COMMITTER_EMAIL=smoke@example.invalid
 
 test_bump_version
 test_new_project
+test_license
 test_generation_safety
 test_template_contents
 test_clean_code_guidance

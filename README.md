@@ -86,3 +86,8 @@ scripts/setup.sh              # maintainer hooks (.githooks/) + tool check
 scripts/check-scaffold.sh     # full check incl. smoke test (pre-commit runs --quick)
 scripts/release-scaffold.sh minor
 ```
+
+## License
+
+The scaffold is released under the [MIT License](LICENSE). Projects you generate do not
+inherit it: `template/` contains no license file, so choose one for each project.
