@@ -126,7 +126,9 @@ Details and examples: `docs/clean-code.md` (same IDs).
 - Fill the `<!-- TODO -->` markers with verified facts; ask if a fact is unknown. Never invent
   system requirements or commands. Prompt: `prompts/documentation.md` (`/docs` in Claude Code).
 - `scripts/check-docs.sh` enforces the section structure; releases are blocked while TODO
-  markers remain. `scripts/release.sh` stamps the version into both guides.
+  markers remain. It checks structure only, not whether the content is true: run the
+  documented commands, or mark them "untested". `scripts/release.sh` stamps the version into
+  both guides.
 
 ## 9. Working style
 

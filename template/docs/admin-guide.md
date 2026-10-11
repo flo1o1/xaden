@@ -26,19 +26,19 @@ Audience: people who install, run, secure and maintain the software. End-user he
 
 ## Deployment
 
-<!-- TODO: How to deploy and roll back (environments, CI/CD, containers, reverse proxy, health checks). -->
+<!-- TODO: How to deploy and roll back (environments, CI/CD, containers, reverse proxy, health checks). Where it applies: timeouts, bounded retries, graceful shutdown. -->
 
 ## Backup and restore
 
-<!-- TODO: What to back up (data, config, secrets), how often, how to restore, and how to test the restore. -->
+<!-- TODO: What to back up (data, config, secrets), how often, how to restore, and when the restore was last tested. -->
 
 ## Monitoring and logs
 
-<!-- TODO: Log locations/levels, health endpoints, metrics, alerts worth setting up. -->
+<!-- TODO: Log locations/levels and what logs never contain (secrets, personal data), health endpoints, metrics, alerts worth setting up. -->
 
 ## Upgrade
 
-<!-- TODO: Upgrade procedure per SemVer: patch/minor = in-place; major = read CHANGELOG.md breaking changes, migrations, rollback plan. -->
+<!-- TODO: Upgrade procedure per SemVer: patch/minor = in-place; major = read CHANGELOG.md breaking changes, database migrations and how to roll them back. -->
 
 ## Troubleshooting
 

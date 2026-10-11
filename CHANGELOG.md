@@ -35,6 +35,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - `scripts/setup.sh` for fresh clones, commit-message checks in CI, GETTING-STARTED guide.
 
 ### Changed
+- `check-docs.sh` and the docs say it checks structure only, not content. The documentation prompt and admin guide ask generated apps to document timeouts, bounded retries, graceful shutdown, health checks, safe logs, migrations with rollback and tested restores where they apply.
 - Security checklist (`docs/security.md`) is anchored to OWASP ASVS and covers CSRF precisely (SameSite is defence in depth), SSRF with redirects and DNS rebinding, archive and symlink traversal, upload limits, object- and tenant-level authorization tests, session revocation, password reset, rate and resource limits, safe parsing and data retention; web-only items are marked.
 - Clean-code rules are proportional and language-appropriate: CC-05 accepts exceptions, result or option types; CC-06 documents public APIs and contracts instead of every function; CC-03 warns against premature abstraction; CC-04 covers dependency direction and explicit side effects; CC-09 forbids unrelated refactoring. `docs/clean-code.md` says what tools cannot check.
 - Projects record their scaffold version and a manifest of managed files (`.scaffold/`);

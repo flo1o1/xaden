@@ -418,6 +418,14 @@ test_prompt_workflow() {
   for name in kickoff feature bugfix refactor requirements-update security-review release documentation; do
     assert "$name prompt ends with the completion report" grep -q 'Completion report given' "$prompts/$name.md"
   done
+  # REQ-037 honest docs checks, operations guidance
+  assert "docs check says it verifies structure only" grep -q 'structure only' <("$PROJECT/scripts/check-docs.sh")
+  assert "AGENTS.md says docs check is structure only" grep -q 'It checks structure only' "$PROJECT/AGENTS.md"
+  for topic in 'timeouts' 'bounded retries' 'graceful shutdown' 'health checks' 'no secrets or personal data' \
+    'rollback path' 'actually tested'; do
+    assert "documentation prompt asks for: $topic" grep -q "$topic" "$prompts/documentation.md"
+  done
+  assert "admin guide asks when the restore was tested" grep -q 'restore was last tested' "$PROJECT/docs/admin-guide.md"
   assert "feature refactors first only when needed" grep -q 'refactor first (\[\[refactor\]\]' "$prompts/feature.md"
 }
 

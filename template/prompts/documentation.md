@@ -30,10 +30,16 @@ to the code: installation, system requirements, configuration, usage, security, 
 7. Admin security section: summarize `docs/security.md` as concrete setup steps and note
    the date of the last security review. Fill the TODO markers in `SECURITY.md` (supported
    versions, contact, secrets list, incident roles); ask me for contacts and promises.
-8. Update `**Applies to version:**` only through `scripts/release.sh` (it stamps it).
-9. Run `scripts/check-docs.sh` (add `--release` to find leftover TODOs). Add a
-   `CHANGELOG.md` → Unreleased bullet only for user-visible doc changes.
-10. Commit `docs: <summary>`.
+8. Operations (admin), where the software runs as a service or calls other systems: document
+   timeouts, bounded retries with backoff, cancellation and graceful shutdown, health checks,
+   what logs contain (no secrets or personal data), database migrations with a rollback path,
+   and backups with a restore that was actually tested. Describe only what the code does; if
+   something is missing, say so and propose a requirement instead of documenting it.
+9. Update `**Applies to version:**` only through `scripts/release.sh` (it stamps it).
+10. Run `scripts/check-docs.sh` (add `--release` to find leftover TODOs). It checks structure
+    only; report which documented commands you ran and which are "untested". Add a
+    `CHANGELOG.md` → Unreleased bullet only for user-visible doc changes.
+11. Commit `docs: <summary>`.
 
 ## Done when
 - [ ] No TODO markers in scope; headings intact

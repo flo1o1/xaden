@@ -17,7 +17,7 @@ relative to it.
 | Security | `docs/security.md`, `/security` (alice-security-engineer skill), tool-agnostic `prompts/security-review.md` |
 | Requirements tracking | `docs/requirements/REQUIREMENTS.md`, validated by `scripts/check-requirements.sh`; the AI must update it when scope changes |
 | Semantic versioning | `VERSION`, `CHANGELOG.md`, Conventional Commits hook, `scripts/release.sh` |
-| User + admin docs | `docs/user-guide.md`, `docs/admin-guide.md` (install, system requirements, config, hardening, upgrade); filled by `/docs`, checked by `scripts/check-docs.sh`, release blocked while incomplete |
+| User + admin docs | `docs/user-guide.md`, `docs/admin-guide.md` (install, system requirements, config, hardening, upgrade); filled by `/docs`, structure checked by `scripts/check-docs.sh` (not content), release blocked while incomplete |
 | Fewer invented rules/requirements | Numbered rules (`CC-nn`) and requirements (`REQ-nnn`); Claude Code imports them into every session; `scripts/req.sh` lookup; commit hook and traceability check reject unknown IDs. `scripts/context-status.sh` fingerprints the files the assistant started from: a consistency aid, not proof it read or followed them |
 | Git | New projects get their own repo with hooks installed |
 | Obsidian | Open the folder as a vault; prompts have frontmatter, wikilinks, a template folder |

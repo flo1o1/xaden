@@ -41,7 +41,7 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 | REQ-034 | Claude Code permission rules are accurate and documented with their limits | should | done | Deny rules block real env files but not .env.example; docs say which patterns are covered and that they are not a security boundary | 2026-10-11 |
 | REQ-035 | Prompts follow one consistent workflow and approval model | should | done | Bugfix is regression-test first, feature refactors only when needed; approval points are named the same way across prompts and respect authorisation already given | 2026-10-11 |
 | REQ-036 | Assistants end work with a truthful completion report | must | done | AGENTS.md defines the report (checks run, checks skipped, unresolved findings, acceptance evidence); prompts reference it; skipped checks are never reported as passed | 2026-10-11 |
-| REQ-037 | Documentation guidance is honest about checks and covers operations | should | approved | Docs state check-docs.sh validates structure only; documentation prompt and admin guide ask for timeouts, retries, cancellation, health checks, safe logs, migrations with rollback and tested restores where they apply | 2026-10-11 |
+| REQ-037 | Documentation guidance is honest about checks and covers operations | should | done | Docs state check-docs.sh validates structure only; documentation prompt and admin guide ask for timeouts, retries, cancellation, health checks, safe logs, migrations with rollback and tested restores where they apply | 2026-10-11 |
 | REQ-038 | The scaffold is published under the MIT license | should | approved | Root LICENSE holds the MIT text; generated projects do not inherit it | 2026-10-11 |
 
 ## Change log
@@ -74,3 +74,4 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 - 2026-10-11 REQ-034 done: deny rules list env files, keep .env.example readable, limits documented in CLAUDE.md
 - 2026-10-11 REQ-035 done: approval points marked uniformly; order of work defined in AGENTS.md section 9
 - 2026-10-11 REQ-036 done: completion report defined in AGENTS.md section 5, required by every working prompt
+- 2026-10-11 REQ-037 done: check-docs reports structure only; documentation prompt and admin guide cover operations

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Validates user and admin documentation.
 # Always: required headings exist. With --release: no unfilled "TODO" markers remain.
+# Structure only: it cannot tell whether the written content is correct (REQ-037).
 # Usage: scripts/check-docs.sh [--release]
 set -euo pipefail
 
@@ -48,4 +49,4 @@ if [ "$RELEASE_MODE" = "1" ]; then
 fi
 
 [ "$FAILURES" -eq 0 ] || exit 1
-echo "docs OK"
+echo "docs OK (structure only; content not verified)"
