@@ -63,3 +63,4 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-11 REQ-053 done: docs/optional-tools.md lists Claude Code plugins and a not-recommended framework; smoke test_assistant_plugins
 - 2026-10-11 REQ-054 added (approved): look for mature existing solutions on the web before building
 - 2026-10-11 REQ-054 done: AGENTS.md §9 look-before-you-build rule, feature prompt step 3; smoke test_look_before_build
+- 2026-10-11 REQ-022 criterion added: comments and the `git commit -v` diff are not checked for IDs (audit finding)

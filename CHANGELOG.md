@@ -15,6 +15,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - Project generation copies only git-tracked template files; untracked or ignored files (`.env`, `node_modules/`, `inbox/` content) are never copied or committed. Symlinks are refused; failed runs remove the partial project.
 
 ### Fixed
+- Commits made with `git commit -v` were rejected when the appended diff mentioned an unknown `REQ-nnn`; the commit-msg check now reads the message as git stores it, without comments and diff.
 - Obsidian per-user files (`appearance.json`, plugins, workspace, cache) were not ignored; projects now track only the shared vault config (`app.json`, `core-plugins.json`, `templates.json`), and the scaffold root ignores `.obsidian/` entirely.
 - `/security`, AGENTS.md, CLAUDE.md and the docs referred to a personal security skill other users do not have; the review now runs the tool-agnostic prompt only, and a smoke test rejects skill references in generated projects.
 - The feature prompt created requirements as `in-progress`, skipping the user's approval; new rows now start as `draft`. All prompts mark **Approval points** the same way and honour approval already given in the session; feature refactors first only when needed, bug fixes are regression-test first.

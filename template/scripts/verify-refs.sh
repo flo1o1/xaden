@@ -41,7 +41,10 @@ committed_requirements_root() {
 }
 
 SNAPSHOT="$(mktemp -d)"
-trap 'rm -rf "$SNAPSHOT"' EXIT
+# The message as git stores it: no comment lines, no diff below the `git commit -v` scissors line.
+CLEAN_MESSAGE_FILE="$(mktemp)"
+trap 'rm -rf "$SNAPSHOT" "$CLEAN_MESSAGE_FILE"' EXIT
+sed '/^. -\{24\} >8 -\{24\}$/,$d' "$MESSAGE_FILE" | git stripspace --strip-comments >"$CLEAN_MESSAGE_FILE"
 REQUIREMENTS_ROOT="$(committed_requirements_root)"
 # "ID [status, priority] title" per committed requirement.
 REQUIREMENTS_LIST="$(PROJECT_ROOT="$REQUIREMENTS_ROOT" "$SCRIPTS/req.sh" list)"
@@ -55,7 +58,7 @@ check_cited_ids() {
       REQ-*) printf '%s\n' "$REQUIREMENTS_LIST" | grep -q "^$id " || die "commit cites unknown requirement $id" ;;
       CC-*) printf '%s\n' "$RULES_TEXT" | grep -Eq "^- \*\*$id\*\*" || die "commit cites unknown rule $id" ;;
     esac
-  done < <(grep -oE 'REQ-[0-9]{3,}|CC-[0-9]{2}' "$MESSAGE_FILE" | sort -u)
+  done < <(grep -oE 'REQ-[0-9]{3,}|CC-[0-9]{2}' "$CLEAN_MESSAGE_FILE" | sort -u)
 }
 
 # requirement_status <REQ-nnn>: status of the requirement as committed.
@@ -79,9 +82,9 @@ check_referenced_status() {
 # check_required_trailer: feat/fix must say which requirement they serve.
 check_required_trailer() {
   local type refs
-  type=$(head -n 1 "$MESSAGE_FILE" | sed -E 's/^([a-z]+).*/\1/')
+  type=$(head -n 1 "$CLEAN_MESSAGE_FILE" | sed -E 's/^([a-z]+).*/\1/')
   # Only real git trailers count (last paragraph), not "Refs:" lines in prose (REQ-022).
-  refs=$(git interpret-trailers --parse <"$MESSAGE_FILE" | grep -E '^Refs:' || true)
+  refs=$(git interpret-trailers --parse <"$CLEAN_MESSAGE_FILE" | grep -E '^Refs:' || true)
   case "$type" in
     feat) printf '%s' "$refs" | grep -Eq 'REQ-[0-9]{3,}' || die "feat commits need a 'Refs: REQ-nnn' trailer" ;;
     fix) printf '%s' "$refs" | grep -Eq 'REQ-[0-9]{3,}|none' || die "fix commits need 'Refs: REQ-nnn' or 'Refs: none'" ;;

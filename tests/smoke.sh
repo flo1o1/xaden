@@ -597,6 +597,8 @@ test_commit_bypasses() {
   assert_fails "Merge prefix cannot smuggle an unknown ID" "$hook" "$(msg 'Merge branch x\n\nRefs: REQ-777\n')" # traceability: ignore
   assert_fails "fixup! prefix cannot smuggle an unknown ID" "$hook" "$(msg 'fixup! feat: x\n\nSee REQ-778\n')" # traceability: ignore
   assert "plain Merge message still accepted" "$hook" "$(msg 'Merge branch x\n')"
+  assert "IDs in comments and the git commit -v diff are ignored" "$hook" \
+    "$(msg 'docs: x\n\n# REQ-779 in a comment\n# ------------------------ >8 ------------------------\n+REQ-780 in the diff\n')" # traceability: ignore
   set_status REQ-001 approved
   git -C "$PROJECT" commit -q -am "docs(requirements): approve REQ-001"
   assert "Refs in prose is not a trailer" bash -c "'$hook' '$(msg 'feat: x\n\nRefs: REQ-001\n\nMore prose after it.\n')' 2>&1 | grep -q \"need a 'Refs: REQ-nnn' trailer\""
