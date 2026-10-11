@@ -24,12 +24,14 @@ for arg in "$@"; do
 done
 cd "$ROOT"
 
-# check_project_files: requirement and documentation structure (cheap, always run).
+# check_project_files: requirements, docs structure, traceability (cheap, always run).
 check_project_files() {
   info "requirements format"
   "$SCRIPTS/check-requirements.sh" || FAILURES=$((FAILURES + 1))
   info "documentation structure"
   "$SCRIPTS/check-docs.sh" || FAILURES=$((FAILURES + 1))
+  info "requirement traceability"
+  "$SCRIPTS/check-traceability.sh" || FAILURES=$((FAILURES + 1))
 }
 
 # check_stacks: each file in stacks/ defines stack_check <mode> for one language.

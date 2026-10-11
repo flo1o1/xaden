@@ -16,6 +16,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - `scripts/setup.sh` for fresh clones, commit-message checks in CI, GETTING-STARTED guide.
 
 ### Changed
+- Requirement traceability (`check-traceability.sh`): `done` requirements must be cited by a test,
+  tests must not cite unknown IDs; `--matrix` prints requirement → tests → commits.
 - Clean-code linter presets (`template/presets/`, `scripts/apply-preset.sh python|node`) map
   CC rules to ruff/mypy and ESLint settings; a detected stack with missing config, tools,
   scripts or tests now fails instead of passing silently.

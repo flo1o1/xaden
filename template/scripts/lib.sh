@@ -63,7 +63,7 @@ collect_files() {
 lint_shell() {
   collect_files "$1" '(\.sh$|(^|/)hooks/[^/.]+$|^\.githooks/)'
   [ ${#TARGETS[@]} -eq 0 ] && return 0
-  run_tool "shellcheck" shellcheck "${TARGETS[@]}"
+  run_tool "shellcheck" shellcheck -x "${TARGETS[@]}" # -x: follow sourced lib.sh even if unstaged
 }
 
 # scan_secrets <mode>: gitleaks on the staged diff, or on the whole git history.

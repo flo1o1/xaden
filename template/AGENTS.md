@@ -54,6 +54,9 @@ Details and examples: `docs/clean-code.md` (same IDs).
 
 - Follow CC-08. Test first when feasible.
 - Every requirement has acceptance criteria; they become tests.
+- Tests cite the requirement they verify (`# REQ-nnn` or in the test name). A requirement may only
+  be set to `done` when a test references it; `scripts/check-traceability.sh` enforces this and
+  rejects tests citing unknown IDs. `--matrix` prints requirement → tests → commits.
 
 ## 5. Static analysis (mandatory before "done")
 

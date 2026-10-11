@@ -16,7 +16,8 @@ Choose the correct SemVer bump and cut the release safely.
 1. Read `CHANGELOG.md` → Unreleased and `git log` since the last tag.
 2. Decide the bump: any breaking change → `major`; else any `feat` → `minor`; else `patch`.
    (While `0.x`, breaking changes may bump `minor`; tell me if you use that rule.)
-3. Confirm all `done` requirements are reflected in the changelog.
+3. Confirm all `done` requirements are reflected in the changelog. Show me
+   `scripts/check-traceability.sh --matrix`.
 4. Run `scripts/check-docs.sh --release`; if it fails, run [[documentation]] first.
 5. Run [[security-review]] on everything changed since the last tag.
 6. Show me the proposed bump and reason. **Wait for my confirmation.**
