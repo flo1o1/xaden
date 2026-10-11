@@ -20,10 +20,12 @@ Choose the correct SemVer bump and cut the release safely.
    (While `0.x`, breaking changes may bump `minor`; tell me if you use that rule.)
 3. Confirm all `done` requirements are reflected in the changelog. Show me
    `scripts/check-traceability.sh --matrix`.
-4. Run `scripts/check-docs.sh --release`; if it fails, run [[documentation]] first.
-   `SECURITY.md` and `docs/threat-model.md` must not contain TODO markers either.
+4. Run `scripts/check-docs.sh --release`. It also fails on TODO markers in `SECURITY.md` and
+   `docs/threat-model.md`. Guides incomplete: run [[documentation]] first; security documents
+   incomplete: fill them with me (never invent contacts or owners).
 5. Run [[security-review]] on everything changed since the last tag. Check
-   `docs/security-exceptions.md`: an expired row blocks the release until it is fixed or I renew it.
+   `docs/security-exceptions.md`: an expired row fails `scripts/check.sh` and blocks the release
+   until it is fixed or I renew it.
 6. **Approval point:** show me the proposed bump and reason. Releasing always needs my
    explicit yes in this session.
 7. Run `scripts/release.sh <part>`. It checks, stamps changelog and guides, commits and tags. Do not push.

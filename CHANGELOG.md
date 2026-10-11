@@ -9,6 +9,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ### Security
 - The full `scripts/check.sh` fails when a row in `docs/security-exceptions.md` has expired, has no owner or no `YYYY-MM-DD` expiry, so accepted risks are fixed or consciously renewed. The pre-commit hook skips this date-dependent check.
+- Releases are refused while `SECURITY.md` or `docs/threat-model.md` still contain `<!-- TODO` markers, so no release ships without a vulnerability contact and a threat model.
 - `scripts/update-scaffold.sh` refuses to write through a symbolic link in the project, so a committed symlink can no longer make an update overwrite files outside the project; paths in `.scaffold/manifest` outside the scaffold-managed files are ignored, so an edited manifest can no longer make an update delete project files.
 - CI checkouts no longer keep the job token in `.git/config` (`persist-credentials: false`) while dependency installs and tests run.
 - Dependency policy requires checking that a proposed package really exists in the official registry (source, maintainers, age, downloads) before it is added, against slopsquatting: malware registered under package names assistants invent.

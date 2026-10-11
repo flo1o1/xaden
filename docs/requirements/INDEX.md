@@ -63,7 +63,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-024 | job | must | done | Releases never leave a partial state |
 | REQ-037 | job | should | done | Documentation guidance is honest about checks and covers operations |
 | REQ-043 | job | should | done | Persisted data formats are versioned and migrated without data loss |
-| REQ-058 | job | should | approved | Releases are blocked while security documents have unfilled markers |
+| REQ-058 | job | should | done | Releases are blocked while security documents have unfilled markers |
 
 ## Requirements (`requirements`)
 

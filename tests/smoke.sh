@@ -520,9 +520,18 @@ test_release() {
   fi
   sed -i.bak '/TODO/d' "$PROJECT"/docs/*-guide.md && rm -f "$PROJECT"/docs/*.bak
   git -C "$PROJECT" commit -q -am "docs: fill guides"
+  # REQ-058 security documents must be filled before a release
+  assert_fails_with "release blocked by markers in SECURITY.md" "SECURITY.md" "$PROJECT/scripts/release.sh" patch
+  assert "blocked release left VERSION unchanged" test "$(tr -d '[:space:]' <"$PROJECT/VERSION")" = "0.1.0"
+  edit_file "$PROJECT/SECURITY.md" '/<!-- TODO/d'
+  git -C "$PROJECT" commit -q -am "docs: fill SECURITY.md"
+  assert_fails_with "release blocked by markers in the threat model" "threat-model.md" "$PROJECT/scripts/check-docs.sh" --release
+  edit_file "$PROJECT/docs/threat-model.md" '/<!-- TODO/d'
+  git -C "$PROJECT" commit -q -am "docs: fill threat model"
   printf 'Mark a TODO item as done.\n' >>"$PROJECT/docs/user-guide.md"
+  printf 'Rotate TODO list API keys yearly.\n' >>"$PROJECT/SECURITY.md"
   assert "the word TODO in guide prose does not block a release" "$PROJECT/scripts/check-docs.sh" --release
-  git -C "$PROJECT" checkout -q -- docs/user-guide.md
+  git -C "$PROJECT" checkout -q -- docs/user-guide.md SECURITY.md
   test_release_failures
   assert "release patch" "$PROJECT/scripts/release.sh" patch
   assert "VERSION bumped" test "$(tr -d '[:space:]' <"$PROJECT/VERSION")" = "0.1.1"

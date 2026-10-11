@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Cuts a release: bumps VERSION (SemVer), stamps CHANGELOG and docs, commits, tags. Never pushes.
-# Refuses to release while the user/admin guides still contain TODO markers.
+# Refuses to release while the guides, SECURITY.md or the threat model contain TODO markers.
 # Usage: scripts/release.sh <major|minor|patch>
 #   major = breaking change, minor = backwards-compatible feature, patch = bug fix
 set -euo pipefail
@@ -33,7 +33,8 @@ main() {
 
   "$SCRIPTS/check.sh" --strict # every required tool must run (REQ-019)
   "$SCRIPTS/check-requirements.sh" --release || die "replace template placeholders in the requirements first"
-  "$SCRIPTS/check-docs.sh" --release || die "documentation incomplete; run the documentation prompt (/docs)"
+  "$SCRIPTS/check-docs.sh" --release ||
+    die "documentation incomplete (files named above): guides via /docs; fill SECURITY.md and docs/threat-model.md"
   stamp_changelog CHANGELOG.md "$next"
   stamp_docs "$next"
   printf '%s\n' "$next" >VERSION

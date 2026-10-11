@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Validates user and admin documentation.
-# Always: required headings exist. With --release: no unfilled "<!-- TODO" markers remain.
+# Always: required headings exist. With --release: no unfilled "<!-- TODO" markers remain in
+# the guides, SECURITY.md and docs/threat-model.md (REQ-058).
 # Structure only: it cannot tell whether the written content is correct (REQ-037).
 # Usage: scripts/check-docs.sh [--release]
 set -euo pipefail
@@ -33,6 +34,7 @@ check_headings() {
 # check_filled <file>: counts a failure if "<!-- TODO" markers remain; the word TODO in prose is fine.
 check_filled() {
   local count
+  [ -f "$1" ] || return 0 # projects generated before the security documents existed
   count=$(grep -c '<!-- TODO' "$1" || true)
   if [ "$count" -gt 0 ]; then
     warn "$1: $count unfilled TODO marker(s)"
@@ -46,6 +48,8 @@ check_headings "$ROOT/docs/admin-guide.md" "$ADMIN_HEADINGS"
 if [ "$RELEASE_MODE" = "1" ]; then
   check_filled "$ROOT/docs/user-guide.md"
   check_filled "$ROOT/docs/admin-guide.md"
+  check_filled "$ROOT/SECURITY.md"
+  check_filled "$ROOT/docs/threat-model.md"
 fi
 
 [ "$FAILURES" -eq 0 ] || exit 1
