@@ -177,6 +177,25 @@ test_stack_enforcement() {
   fi
 }
 
+# REQ-024 releases never leave a partial state
+test_release_failures() {
+  local head hooks="$WORKDIR/failing-hooks"
+  head="$(git -C "$PROJECT" rev-parse HEAD)"
+  git -C "$PROJECT" tag v0.1.1
+  assert_fails "existing tag aborts the release" "$PROJECT/scripts/release.sh" patch
+  assert "nothing changed after tag conflict" test "$(git -C "$PROJECT" rev-parse HEAD)$(git -C "$PROJECT" status --porcelain)" = "$head"
+  git -C "$PROJECT" tag -d v0.1.1 >/dev/null
+  mkdir -p "$hooks" && printf '#!/bin/sh\nexit 1\n' >"$hooks/pre-commit" && chmod +x "$hooks/pre-commit"
+  git -C "$PROJECT" config core.hooksPath "$hooks"
+  assert_fails "failing release commit aborts" "$PROJECT/scripts/release.sh" patch
+  assert "files restored after failed commit" test "$(git -C "$PROJECT" rev-parse HEAD)$(git -C "$PROJECT" status --porcelain)" = "$head"
+  git -C "$PROJECT" config core.hooksPath scripts/hooks
+  chmod 500 "$PROJECT/.git/refs/tags"
+  assert "failed tag is reported with recovery steps" bash -c "! '$PROJECT/scripts/release.sh' patch 2>&1 | tee '$WORKDIR/tag-fail.log' >/dev/null; grep -q 'PARTIAL RELEASE' '$WORKDIR/tag-fail.log'"
+  chmod 700 "$PROJECT/.git/refs/tags"
+  git -C "$PROJECT" reset -q --hard "$head"
+}
+
 # REQ-007 release, REQ-010 docs gate
 test_release() {
   assert_fails "release blocked by TODO markers in docs" "$PROJECT/scripts/release.sh" patch
@@ -193,6 +212,7 @@ test_release() {
   fi
   sed -i.bak '/TODO/d' "$PROJECT"/docs/*-guide.md && rm -f "$PROJECT"/docs/*.bak
   git -C "$PROJECT" commit -q -am "docs: fill guides"
+  test_release_failures
   assert "release patch" "$PROJECT/scripts/release.sh" patch
   assert "VERSION bumped" test "$(tr -d '[:space:]' <"$PROJECT/VERSION")" = "0.1.1"
   assert "guide stamped with version" grep -q 'Applies to version:\*\* 0.1.1' "$PROJECT/docs/user-guide.md"

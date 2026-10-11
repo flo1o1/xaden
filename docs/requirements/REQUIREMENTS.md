@@ -28,7 +28,7 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 | REQ-021 | Requirements need complete fields and an eligible status | must | done | Empty requirement text or acceptance criteria and invalid dates fail; template placeholders block releases; feat and fix may only reference approved, in-progress or done requirements | 2026-10-11 |
 | REQ-022 | Commit reference checks cannot be bypassed | must | done | Special prefixes skip only the format check; Refs are parsed as git trailers; CI validates every commit of a first push | 2026-10-11 |
 | REQ-023 | Context pack contains all mandatory guidance and is written safely | must | done | Pack includes the security checklist and the Unreleased changelog and lists its contents; an invalid prompt name keeps the previous pack; docs call the fingerprint a consistency aid, not proof | 2026-10-11 |
-| REQ-024 | Releases never leave a partial state | must | approved | An existing tag or failing check aborts before any file changes; a failing commit restores the files; a failing tag is reported with recovery steps | 2026-10-11 |
+| REQ-024 | Releases never leave a partial state | must | done | An existing tag or failing check aborts before any file changes; a failing commit restores the files; a failing tag is reported with recovery steps | 2026-10-11 |
 | REQ-025 | Scaffold tests are diagnosable and independent of user configuration | should | done | Failed assertions show the command output; tests ignore global git configuration; tool-dependent fixtures are mandatory in CI | 2026-10-11 |
 | REQ-026 | Local drop zone for files that must never be committed | should | done | inbox/ exists in scaffold and projects; its contents are git-ignored, not copied into new projects, and treated as untrusted data by assistants | 2026-10-11 |
 
@@ -50,3 +50,4 @@ Priority: `must` · `should` · `could` · `wont` — Status: `draft` · `approv
 - 2026-10-11 REQ-021 done: field, date and placeholder validation; feat/fix only reference approved, in-progress or done
 - 2026-10-11 REQ-022 done: prefixes skip only format check, trailers parsed by git, CI range covers whole first push
 - 2026-10-11 REQ-023 done: pack includes security checklist and unreleased changes, validates before writing, atomic; fingerprint described as consistency aid
+- 2026-10-11 REQ-024 done: tag checked before changes, failed commit restores files, failed tag reported with recovery steps

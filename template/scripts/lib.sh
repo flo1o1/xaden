@@ -174,6 +174,39 @@ stamp_changelog() {
   rm -f "$tmp"
 }
 
+# --- release helpers (REQ-024): never leave a partial release behind -----------------
+
+# ensure_tag_absent <tag>: dies before anything changes if the release tag already exists.
+ensure_tag_absent() {
+  if git rev-parse -q --verify "refs/tags/$1" >/dev/null; then
+    die "tag $1 already exists; nothing was changed"
+  fi
+}
+
+# commit_release_or_restore <message> <files...>: commits the release files; if the commit
+# fails, restores them to HEAD so the working tree is exactly as before, then dies.
+commit_release_or_restore() {
+  local message=$1
+  shift
+  git add -- "$@"
+  if ! git commit -q -m "$message"; then
+    git reset -q -- "$@"
+    git checkout -q -- "$@"
+    die "release commit failed; release files restored, nothing was changed"
+  fi
+}
+
+# tag_release_or_report <tag>: tags HEAD; on failure explains the partial state and the
+# two ways out, then dies.
+tag_release_or_report() {
+  if ! git tag -a "$1" -m "Release $1"; then
+    warn "PARTIAL RELEASE: commit $(git rev-parse --short HEAD) exists, but tag $1 could not be created."
+    warn "Either retry: git tag -a $1 -m \"Release $1\""
+    warn "or undo the release commit: git reset --hard HEAD~1"
+    die "tagging failed"
+  fi
+}
+
 # bump_version <current> <major|minor|patch>: prints the next SemVer.
 bump_version() {
   local current=$1 part=$2 major minor patch

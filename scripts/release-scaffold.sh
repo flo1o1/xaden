@@ -13,13 +13,13 @@ main() {
   [ -n "$part" ] || die "usage: scripts/release-scaffold.sh <major|minor|patch>"
   [ -z "$(git status --porcelain)" ] || die "working tree not clean; commit or stash first"
   next="$(bump_version "$(tr -d '[:space:]' <VERSION)" "$part")"
+  ensure_tag_absent "v$next"
 
   STRICT=1 "$ROOT/scripts/check-scaffold.sh"
   stamp_changelog CHANGELOG.md "$next"
   printf '%s\n' "$next" >VERSION
-  git add VERSION CHANGELOG.md
-  git commit -q -m "chore(release): scaffold v$next"
-  git tag -a "v$next" -m "Scaffold v$next"
+  commit_release_or_restore "chore(release): scaffold v$next" VERSION CHANGELOG.md
+  tag_release_or_report "v$next"
   info "released scaffold v$next (not pushed; run: git push --follow-tags)"
 }
 

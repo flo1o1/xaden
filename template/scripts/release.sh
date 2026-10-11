@@ -33,6 +33,7 @@ main() {
 
   current="$(tr -d '[:space:]' <VERSION)"
   next="$(bump_version "$current" "$part")"
+  ensure_tag_absent "v$next" # all validation happens before the first change (REQ-024)
 
   "$SCRIPTS/check.sh" --strict # every required tool must run (REQ-019)
   "$SCRIPTS/check-requirements.sh" --release || die "replace template placeholders in the requirements first"
@@ -40,9 +41,8 @@ main() {
   stamp_changelog CHANGELOG.md "$next"
   stamp_docs "$next"
   printf '%s\n' "$next" >VERSION
-  git add VERSION CHANGELOG.md docs/user-guide.md docs/admin-guide.md
-  git commit -q -m "chore(release): v$next"
-  git tag -a "v$next" -m "Release v$next"
+  commit_release_or_restore "chore(release): v$next" VERSION CHANGELOG.md docs/user-guide.md docs/admin-guide.md
+  tag_release_or_report "v$next"
   info "released v$next (not pushed; run: git push --follow-tags)"
 }
 
