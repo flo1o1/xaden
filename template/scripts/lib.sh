@@ -120,14 +120,15 @@ list_project_files() {
 
 # collect_files <mode> <include-regex> [exclude-regex]: fills TARGETS with matching staged
 # (staged mode) or tracked (full mode) files, relative to the current directory.
+# One grep pass over the whole list: a process per file took ~12 s for 5,000 files.
+# Names containing newlines are unsupported.
 collect_files() {
   local mode=$1 pattern=$2 exclude=${3:-^$} file
   TARGETS=()
-  while IFS= read -r -d '' file; do
-    if [ -f "$file" ] && printf '%s\n' "$file" | grep -E "$pattern" | grep -Evq "$exclude"; then
-      TARGETS+=("$file")
-    fi
-  done < <(if [ "$mode" = "staged" ]; then cat "$STAGED_LIST"; else list_project_files; fi)
+  while IFS= read -r file; do
+    if [ -f "$file" ]; then TARGETS+=("$file"); fi
+  done < <(if [ "$mode" = "staged" ]; then cat "$STAGED_LIST"; else list_project_files; fi |
+    tr '\0' '\n' | grep -E "$pattern" | grep -Ev "$exclude")
 }
 
 # lint_shell <mode>: shellcheck on shell scripts and extension-less git hooks.

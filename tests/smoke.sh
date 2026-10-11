@@ -356,6 +356,18 @@ test_setup_and_commit_checks() {
   git -C "$PROJECT" reset -q --hard HEAD~1
 }
 
+# REQ-014: checkers get exactly the matching tracked files, chosen in one pass over the list.
+test_file_selection() {
+  local repo="$WORKDIR/selection"
+  mkdir -p "$repo/hooks" "$repo/tests/semgrep" && git -C "$repo" init -q
+  : >"$repo/a.sh" && : >"$repo/with space.sh" && : >"$repo/hooks/pre-commit" && : >"$repo/x.py" && : >"$repo/tests/semgrep/fixture.py"
+  git -C "$repo" add -A
+  assert "shell files and extension-less hooks selected" bash -c "cd '$repo' && source '$SCAFFOLD_ROOT/template/scripts/lib.sh' \
+    && collect_files full '(\.sh\$|(^|/)hooks/[^/.]+\$)' && test \"\${TARGETS[*]}\" = 'a.sh hooks/pre-commit with space.sh'"
+  assert "excluded paths left out" bash -c "cd '$repo' && source '$SCAFFOLD_ROOT/template/scripts/lib.sh' \
+    && collect_files full '\.py\$' '^tests/semgrep/' && test \"\${TARGETS[*]}\" = 'x.py'"
+}
+
 # REQ-014 fast offline pre-commit, REQ-005 security (SAST blocks eval)
 test_staged_checks() {
   printf 'x = 1\n' >"$PROJECT/clean.py"
@@ -991,6 +1003,7 @@ test_prompt_workflow
 test_setup_and_commit_checks
 test_commit_bypasses
 test_missing_tools
+test_file_selection
 test_staged_checks
 test_staged_snapshot
 test_stack_enforcement
