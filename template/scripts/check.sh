@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
-# Runs all static analysis: requirements format, shell lint, secret scan,
-# SAST, plus every language stack in scripts/stacks/ that detects its project files.
-# Usage: scripts/check.sh [--strict]   (--strict: missing tools count as failures)
+# Static analysis for this project.
+# Usage: scripts/check.sh [--staged] [--strict]
+#   (default)  full run: all files, types, tests, dependency audits. Use in CI, before
+#              releases and before declaring work done.
+#   --staged   pre-commit run: staged files only, offline, a few seconds.
+#   --strict   missing tools count as failures instead of being skipped.
 set -euo pipefail
 
 # SCRIPTS: where the tooling lives. ROOT: the repository it works on; PROJECT_ROOT lets
@@ -11,39 +14,39 @@ ROOT="${PROJECT_ROOT:-$(cd "$SCRIPTS/.." && pwd)}"
 # shellcheck source=SCRIPTDIR/lib.sh
 source "$SCRIPTS/lib.sh"
 
-[ "${1:-}" = "--strict" ] && STRICT=1
+MODE=full
+for arg in "$@"; do
+  case "$arg" in
+    --staged) MODE=staged ;;
+    --strict) STRICT=1 ;;
+    *) die "unknown option: $arg (usage: scripts/check.sh [--staged] [--strict])" ;;
+  esac
+done
 cd "$ROOT"
 
-# check_generic: language-independent checks.
-check_generic() {
+# check_project_files: requirement and documentation structure (cheap, always run).
+check_project_files() {
   info "requirements format"
   "$SCRIPTS/check-requirements.sh" || FAILURES=$((FAILURES + 1))
   info "documentation structure"
   "$SCRIPTS/check-docs.sh" || FAILURES=$((FAILURES + 1))
-
-  local shell_files
-  # Paths contain no spaces by construction (scripts/, tests/).
-  shell_files=$(find scripts tests -type f \( -name '*.sh' -o -path 'scripts/hooks/*' \) 2>/dev/null | sort || true)
-  if [ -n "$shell_files" ]; then
-    # shellcheck disable=SC2086 # intentional word splitting of the file list
-    run_tool "shellcheck" shellcheck $shell_files
-  fi
-
-  run_tool "secret scan (gitleaks)" gitleaks detect --no-banner --redact
-  run_tool "SAST (semgrep)" semgrep scan --config p/default --metrics=off --error --quiet
 }
 
-# check_stacks: source each stack file; each defines stack_check.
+# check_stacks: each file in stacks/ defines stack_check <mode> for one language.
 check_stacks() {
   local stack_file
   for stack_file in "$SCRIPTS"/stacks/*.sh; do
     # shellcheck disable=SC1090 # stack files are discovered at runtime
     source "$stack_file"
-    stack_check
+    stack_check "$MODE"
   done
 }
 
-check_generic
+info "check mode: $MODE"
+check_project_files
+lint_shell "$MODE"
+scan_secrets "$MODE"
+scan_sast "$MODE" "$ROOT/.semgrep"
 check_stacks
 
 if [ "$FAILURES" -gt 0 ]; then

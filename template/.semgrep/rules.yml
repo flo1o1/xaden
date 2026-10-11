@@ -1,0 +1,91 @@
+# Project-local semgrep rules: offline, versioned with the code, deterministic.
+# Used by scripts/check.sh in pre-commit and full mode. CI additionally runs the
+# semgrep registry (p/default) for broader coverage.
+# Add rules here when a review finds a recurring mistake; test them with
+# `semgrep --test --config .semgrep/rules.yml <fixtures>`.
+rules:
+  - id: python-subprocess-shell-true
+    languages: [python]
+    severity: ERROR
+    message: "shell=True enables command injection. Pass an argument list without a shell (docs/security.md: Injection)."
+    pattern: subprocess.$FUNC(..., shell=True, ...)
+
+  - id: python-eval-exec
+    languages: [python]
+    severity: ERROR
+    message: "eval/exec executes arbitrary code. Parse the input explicitly instead."
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: exec(...)
+
+  - id: python-unsafe-deserialization
+    languages: [python]
+    severity: ERROR
+    message: "pickle/marshal on untrusted data executes code. Use JSON or a schema-validated format."
+    pattern-either:
+      - pattern: pickle.load(...)
+      - pattern: pickle.loads(...)
+      - pattern: marshal.loads(...)
+
+  - id: python-yaml-unsafe-load
+    languages: [python]
+    severity: ERROR
+    message: "yaml.load without SafeLoader can construct arbitrary objects. Use yaml.safe_load."
+    patterns:
+      - pattern: yaml.load(...)
+      - pattern-not: yaml.load(..., Loader=yaml.SafeLoader, ...)
+      - pattern-not: yaml.load(..., Loader=SafeLoader, ...)
+
+  - id: python-sql-built-from-strings
+    languages: [python]
+    severity: ERROR
+    message: "SQL built from strings allows injection. Use parameterized queries: execute(sql, params)."
+    pattern-either:
+      - pattern: $CURSOR.execute(f"...", ...)
+      - pattern: $CURSOR.execute("..." % $ARGS, ...)
+      - pattern: $CURSOR.execute("...".format(...), ...)
+      - pattern: $CURSOR.execute("..." + $X, ...)
+
+  - id: python-tls-verification-disabled
+    languages: [python]
+    severity: ERROR
+    message: "TLS certificate verification disabled. Remove verify=False."
+    pattern: requests.$METHOD(..., verify=False, ...)
+
+  - id: python-debug-server
+    languages: [python]
+    severity: WARNING
+    message: "Debug mode exposes an interactive debugger. Read it from configuration, default off."
+    pattern: $APP.run(..., debug=True, ...)
+
+  - id: js-eval
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "eval/new Function executes arbitrary code. Parse the input explicitly instead."
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: new Function(...)
+
+  - id: js-innerhtml-dynamic
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "Assigning dynamic HTML enables XSS. Use textContent or a sanitizer."
+    patterns:
+      - pattern: $EL.innerHTML = $VALUE
+      - pattern-not: $EL.innerHTML = "..."
+
+  - id: js-tls-verification-disabled
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "TLS certificate verification disabled. Remove rejectUnauthorized: false."
+    pattern: "{..., rejectUnauthorized: false, ...}"
+
+  - id: js-child-process-string-command
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "exec with a built command string allows command injection. Use execFile/spawn with an argument array."
+    pattern-either:
+      - pattern: $CP.exec($A + $B, ...)
+      - pattern: $CP.execSync($A + $B, ...)
+      - pattern: $CP.exec(`...${$X}...`, ...)
+      - pattern: $CP.execSync(`...${$X}...`, ...)

@@ -20,8 +20,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y shellcheck
           pipx install semgrep
-      - name: Static analysis
+      - name: Static analysis (full run)
         run: scripts/check.sh
+      - name: SAST with semgrep registry rules (broader, needs network)
+        run: semgrep scan --config p/default --metrics=off --error --quiet
       - name: Commit messages (contributors may not have local hooks)
         env:
           EVENT_NAME: ${{ github.event_name }}

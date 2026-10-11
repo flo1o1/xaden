@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
-# Scaffold maintainer pre-commit hook. Full run incl. smoke test: scripts/check-scaffold.sh
+# Scaffold maintainer pre-commit hook: fast, offline, staged files only.
+# Full run incl. rule tests and smoke test: scripts/check-scaffold.sh
 set -euo pipefail
-"$(git rev-parse --show-toplevel)/scripts/check-scaffold.sh" --quick
+"$(git rev-parse --show-toplevel)/scripts/check-scaffold.sh" --staged

@@ -87,6 +87,19 @@ test_setup_and_commit_checks() {
   git -C "$PROJECT" reset -q --hard HEAD~1
 }
 
+test_staged_checks() {
+  printf 'x = 1\n' >"$PROJECT/clean.py"
+  git -C "$PROJECT" add clean.py
+  assert "staged check passes on clean file" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
+  if has_command semgrep; then
+    printf 'def run(user_input):\n    return eval(user_input)\n' >"$PROJECT/unsafe.py"
+    git -C "$PROJECT" add unsafe.py
+    assert_fails "staged check blocks eval via local semgrep rule" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
+  fi
+  git -C "$PROJECT" reset -q --hard
+  rm -f "$PROJECT/clean.py" "$PROJECT/unsafe.py"
+}
+
 test_release() {
   assert_fails "release blocked by TODO markers in docs" "$PROJECT/scripts/release.sh" patch
   sed -i.bak '/TODO/d' "$PROJECT"/docs/*-guide.md && rm -f "$PROJECT"/docs/*.bak
@@ -105,5 +118,6 @@ test_bump_version
 test_new_project
 test_generated_project
 test_setup_and_commit_checks
+test_staged_checks
 test_release
 info "smoke test passed ($PASSED assertions)"

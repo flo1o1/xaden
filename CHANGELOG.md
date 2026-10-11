@@ -13,5 +13,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - `scripts/setup.sh` for fresh clones, commit-message checks in CI, GETTING-STARTED guide.
 
 ### Changed
+- Pre-commit checks are fast and offline: staged files only, versioned local semgrep rules
+  (`template/.semgrep/rules.yml`, tested by fixtures), `gitleaks --staged`. Types, tests, audits
+  and semgrep registry rules run in the full check and CI.
 - Project files moved to `template/`; the scaffold has its own requirements, rules,
   maintainer hooks (`.githooks/`), `check-scaffold.sh`, `release-scaffold.sh` and CI (Linux + macOS).

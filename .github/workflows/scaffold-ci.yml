@@ -34,6 +34,8 @@ jobs:
           GIT_COMMITTER_NAME: ci
           GIT_COMMITTER_EMAIL: ci@example.invalid
         run: scripts/check-scaffold.sh
+      - name: SAST with semgrep registry rules (broader, needs network)
+        run: semgrep scan --config p/default --metrics=off --error --quiet
       - name: Commit messages
         env:
           EVENT_NAME: ${{ github.event_name }}

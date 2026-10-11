@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# Git pre-commit hook: static analysis + requirements validation.
+# Git pre-commit hook: fast, offline checks on staged files (scripts/check.sh --staged).
+# The full run (types, tests, audits) happens in CI and before releases.
 # Bypass in emergencies with `git commit --no-verify` (CI still runs the checks).
 set -euo pipefail
 
 ROOT="$(git rev-parse --show-toplevel)"
-"$ROOT/scripts/check.sh"
+"$ROOT/scripts/check.sh" --staged
 
 # Nudge: code changed but requirements untouched.
 staged="$(git diff --cached --name-only)"

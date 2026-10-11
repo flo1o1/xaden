@@ -57,7 +57,10 @@ Details and examples: `docs/clean-code.md` (same IDs).
 
 ## 5. Static analysis (mandatory before "done")
 
-- Run `scripts/check.sh`. Fix findings; never silence a rule without a one-line reason.
+- Run `scripts/check.sh` (full run). The pre-commit hook only runs the fast `--staged` subset;
+  types, tests and dependency audits run in the full run and in CI.
+- Fix findings; never silence a rule without a one-line reason. Recurring security mistakes
+  become a rule in `.semgrep/rules.yml` (offline, versioned).
 - Do not claim success unless the check passed. Report failures verbatim.
 
 ## 6. Security (mandatory)
