@@ -17,7 +17,16 @@ Repeat the pack whenever requirements change.
 ## Local models
 
 Small models have small context windows: keep `AGENTS.md` short, use one prompt at a time,
-and edit few files per request.
+and edit few files per request. For a pasted pack, use the brief form with only the
+requirements the task touches:
+
+```bash
+scripts/pack-context.sh --brief REQ-003 feature   # rules, security, personas, index, REQ-003, prompt
+```
+
+It leaves out `docs/clean-code.md`, the architecture, the threat model and all other requirement
+files, and says so in its header. The script prints the pack's estimated size in tokens and warns
+above about 12,000.
 
 ### Ollama + Aider
 ```bash

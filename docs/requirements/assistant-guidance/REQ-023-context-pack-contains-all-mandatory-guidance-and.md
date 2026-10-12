@@ -4,7 +4,7 @@ type: job
 epic: assistant-guidance
 priority: must
 status: done
-updated: 2026-10-11
+updated: 2026-10-12
 ---
 
 # Context pack contains all mandatory guidance and is written safely
@@ -18,3 +18,4 @@ When I use a chat assistant without file access, I want a context pack with all 
 - Pack includes the security checklist and the Unreleased changelog and lists its contents
 - an invalid prompt name keeps the previous pack
 - docs call the fingerprint a consistency aid, not proof
+- Given `scripts/pack-context.sh --brief REQ-nnn <prompt>`, when it runs, then the pack holds the rules, the security checklist, the personas, the requirements index, only the named requirement files and the prompt, its header names what it leaves out, an unknown ID keeps the previous pack, and every run prints the estimated size in tokens with a warning above 12,000.

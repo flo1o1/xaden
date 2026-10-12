@@ -35,7 +35,8 @@ Project commands (anywhere inside a project; run the project's own scripts/):
   setup              activate git hooks, report missing tools    scripts/setup.sh
   check [...]        static analysis (--staged, --strict)        scripts/check.sh
   req [...]          requirements: list, show, new, index         scripts/req.sh
-  pack [prompt...]   context pack for chat tools                  scripts/pack-context.sh
+  pack [--brief] [REQ-nnn...] [prompt...]
+                     context pack for chat tools                  scripts/pack-context.sh
   release <part>     cut a release: major, minor or patch         scripts/release.sh
 EOF
 }

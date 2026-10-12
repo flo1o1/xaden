@@ -250,6 +250,20 @@ test_generated_project() {
   cp "$PROJECT/context-pack.md" "$WORKDIR/pack-before.md"
   assert_fails "unknown prompt name rejected" "$PROJECT/scripts/pack-context.sh" feature no-such-prompt
   assert "failed pack keeps the previous pack" cmp -s "$PROJECT/context-pack.md" "$WORKDIR/pack-before.md"
+  # REQ-023 brief pack for small context windows: rules, security, personas, index, chosen requirements
+  local pack="$PROJECT/context-pack.md"
+  assert "brief pack works" "$PROJECT/scripts/pack-context.sh" --brief REQ-001 feature
+  assert "brief pack keeps the rules and the security checklist" bash -c "grep -q '^# PROJECT RULES' '$pack' && grep -q 'Secure coding checklist' '$pack'"
+  assert "brief pack has the index and the chosen requirement" bash -c "grep -q '^# REQUIREMENTS INDEX' '$pack' \
+    && grep -q '^# REQUIREMENTS (docs/requirements/first-epic/REQ-001-' '$pack' && grep -q '^# TASK PROMPT (feature)' '$pack'"
+  assert_fails "brief pack leaves out the clean-code details" grep -q '^# CLEAN CODE DETAILS' "$pack"
+  assert "brief pack names what it leaves out" grep -q '^NOT INCLUDED: docs/clean-code.md' "$pack"
+  assert "brief pack without IDs has no requirement files" bash -c "'$PROJECT/scripts/pack-context.sh' --brief >/dev/null && ! grep -q '^# REQUIREMENTS (docs' '$pack'"
+  cp "$pack" "$WORKDIR/pack-before.md"
+  assert_fails_with "brief pack rejects an unknown requirement" 'does not exist' "$PROJECT/scripts/pack-context.sh" --brief REQ-999 # traceability: ignore
+  assert "failed brief pack keeps the previous pack" cmp -s "$pack" "$WORKDIR/pack-before.md"
+  assert_fails_with "requirement IDs need --brief" 'need --brief' "$PROJECT/scripts/pack-context.sh" REQ-001
+  assert "pack reports its estimated size in tokens" bash -c "'$PROJECT/scripts/pack-context.sh' | grep -q 'about [0-9][0-9]* tokens'"
 
   local check="$PROJECT/scripts/check-requirements.sh"
   assert_fails_with "invalid requirement status rejected" 'unknown status' \
