@@ -2,7 +2,7 @@ name: scaffold-ci
 
 on:
   push:
-    branches: [main]
+    branches: ['**'] # REQ-062: a branch tip must pass before it may be pushed to main
   pull_request:
 
 permissions:

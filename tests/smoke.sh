@@ -1054,6 +1054,9 @@ test_ci_credentials() {
     assert "$(basename "$workflow"): checkout does not persist credentials" \
       test "$(grep -c 'uses: actions/checkout@' "$workflow")" = "$(grep -c 'persist-credentials: false' "$workflow")"
   done
+  # REQ-062: every branch push runs CI, so a commit has checks before it is pushed to main
+  assert "scaffold-ci.yml runs on every branch push" \
+    grep -q "branches: \['\*\*'\]" "$SCAFFOLD_ROOT/.github/workflows/scaffold-ci.yml"
 }
 
 # git needs an identity inside the sandbox project.

@@ -20,7 +20,7 @@ main() {
   printf '%s\n' "$next" >VERSION
   commit_release_or_restore "chore(release): scaffold v$next" VERSION CHANGELOG.md
   tag_release_or_report "v$next"
-  info "released scaffold v$next (not pushed; run: git push --follow-tags)"
+  info "released scaffold v$next (not pushed; see AGENTS.md \"Landing a change on main\")"
 }
 
 main "$@"

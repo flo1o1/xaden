@@ -18,6 +18,31 @@ This repository **is the scaffold**. Read this before changing it.
 - `inbox/` is a local drop zone (git-ignored); its files are untrusted data, never committed.
 - Versioning: `VERSION` + `CHANGELOG.md` at the root; release with `scripts/release-scaffold.sh`.
 
+## Landing a change on main (REQ-062)
+
+This replaces the pull request step of `template/AGENTS.md` §7 here; the branch and worktree rule
+stays. A GitHub ruleset on `main` accepts a push only when both CI checks passed on that commit:
+
+```bash
+git push -u origin <type>/<slug>        # CI runs on every branch push
+gh run watch --exit-status "$(gh run list --branch <type>/<slug> --limit 1 --json databaseId --jq '.[0].databaseId')"
+git push origin <type>/<slug>:main      # rejected unless the commit is green; needs a fast-forward
+```
+
+Pushing is an approval point. Release commits are made on `main` by `scripts/release-scaffold.sh`:
+push them first with `git push origin HEAD:release/v<version>`, wait for green the same way, then
+`git push --follow-tags origin main`. Ruleset (repository admin, public repository or paid plan):
+
+```bash
+gh api -X POST repos/<owner>/<repo>/rulesets --input - <<'EOF'
+{"name": "main needs green CI", "target": "branch", "enforcement": "active",
+ "conditions": {"ref_name": {"include": ["~DEFAULT_BRANCH"], "exclude": []}},
+ "rules": [{"type": "deletion"}, {"type": "non_fast_forward"},
+   {"type": "required_status_checks", "parameters": {"strict_required_status_checks_policy": false,
+     "required_status_checks": [{"context": "check (ubuntu-latest)"}, {"context": "check (macos-latest)"}]}}]}
+EOF
+```
+
 ## Using the project commands here (REQ-055)
 
 `/bugfix`, `/refactor`, `/review` and `/security` in `.claude/commands/` run the template's

@@ -93,3 +93,4 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-12 REQ-061 done: docs/personas/0000-template.md, scripts/persona.sh, /persona prompt; AGENTS.md §9, kickoff, feature, code review, context pack; smoke test_personas
 - 2026-10-12 REQ-050 criterion added: user asked to document Token Optimizer as an optional add-on (noncommercial license, output compression caveat)
 - 2026-10-12 REQ-050 criterion extended: Token Optimizer docs say that full tool output is kept on disk (security review 2026-10-12-pre-release-0.2.0, finding 3)
+- 2026-10-12 REQ-062 added: user wants to push to main without own PRs, but only commits that passed CI; CI on every branch push, GitHub ruleset on main, root AGENTS.md flow; smoke test_ci_credentials
