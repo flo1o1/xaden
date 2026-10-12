@@ -19,8 +19,8 @@ Explicit user instructions in the current session override this file.
 1. Run `scripts/context-status.sh`. Begin your first reply with its `CONTEXT CHECK <fingerprint>`
    line. It lets the user see which file versions you started from; it is a consistency aid,
    not proof that you read or follow them. No shell access: copy the line from the pasted pack.
-2. Read `docs/requirements/INDEX.md` (source of truth for *what* to build) and the requirement
-   files your task touches (`scripts/req.sh show REQ-nnn`).
+2. Read `docs/requirements/INDEX.md` (source of truth for *what* to build; skip it when your tool already loaded it,
+   e.g. through `CLAUDE.md`) and the requirement files your task touches (`scripts/req.sh show REQ-nnn`).
 3. Read the `Unreleased` section of `CHANGELOG.md` (what changed since last release).
 4. If a request is ambiguous or conflicts with a requirement: **ask, do not guess**.
 

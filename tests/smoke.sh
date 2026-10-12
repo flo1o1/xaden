@@ -312,6 +312,8 @@ test_requirement_files() {
   for prompt in feature bugfix refactor code-review; do
     assert "$prompt prompt points to the clean-code details" grep -q 'docs/clean-code.md' "$PROJECT/prompts/$prompt.md"
   done
+  # REQ-002: rules already loaded by the tool are not read again at session start
+  assert "session start skips a requirements index the tool already loaded" grep -q 'skip it when your tool already loaded it' "$PROJECT/AGENTS.md"
 }
 
 # write_requirements_table <root>: a project in the old single-table format.
