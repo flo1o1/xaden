@@ -23,7 +23,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-053 | job | could | done | Optional assistant plugins for review and security are documented in every project |
 | REQ-054 | job | should | done | Assistants look for mature existing solutions before building their own |
 | REQ-055 | job | should | done | Maintainers use the project commands on the scaffold itself |
-| REQ-060 | job | should | approved | Every change happens on its own branch and worktree and reaches main through a pull request |
+| REQ-060 | job | should | done | Every change happens on its own branch and worktree and reaches main through a pull request |
 
 ## Project setup (`project-setup`)
 
