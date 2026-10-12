@@ -729,6 +729,31 @@ test_inbox() {
   rm -f "$PROJECT/inbox/notes.txt"
 }
 
+# REQ-061 user personas that assistants check solutions against
+test_personas() {
+  local copy="$WORKDIR/variants/personas" persona name
+  rm -rf "$copy" && mkdir -p "$WORKDIR/variants" && cp -R "$PROJECT" "$copy"
+  persona="$copy/docs/personas/ada-admin.md"
+  assert "persona.sh new creates the persona file" bash -c "'$copy/scripts/persona.sh' new 'Ada Admin' | grep -qx 'docs/personas/ada-admin.md'"
+  assert "persona name and date are filled in" bash -c "grep -qx 'name: Ada Admin' '$persona' && grep -Eq '^updated: [0-9]{4}-[0-9]{2}-[0-9]{2}$' '$persona' && ! grep -q '{{' '$persona'"
+  assert "persona sections are prefilled" bash -c "grep -q '^## A solution fails this persona when' '$persona' && grep -q '^TODO: ' '$persona'"
+  printf 'edited\n' >>"$persona"
+  assert_fails_with "an existing persona is not overwritten" 'exists already' "$copy/scripts/persona.sh" new 'Ada Admin'
+  assert "the existing persona keeps its content" grep -qx 'edited' "$persona"
+  assert_fails_with "a name that breaks the file is rejected" 'without' "$copy/scripts/persona.sh" new 'a/b'
+  for name in Ben Cleo Dan Eve; do "$copy/scripts/persona.sh" new "$name" >/dev/null; done
+  assert "a sixth persona warns about focus" bash -c "'$copy/scripts/persona.sh' new Finn 2>&1 | grep -q '3 to 5'"
+  assert "pack includes personas but not the template" bash -c "'$copy/scripts/pack-context.sh' >/dev/null \
+    && grep -q '^# USER PERSONA (docs/personas/ada-admin.md)' '$copy/context-pack.md' && ! grep -q '0000-template' '$copy/context-pack.md'"
+  assert "AGENTS.md checks solutions against personas" grep -q 'against each one; name the persona it fails' "$PROJECT/AGENTS.md"
+  for name in kickoff feature code-review; do
+    assert "$name prompt uses the personas" grep -q 'docs/personas\|\[\[persona\]\]' "$PROJECT/prompts/$name.md"
+  done
+  assert "/persona runs the persona prompt" grep -qx '@prompts/persona.md' "$PROJECT/.claude/commands/persona.md"
+  assert "the scaffold manages the persona template" is_managed docs/personas/0000-template.md
+  assert_fails "the scaffold never manages project personas" is_managed docs/personas/ada-admin.md
+}
+
 # REQ-002 tool-agnostic rules, REQ-005 security review, REQ-008 Obsidian vault
 test_template_contents() {
   local pointer
@@ -1050,6 +1075,7 @@ test_optional_tools
 test_dependency_vetting
 test_assistant_plugins
 test_look_before_build
+test_personas
 test_scaffold_commands
 test_traceability
 test_scaffold_update

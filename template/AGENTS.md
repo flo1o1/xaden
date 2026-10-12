@@ -159,6 +159,9 @@ Details and examples: `docs/clean-code.md` (same IDs).
 - Plan briefly, then change in small steps; keep the project runnable.
 - Place new code as `docs/architecture.md` → "Rules for new code" says; update that file in the
   same change when the structure changes.
+- **Personas.** `docs/personas/` holds 3 to 5 user personas (`scripts/persona.sh new "<name>"`).
+  Check every solution you propose or review (requirement, flow, UI, text, error message, docs)
+  against each one; name the persona it fails and the red flag it hits.
 - Order of work (CC-09): for a feature, refactor first (separate commit, tests green) only when
   the change would be hard otherwise, then test-first; for a bug fix, a failing regression test
   first, then the smallest fix, then refactor if needed.
