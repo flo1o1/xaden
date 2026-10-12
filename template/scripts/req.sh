@@ -25,19 +25,10 @@ list_requirements() {
   requirement_records "$DIR" | LC_ALL=C sort | awk -F'\t' '{ printf "%s [%s, %s] %s\n", $1, $2, $3, $6 }'
 }
 
-# requirement_path <REQ-nnn>: the file of one requirement; dies if unknown.
-requirement_path() {
-  local path
-  printf '%s' "$1" | grep -Eq '^REQ-[0-9]{3,}$' || die "invalid requirement ID: $1"
-  path="$(requirement_records "$DIR" | awk -F'\t' -v id="$1" '$1 == id { print $7; exit }')"
-  [ -n "$path" ] || die "$1 does not exist in docs/requirements"
-  printf '%s' "$path"
-}
-
 # show_requirement <REQ-nnn>: prints the path and the content of one requirement.
 show_requirement() {
   local path
-  path="$(requirement_path "$1")"
+  path="$(requirement_path "$DIR" "$1")"
   printf 'File: %s\n\n' "${path#"$ROOT"/}"
   cat "$path"
 }

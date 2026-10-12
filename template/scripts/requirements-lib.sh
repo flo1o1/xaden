@@ -51,6 +51,16 @@ requirement_records() {
     END { flush() }'
 }
 
+# requirement_path <requirements-dir> <REQ-nnn>: the file of one requirement; dies if the ID is
+# malformed or unknown.
+requirement_path() {
+  local path
+  printf '%s' "$2" | grep -Eq '^REQ-[0-9]{3,}$' || die "invalid requirement ID: $2"
+  path="$(requirement_records "$1" | awk -F'\t' -v id="$2" '$1 == id { print $7; exit }')"
+  [ -n "$path" ] || die "$2 does not exist in docs/requirements"
+  printf '%s' "$path"
+}
+
 # epic_title <epic-dir>: the first "# " heading of EPIC.md, or the folder name.
 epic_title() {
   local title=""
