@@ -48,9 +48,12 @@ changes, Token Optimizer's code beyond where and how it stores tool output.
 
 - Static reading plus two reproductions; no fuzzing of `persona.sh` names.
 - The pre-commit guard runs on the committer's machine only. `git commit --no-verify`,
-  `ALLOW_MAIN_COMMIT=1` or a detached HEAD skip it, and the scaffold repository has no
-  server-side branch protection (private repository on the free plan). The guard keeps honest
-  assistants on branches; it does not stop a deliberate push to `main`.
+  `ALLOW_MAIN_COMMIT=1` or a detached HEAD skip it. At review time the scaffold repository had
+  no server-side branch protection (private repository on the free plan), so the guard kept
+  honest assistants on branches but did not stop a deliberate push to `main`. Update
+  2026-10-12: the repository is public and ruleset 24936940 rejects a push to `main` unless
+  `check (ubuntu-latest)` and `check (macos-latest)` passed on that commit, without bypass
+  (REQ-062; verified: a push before CI was rejected with GH013). No review is required.
 - Token Optimizer's redaction is pattern-based; secrets it does not recognise stay in the
   archive. Its other hooks and any network behaviour were not reviewed (unverified).
 
