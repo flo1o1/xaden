@@ -49,7 +49,7 @@ cited_ids() {
 check_done_requirements_are_tested() {
   local id status
   while read -r id status; do
-    if [ "$status" = "done" ] && ! printf '%s\n' "$2" | grep -qx "$id"; then
+    if [ "$status" = "done" ] && ! grep -qx "$id" <<<"$2"; then
       warn "$id is done but no test references it"
       FAILURES=$((FAILURES + 1))
     fi
@@ -60,7 +60,7 @@ check_done_requirements_are_tested() {
 check_tests_cite_known_requirements() {
   local id
   while IFS= read -r id; do
-    if [ -n "$id" ] && ! printf '%s\n' "$1" | grep -q "^$id "; then
+    if [ -n "$id" ] && ! grep -q "^$id " <<<"$1"; then
       warn "tests cite $id, which is not in docs/requirements"
       FAILURES=$((FAILURES + 1))
     fi

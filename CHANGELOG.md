@@ -8,6 +8,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - The commit-msg check finds `CC-nn` rules in a rules file outside the repository top (the scaffold's `template/AGENTS.md`) when git runs it as a hook. Before, scaffold commits citing a rule failed with "commit cites unknown rule".
 - `scripts/check-requirements.sh` accepted a status, type or priority written as a pattern (`status: d.*e` passed as `done`); values must now match a listed name exactly.
 - `scripts/release.sh` left `CHANGELOG.md` stamped when writing a guide failed, and could even report success; it now stops and restores `VERSION`, `CHANGELOG.md` and both guides.
+- `scripts/check-traceability.sh`, the commit-msg check and the pre-commit hook could, rarely, report a listed requirement as missing ("tests cite REQ-013, which is not in docs/requirements"): a lookup piped into `grep -q` failed when grep stopped reading early. The lookups no longer use a pipe.
 
 ### Changed
 - `CLAUDE.md` and `.aider.conf.yml` no longer load `docs/clean-code.md` into every session (about 2,000 tokens); the feature, bugfix, refactor and review prompts point to it instead.

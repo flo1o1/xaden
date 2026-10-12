@@ -13,6 +13,6 @@ refuse_commit_on_protected_branch # changes reach main through pull requests (RE
 # Nudge: code changed but requirements untouched.
 staged="$(git diff --cached --name-only)"
 if printf '%s\n' "$staged" | grep -Evq '^(docs/|prompts/|\.|[A-Z]+\.md$|VERSION$)' &&
-   ! printf '%s\n' "$staged" | grep -q '^docs/requirements/'; then
+   ! grep -q '^docs/requirements/' <<<"$staged"; then
   echo "NOTE: code staged without a requirements update. Did scope change?" >&2
 fi

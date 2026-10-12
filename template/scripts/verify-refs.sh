@@ -62,7 +62,7 @@ check_cited_ids() {
   local id
   while IFS= read -r id; do
     case "$id" in
-      REQ-*) printf '%s\n' "$REQUIREMENTS_LIST" | grep -q "^$id " || die "commit cites unknown requirement $id" ;;
+      REQ-*) grep -q "^$id " <<<"$REQUIREMENTS_LIST" || die "commit cites unknown requirement $id" ;;
       CC-*) printf '%s\n' "$RULES_TEXT" | grep -Eq "^- \*\*$id\*\*" || die "commit cites unknown rule $id" ;;
     esac
   done < <(grep -oE 'REQ-[0-9]{3,}|CC-[0-9]{2}' "$CLEAN_MESSAGE_FILE" | sort -u)
