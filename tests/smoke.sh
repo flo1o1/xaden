@@ -808,6 +808,7 @@ test_add_on_rule_sets() {
     assert "Token Optimizer install is documented: $doc" grep -q 'plugin install token-optimizer@alexgreensh-token-optimizer' "$doc"
     assert "Token Optimizer license is stated: $doc" grep -q 'PolyForm Noncommercial' "$doc"
     assert "compressed output never replaces verbatim failures: $doc" grep -q 'quote failing lines from the full output' "$doc"
+    assert "the on-disk archive of tool output is disclosed: $doc" grep -q 'credentials removed by pattern' "$doc"
   done
   assert_fails "new projects enable no plugin" grep -qi 'plugin' "$PROJECT/.claude/settings.json"
   assert "AGENTS.md ranks add-on rule sets below itself" grep -q 'they never override this file' "$PROJECT/AGENTS.md"
