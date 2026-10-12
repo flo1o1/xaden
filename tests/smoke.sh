@@ -12,6 +12,8 @@ source "$SCAFFOLD_ROOT/scripts/scaffold-lib.sh"
 
 # REQ-025: isolated from the user's git configuration; failures show the command output;
 # SMOKE_REQUIRE_TOOLS=1 (set in CI) turns tool-dependent skips into failures.
+# SMOKE_VERBOSE=1 prints a line per passed assertion; by default only failures and the total
+# appear, so an assistant reading the output spends no tokens on hundreds of "ok" lines.
 export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
 # Strictness is chosen per test call; an inherited STRICT=1 (CI) must not leak into fixtures.
 unset STRICT
@@ -33,13 +35,19 @@ show_output() {
   echo "--------------------------------------------------------" >&2
 }
 
+# pass <description>: counts a passed assertion; prints it only with SMOKE_VERBOSE=1.
+pass() {
+  PASSED=$((PASSED + 1))
+  if [ "${SMOKE_VERBOSE:-0}" = "1" ]; then printf 'ok   %s\n' "$1"; fi
+  return 0
+}
+
 # assert <description> <command...>: runs the command, dies with its output if it fails.
 assert() {
   local description=$1
   shift
   if ("$@") >"$OUTPUT" 2>&1; then
-    PASSED=$((PASSED + 1))
-    printf 'ok   %s\n' "$description"
+    pass "$description"
   else
     show_output
     die "FAILED: $description"
@@ -54,8 +62,7 @@ assert_fails() {
     show_output
     die "FAILED (expected failure): $description"
   fi
-  PASSED=$((PASSED + 1))
-  printf 'ok   %s\n' "$description"
+  pass "$description"
 }
 
 # need_tool <tool> <what>: true if available; otherwise skip visibly, or fail in CI.
@@ -86,8 +93,7 @@ assert_fails_with() {
     show_output
     die "FAILED (wrong reason, expected '$expected'): $description"
   fi
-  PASSED=$((PASSED + 1))
-  printf 'ok   %s\n' "$description"
+  pass "$description"
 }
 
 # req_file <root> <REQ-nnn>: path of a requirement file below <root>/docs/requirements.
@@ -116,6 +122,12 @@ requirements_variant() {
   edit_file "$(req_file "$root" REQ-001)" "$2"
   PROJECT_ROOT="$root" "$PROJECT/scripts/req.sh" index >/dev/null
   printf '%s' "$root/docs/requirements"
+}
+
+# REQ-025 passed assertions are silent unless SMOKE_VERBOSE=1; failures always print
+test_quiet_output() {
+  assert "passed assertions print nothing by default" test -z "$(SMOKE_VERBOSE=0 pass probe)"
+  assert "SMOKE_VERBOSE=1 prints passed assertions" test "$(SMOKE_VERBOSE=1 pass probe)" = "ok   probe"
 }
 
 # REQ-007 semantic versioning
@@ -1091,6 +1103,7 @@ test_ci_credentials() {
 export GIT_AUTHOR_NAME=smoke GIT_AUTHOR_EMAIL=smoke@example.invalid
 export GIT_COMMITTER_NAME=smoke GIT_COMMITTER_EMAIL=smoke@example.invalid
 
+test_quiet_output
 test_bump_version
 test_new_project
 test_license

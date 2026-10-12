@@ -40,6 +40,7 @@ jobs:
           GIT_COMMITTER_NAME: ci
           GIT_COMMITTER_EMAIL: ci@example.invalid
           SMOKE_REQUIRE_TOOLS: "1"
+          SMOKE_VERBOSE: "1" # full assertion log in CI; locally only failures and the total
           STRICT: "1"
         run: scripts/check-scaffold.sh
       - name: SAST with semgrep registry rules (broader, needs network)
