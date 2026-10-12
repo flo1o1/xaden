@@ -35,7 +35,8 @@ new_persona() {
   [ -n "$slug" ] || die "name gives an empty file name: $name"
   [ -f "$TEMPLATE" ] || die "docs/personas/0000-template.md not found (update the scaffold)"
   path="$DIR/$slug.md"
-  [ ! -e "$path" ] || die "persona exists already: ${path#"$ROOT"/}"
+  # -L too: -e follows a dangling link, and writing through it would leave the project.
+  if [ -e "$path" ] || [ -L "$path" ]; then die "persona exists already: ${path#"$ROOT"/}"; fi
   sed -e "s/{{PERSONA_NAME}}/$name/g" -e "s/{{PERSONA_DATE}}/$(date +%Y-%m-%d)/g" "$TEMPLATE" >"$path"
   if [ "$(persona_count)" -gt "$RECOMMENDED_MAXIMUM" ]; then
     warn "$(persona_count) personas; 3 to $RECOMMENDED_MAXIMUM keep the checks focused. Merge similar ones."

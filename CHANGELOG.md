@@ -9,6 +9,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ### Security
 - `scripts/pack-context.sh` refuses symbolic links, so a committed link (for example in `docs/personas/`) can no longer copy a file from outside the project, such as a credentials file, into a context pack.
+- `scripts/persona.sh` treats a dangling symbolic link as an existing persona, so a committed link can no longer make it write a file outside the project.
 - A `fix` commit's trailer must be a requirement ID or exactly `Refs: none`; values that merely contain "none" (such as `Refs: nonexistent`) are rejected.
 - `scripts/check-security-exceptions.sh` rejects expiry dates with an impossible month or day (such as `2026-13-01`), which used to be accepted and silently extended the exception.
 - `scripts/migrate-requirements.sh` stops when a table row's ID is not `REQ-nnn`, so a crafted requirements table can no longer make the migration write files outside `docs/requirements/`.

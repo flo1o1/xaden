@@ -751,6 +751,11 @@ test_personas() {
   assert_fails_with "pack refuses a symbolically linked file" 'symbolic link' "$copy/scripts/pack-context.sh"
   assert_fails "the linked file's content never reaches the pack" grep -q 'LINKED_SECRET' "$copy/context-pack.md"
   rm "$copy/docs/personas/zed.md"
+  # REQ-061: a dangling link in docs/personas/ must not make persona.sh write outside the project.
+  ln -s "$WORKDIR/outside-persona" "$copy/docs/personas/mallory.md"
+  assert_fails_with "persona.sh refuses a dangling symbolic link" 'exists already' "$copy/scripts/persona.sh" new Mallory
+  assert_fails "nothing is written through the link" test -e "$WORKDIR/outside-persona"
+  rm "$copy/docs/personas/mallory.md"
   assert "AGENTS.md checks solutions against personas" grep -q 'against each one; name the persona it fails' "$PROJECT/AGENTS.md"
   for name in kickoff feature code-review; do
     assert "$name prompt uses the personas" grep -q 'docs/personas\|\[\[persona\]\]' "$PROJECT/prompts/$name.md"
