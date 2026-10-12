@@ -32,8 +32,10 @@ unreleased_changes() {
   awk '/^## \[Unreleased\]/ { inside = 1; next } inside && /^## \[/ { exit } inside' "$ROOT/CHANGELOG.md"
 }
 
-# append_section <title> <file>: adds one titled section to the pack.
+# append_section <title> <file>: adds one titled section to the pack. Refuses symbolic links: a
+# committed link could pull a file from outside the project (a secret) into a pasted pack.
 append_section() {
+  [ ! -L "$2" ] || die "refusing to pack a symbolic link: ${2#"$ROOT"/}"
   printf '\n# %s\n\n' "$1" >>"$PACK"
   strip_frontmatter "$2" >>"$PACK"
 }

@@ -65,8 +65,10 @@ other commercial use needs a paid license. Check that your use qualifies before 
 
 Install only from `alexgreensh/token-optimizer` on GitHub. Compressed output is a summary: a
 check report must quote failing lines from the full output, so rerun the check or expand the
-archived result before reporting. Use one output-compression plugin at a time. Your project's
-`AGENTS.md` takes precedence over it (§10).
+archived result before reporting. Use one output-compression plugin at a time. It keeps full tool
+output on disk in your home directory (private file permissions; credentials removed by pattern
+only), so never print secrets in a session. Your project's `AGENTS.md` takes precedence over it
+(§10).
 
 ## 2. Get the scaffold
 

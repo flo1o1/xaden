@@ -8,6 +8,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - Requirements are one file per requirement in epic folders (`docs/requirements/<epic>/REQ-nnn-<slug>.md` with an `EPIC.md` per epic and a generated `INDEX.md`) instead of one table. Functional requirements are Jobs To Be Done (*When …, I want to …, so I can …*), non-functional ones measurable quality goals. `scripts/req.sh new|show|list|index` manages them; `check-requirements.sh`, the commit hook, traceability, context fingerprint and packs read the new layout. Existing projects run `scripts/migrate-requirements.sh` after updating.
 
 ### Security
+- `scripts/pack-context.sh` refuses symbolic links, so a committed link (for example in `docs/personas/`) can no longer copy a file from outside the project, such as a credentials file, into a context pack.
+- `scripts/persona.sh` treats a dangling symbolic link as an existing persona, so a committed link can no longer make it write a file outside the project.
+- The Token Optimizer docs say that it keeps full tool output on disk in your home directory and removes credentials by pattern only, so secrets printed in a session may stay there.
 - A `fix` commit's trailer must be a requirement ID or exactly `Refs: none`; values that merely contain "none" (such as `Refs: nonexistent`) are rejected.
 - `scripts/check-security-exceptions.sh` rejects expiry dates with an impossible month or day (such as `2026-13-01`), which used to be accepted and silently extended the exception.
 - `scripts/migrate-requirements.sh` stops when a table row's ID is not `REQ-nnn`, so a crafted requirements table can no longer make the migration write files outside `docs/requirements/`.

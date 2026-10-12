@@ -745,6 +745,17 @@ test_personas() {
   assert "a sixth persona warns about focus" bash -c "'$copy/scripts/persona.sh' new Finn 2>&1 | grep -q '3 to 5'"
   assert "pack includes personas but not the template" bash -c "'$copy/scripts/pack-context.sh' >/dev/null \
     && grep -q '^# USER PERSONA (docs/personas/ada-admin.md)' '$copy/context-pack.md' && ! grep -q '0000-template' '$copy/context-pack.md'"
+  # REQ-023: a committed link must not copy a file from outside the project into the pack.
+  printf 'LINKED_SECRET\n' >"$WORKDIR/outside-secret"
+  ln -s "$WORKDIR/outside-secret" "$copy/docs/personas/zed.md"
+  assert_fails_with "pack refuses a symbolically linked file" 'symbolic link' "$copy/scripts/pack-context.sh"
+  assert_fails "the linked file's content never reaches the pack" grep -q 'LINKED_SECRET' "$copy/context-pack.md"
+  rm "$copy/docs/personas/zed.md"
+  # REQ-061: a dangling link in docs/personas/ must not make persona.sh write outside the project.
+  ln -s "$WORKDIR/outside-persona" "$copy/docs/personas/mallory.md"
+  assert_fails_with "persona.sh refuses a dangling symbolic link" 'exists already' "$copy/scripts/persona.sh" new Mallory
+  assert_fails "nothing is written through the link" test -e "$WORKDIR/outside-persona"
+  rm "$copy/docs/personas/mallory.md"
   assert "AGENTS.md checks solutions against personas" grep -q 'against each one; name the persona it fails' "$PROJECT/AGENTS.md"
   for name in kickoff feature code-review; do
     assert "$name prompt uses the personas" grep -q 'docs/personas\|\[\[persona\]\]' "$PROJECT/prompts/$name.md"
@@ -797,6 +808,7 @@ test_add_on_rule_sets() {
     assert "Token Optimizer install is documented: $doc" grep -q 'plugin install token-optimizer@alexgreensh-token-optimizer' "$doc"
     assert "Token Optimizer license is stated: $doc" grep -q 'PolyForm Noncommercial' "$doc"
     assert "compressed output never replaces verbatim failures: $doc" grep -q 'quote failing lines from the full output' "$doc"
+    assert "the on-disk archive of tool output is disclosed: $doc" grep -q 'credentials removed by pattern' "$doc"
   done
   assert_fails "new projects enable no plugin" grep -qi 'plugin' "$PROJECT/.claude/settings.json"
   assert "AGENTS.md ranks add-on rule sets below itself" grep -q 'they never override this file' "$PROJECT/AGENTS.md"

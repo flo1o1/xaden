@@ -53,6 +53,8 @@ takes precedence over them (§10). Install from the named sources only.
 
 Compressed output is a summary: a completion report must quote failing lines from the full output
 (rerun the check or expand the archived result). Use one output-compression plugin at a time.
+Token Optimizer keeps full tool output on disk in your home directory (private file permissions;
+credentials removed by pattern only), so never print secrets in a session.
 
 Not recommended: frameworks that bring their own complete workflow (for example Superpowers,
 with its own brainstorm, plan, TDD and review phases). They duplicate the workflow in
