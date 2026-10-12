@@ -745,6 +745,12 @@ test_personas() {
   assert "a sixth persona warns about focus" bash -c "'$copy/scripts/persona.sh' new Finn 2>&1 | grep -q '3 to 5'"
   assert "pack includes personas but not the template" bash -c "'$copy/scripts/pack-context.sh' >/dev/null \
     && grep -q '^# USER PERSONA (docs/personas/ada-admin.md)' '$copy/context-pack.md' && ! grep -q '0000-template' '$copy/context-pack.md'"
+  # REQ-023: a committed link must not copy a file from outside the project into the pack.
+  printf 'LINKED_SECRET\n' >"$WORKDIR/outside-secret"
+  ln -s "$WORKDIR/outside-secret" "$copy/docs/personas/zed.md"
+  assert_fails_with "pack refuses a symbolically linked file" 'symbolic link' "$copy/scripts/pack-context.sh"
+  assert_fails "the linked file's content never reaches the pack" grep -q 'LINKED_SECRET' "$copy/context-pack.md"
+  rm "$copy/docs/personas/zed.md"
   assert "AGENTS.md checks solutions against personas" grep -q 'against each one; name the persona it fails' "$PROJECT/AGENTS.md"
   for name in kickoff feature code-review; do
     assert "$name prompt uses the personas" grep -q 'docs/personas\|\[\[persona\]\]' "$PROJECT/prompts/$name.md"
