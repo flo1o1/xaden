@@ -3,7 +3,7 @@
 Written by `template/prompts/security-review.md` (`/security`, REQ-055).
 A completed review records what was checked; it is not proof that the scaffold is secure.
 
-- Reviewer: Claude Code (Claude Opus 5.5); fixes need the maintainer's approval (prompt step 6)
+- Reviewer: Claude Code (Claude Opus 5.5); the maintainer approved fixes 1–3 on 2026-10-12
 - Version / commit: `02cc165` (scaffold 0.1.0, release 0.2.0 pending)
 - Threat model: `docs/threat-model.md` of 2026-10-11 (updated by this review); ASVS L1
 
@@ -58,9 +58,9 @@ changes, Token Optimizer's code beyond where and how it stores tool output.
 
 | # | Severity | Location | Issue (what an attacker does) | Status |
 |---|----------|----------|-------------------------------|--------|
-| 1 | low | `template/scripts/pack-context.sh:36` (`append_section`), new caller at `:65` | A contributor commits `docs/personas/<name>.md` (or any packed file) as a symlink to an absolute path such as `~/.aws/credentials`; a symlink is easy to miss in a pull request. The next `scripts/pack-context.sh` copies that file's content into the pack, which the user pastes into a chat assistant. The persona glob takes any number of files, so it widens an existing gap. | open |
-| 2 | low | `template/scripts/persona.sh:38-39` | A contributor commits `docs/personas/<slug>.md` as a dangling symlink to a path outside the project. `persona.sh new "<name>"` sees no file (`-e` follows the link) and writes the template through the link, creating a file outside the project (e.g. in an autostart folder; content comes from `0000-template.md`, which the same contributor can edit). | open |
-| 3 | low | `GETTING-STARTED.md:66`, `template/docs/optional-tools.md:54` | Not an attack: the docs do not say that Token Optimizer keeps full tool output on disk. A user who printed a secret in a session (e.g. a command's output) keeps a copy in the archive unless the pattern redaction catches it. | open |
+| 1 | low | `template/scripts/pack-context.sh:36` (`append_section`), new caller at `:65` | A contributor commits `docs/personas/<name>.md` (or any packed file) as a symlink to an absolute path such as `~/.aws/credentials`; a symlink is easy to miss in a pull request. The next `scripts/pack-context.sh` copies that file's content into the pack, which the user pastes into a chat assistant. The persona glob takes any number of files, so it widens an existing gap. | fixed in `9e51325` |
+| 2 | low | `template/scripts/persona.sh:38-39` | A contributor commits `docs/personas/<slug>.md` as a dangling symlink to a path outside the project. `persona.sh new "<name>"` sees no file (`-e` follows the link) and writes the template through the link, creating a file outside the project (e.g. in an autostart folder; content comes from `0000-template.md`, which the same contributor can edit). | fixed in `4e14f62` |
+| 3 | low | `GETTING-STARTED.md:66`, `template/docs/optional-tools.md:54` | Not an attack: the docs do not say that Token Optimizer keeps full tool output on disk. A user who printed a secret in a session (e.g. a command's output) keeps a copy in the archive unless the pattern redaction catches it. | fixed in `d81e508` (documented) |
 | 4 | info | `template/scripts/lib.sh:214` | The branch guard is client-side and bypassable (see Limitations). AGENTS.md §7 calls it a refusal by the hook, which is accurate; recorded so nobody treats it as a security control. | accepted (design) |
 
 Proposed fixes:
@@ -83,6 +83,6 @@ session."
 
 ## Remediation summary
 
-Findings 1–3 open, awaiting approval (prompt step 6); each fix gets a regression test in
-`tests/smoke.sh`. Finding 4 accepted as a design limit. Next review: before the next release,
+Findings 1–3 fixed, each with a regression test in `tests/smoke.sh` (`test_personas`,
+`test_add_on_rule_sets`) that failed before the fix. Finding 4 accepted as a design limit. Next review: before the next release,
 or when a script starts reading a new file set (globs) or writing new paths.

@@ -84,8 +84,8 @@ Verification standard: OWASP ASVS (what to build), OWASP WSTG (how to test it).
 |--------|-------|------------|--------------------|
 | Project name with shell, `sed` or path characters | users' machines | `is_project_name` allows `[a-z][a-z0-9-]{1,50}` only | REQ-001, smoke "reject bad project name" |
 | Secrets, dependencies or symlinks copied into a project | secrets, project integrity | only tracked template files exported; symlinks refused; failed runs cleaned up | REQ-018, smoke `test_generation_safety` |
-| Committed symlink in `docs/personas/` (or another packed file) copies a local secret into a context pack | secrets | open: review 2026-10-12-pre-release-0.2.0 #1 | REQ-023, REQ-061 |
-| Dangling symlink in `docs/personas/` makes `persona.sh` write outside the project | users' machines | open: review 2026-10-12-pre-release-0.2.0 #2 | REQ-061 |
+| Committed symlink in `docs/personas/` (or another packed file) copies a local secret into a context pack | secrets | `pack-context.sh` refuses symbolic links (review 2026-10-12-pre-release-0.2.0 #1) | REQ-023, smoke `test_personas` |
+| Dangling symlink in `docs/personas/` makes `persona.sh` write outside the project | users' machines | a link counts as an existing persona (review 2026-10-12-pre-release-0.2.0 #2) | REQ-061, smoke `test_personas` |
 | Commit lands on `main` without a pull request | trust in the gates | pre-commit guard (client-side; `--no-verify`, `ALLOW_MAIN_COMMIT=1`, detached HEAD skip it); no server-side protection | REQ-060, smoke `test_branch_rule` |
 | Secret committed | secrets | gitleaks in pre-commit and CI; a missing scanner fails `--strict` | REQ-004, REQ-019, smoke `test_missing_tools`; no test plants a secret yet |
 | Unstaged fix hides a staged problem | trust in the gates | checks run on an export of the git index | REQ-020, smoke `test_staged_snapshot` |
