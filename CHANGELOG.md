@@ -69,6 +69,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - `scripts/setup.sh` for fresh clones, commit-message checks in CI, GETTING-STARTED guide.
 
 ### Changed
+- CI workflows (scaffold and generated projects) pin `actions/checkout` v7.0.1 instead of v4.2.2, which ran on the deprecated Node 20. Self-hosted runners need runner version 2.327.1 or newer.
 - `.claude/settings.json` is now updated by `scripts/update-scaffold.sh`, so existing projects receive corrected Claude Code permissions; a project that edited the file keeps it and gets `.claude/settings.json.scaffold-new` to merge.
 - The scaffold is now called Xaden (formerly Vibe Coding Scaffold). New projects name it in their README, first CHANGELOG entry and first commit; script names and the `.scaffold/` state folder are unchanged, so existing projects update as before.
 - Commit hooks are faster with many requirements: the traceability check reads each test file once, and the commit-msg check exports the staged requirements in one step.
