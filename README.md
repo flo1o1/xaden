@@ -21,6 +21,7 @@ relative to it.
 | Semantic versioning | `VERSION`, `CHANGELOG.md`, Conventional Commits hook, `scripts/release.sh` |
 | User + admin docs | `docs/user-guide.md`, `docs/admin-guide.md` (install, system requirements, config, hardening, upgrade); filled by `/docs`, structure checked by `scripts/check-docs.sh` (not content), release blocked while incomplete |
 | Fewer invented rules/requirements | Numbered rules (`CC-nn`) and requirements (`REQ-nnn`); Claude Code imports them into every session; `scripts/req.sh` lookup; commit hook and traceability check reject unknown IDs. `scripts/context-status.sh` fingerprints the files the assistant started from: a consistency aid, not proof it read or followed them |
+| User personas | `docs/personas/`: 3 to 5 personas, created prefilled by `scripts/persona.sh new` or `/persona`; assistants check every solution against them |
 | Git | New projects get their own repo with hooks installed |
 | Obsidian | Open the folder as a vault; prompts have frontmatter, wikilinks, a template folder |
 | Chat UIs / small models | `scripts/pack-context.sh` builds one pasteable file |

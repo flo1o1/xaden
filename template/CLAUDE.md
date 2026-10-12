@@ -7,7 +7,8 @@
 ## Claude Code specifics
 
 - Slash commands in `.claude/commands/` wrap the prompts in `prompts/`:
-  `/kickoff`, `/feature`, `/bugfix`, `/refactor`, `/requirements`, `/docs`, `/security`, `/review`, `/release`.
+  `/kickoff`, `/persona`, `/feature`, `/bugfix`, `/refactor`, `/requirements`, `/docs`, `/security`, `/review`,
+  `/release`.
 - Use plan mode for anything touching more than two files.
 - The imports above load the rules and the requirements index into every session; read a single
   requirement with `scripts/req.sh show REQ-nnn`.

@@ -45,6 +45,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ### Added
 - Every change happens on its own branch in its own git worktree and reaches `main` through a pull request (AGENTS.md §7), so several changes can be worked on in parallel without touching each other. The pre-commit hook refuses commits on `main`/`master`; project generation, releases and concluding a merge are allowed, `ALLOW_MAIN_COMMIT=1` overrides.
+- User personas: `scripts/persona.sh new "<name>"` (or `/persona <description>` in Claude Code) creates a prefilled `docs/personas/<name>.md`. AGENTS.md, kickoff, feature and code review check every solution against the project's 3 to 5 personas and name the one it fails; context packs include them.
 - `xaden` command: `scripts/install.sh` links it into `~/.local/bin`; `xaden new my-app` creates `./my-app` from any directory, `xaden update` updates the project you are in, and `xaden setup|check|req|pack|release` run that project's own scripts from any of its subdirectories.
 - Caveman (shorter assistant replies) is documented as an optional add-on next to Ponytail, with the rule that project files stay in normal prose.
 - Maintainers can run `/bugfix`, `/refactor`, `/review` and `/security` on the scaffold itself: root commands include the template prompts unchanged, `AGENTS.md` maps their project paths, and `docs/threat-model.md` describes the scaffold's own attack surface.
