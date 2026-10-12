@@ -24,7 +24,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-054 | job | should | done | Assistants look for mature existing solutions before building their own |
 | REQ-055 | job | should | done | Maintainers use the project commands on the scaffold itself |
 | REQ-060 | job | should | done | Every change happens on its own branch and worktree and reaches main through a pull request |
-| REQ-061 | job | should | approved | Assistants check solutions against the project's user personas |
+| REQ-061 | job | should | done | Assistants check solutions against the project's user personas |
 
 ## Project setup (`project-setup`)
 
