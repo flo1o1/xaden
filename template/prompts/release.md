@@ -2,7 +2,7 @@
 title: Release
 type: prompt
 status: stable
-version: 1.1.0
+version: 1.2.0
 works-with: [claude-code, chatgpt, local-llm]
 tags: [prompt, release, semver]
 ---
@@ -28,7 +28,8 @@ Choose the correct SemVer bump and cut the release safely.
    until it is fixed or I renew it.
 6. **Approval point:** show me the proposed bump and reason. Releasing always needs my
    explicit yes in this session.
-7. Run `scripts/release.sh <part>`. It checks, stamps changelog and guides, commits and tags. Do not push.
+7. On an up-to-date `main` with every branch for this release merged, run
+   `scripts/release.sh <part>`. It checks, stamps changelog and guides, commits and tags. Do not push.
 
 ## Done when
 - [ ] Tag `vX.Y.Z` exists locally

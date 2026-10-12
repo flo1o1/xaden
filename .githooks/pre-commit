@@ -2,4 +2,7 @@
 # Scaffold maintainer pre-commit hook: fast, offline, staged files only.
 # Full run incl. rule tests and smoke test: scripts/check-scaffold.sh
 set -euo pipefail
+# shellcheck source=SCRIPTDIR/../template/scripts/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")/../template/scripts/lib.sh"
+refuse_commit_on_protected_branch # changes reach main through pull requests (REQ-060)
 "$(git rev-parse --show-toplevel)/scripts/check-scaffold.sh" --staged

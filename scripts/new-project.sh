@@ -44,7 +44,8 @@ init_repository() {
   git -C "$dir" init -q -b main
   "$dir/scripts/setup.sh" >/dev/null
   git -C "$dir" add -A
-  git -C "$dir" commit -q -m "chore: initialize project from the Xaden scaffold"
+  # The first commit has no branch to come from (REQ-060).
+  ALLOW_MAIN_COMMIT=1 git -C "$dir" commit -q -m "chore: initialize project from the Xaden scaffold"
 }
 
 main() {

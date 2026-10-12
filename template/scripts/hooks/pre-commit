@@ -5,6 +5,9 @@
 set -euo pipefail
 
 ROOT="$(git rev-parse --show-toplevel)"
+# shellcheck source=SCRIPTDIR/../lib.sh
+source "$ROOT/scripts/lib.sh"
+refuse_commit_on_protected_branch # changes reach main through pull requests (REQ-060)
 "$ROOT/scripts/check.sh" --staged
 
 # Nudge: code changed but requirements untouched.
