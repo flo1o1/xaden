@@ -4,8 +4,8 @@ The scaffold's own threat model, read by `/security` in this repository (REQ-055
 projects get their own from `template/docs/threat-model.md`. Update this file when a change
 adds an entry point, a downloaded tool or a new place the scripts write to.
 
-**Last reviewed:** 2026-10-11, security review `docs/security-reviews/2026-10-11-audit-fixes.md`
-(previous: `2026-10-11-xaden-command.md`, `2026-10-11-scaffold-scripts.md`).
+**Last reviewed:** 2026-10-12, security review `docs/security-reviews/2026-10-12-pre-release-0.2.0.md`
+(previous: `2026-10-11-audit-fixes.md`, `2026-10-11-xaden-command.md`, `2026-10-11-scaffold-scripts.md`).
 
 ## System summary
 
@@ -30,14 +30,15 @@ may meet secrets in the working tree (`.env`, `inbox/`), which they must not cop
 
 - CLI arguments: project name and target directory (`new-project.sh`), project directory and
   `--apply` (`update-scaffold.sh`), bump part (`release*.sh`), prompt names (`pack-context.sh`),
-  requirement IDs, epics and titles (`req.sh`); command and arguments of `xaden`, target
+  requirement IDs, epics and titles (`req.sh`), persona names (`persona.sh`); command and arguments of `xaden`, target
   directory of `install.sh`.
 - Files the scripts read: `template/` (exported to projects), requirement files, commit message
   files, the old requirements table `docs/requirements/REQUIREMENTS.md` (`migrate-requirements.sh`),
-  `CHANGELOG.md`, `VERSION`, `docs/security-exceptions.md`, `SECURITY.md`, a project's
+  `docs/personas/*.md` (`pack-context.sh`, `persona.sh`), `CHANGELOG.md`, `VERSION`, `docs/security-exceptions.md`, `SECURITY.md`, a project's
   `.scaffold/manifest` and `package.json` /
   `pyproject.toml` (which decide which tools run).
-- Environment: `PROJECT_ROOT`, `RULES_FILE`, `STRICT`, `PATH`; in CI `EVENT_NAME`, `BASE_REF`,
+- Environment: `PROJECT_ROOT`, `RULES_FILE`, `STRICT`, `ALLOW_MAIN_COMMIT`, `PATH`; the current
+  branch (pre-commit branch guard); in CI `EVENT_NAME`, `BASE_REF`,
   `BEFORE_SHA`, `DEFAULT_BRANCH`, filled from GitHub event data.
 - Downloaded tools in CI: gitleaks archive, semgrep and ruff from PyPI, GitHub Actions, Homebrew.
 - `inbox/`: files dropped by the user, untrusted by definition.
@@ -83,6 +84,9 @@ Verification standard: OWASP ASVS (what to build), OWASP WSTG (how to test it).
 |--------|-------|------------|--------------------|
 | Project name with shell, `sed` or path characters | users' machines | `is_project_name` allows `[a-z][a-z0-9-]{1,50}` only | REQ-001, smoke "reject bad project name" |
 | Secrets, dependencies or symlinks copied into a project | secrets, project integrity | only tracked template files exported; symlinks refused; failed runs cleaned up | REQ-018, smoke `test_generation_safety` |
+| Committed symlink in `docs/personas/` (or another packed file) copies a local secret into a context pack | secrets | open: review 2026-10-12-pre-release-0.2.0 #1 | REQ-023, REQ-061 |
+| Dangling symlink in `docs/personas/` makes `persona.sh` write outside the project | users' machines | open: review 2026-10-12-pre-release-0.2.0 #2 | REQ-061 |
+| Commit lands on `main` without a pull request | trust in the gates | pre-commit guard (client-side; `--no-verify`, `ALLOW_MAIN_COMMIT=1`, detached HEAD skip it); no server-side protection | REQ-060, smoke `test_branch_rule` |
 | Secret committed | secrets | gitleaks in pre-commit and CI; a missing scanner fails `--strict` | REQ-004, REQ-019, smoke `test_missing_tools`; no test plants a secret yet |
 | Unstaged fix hides a staged problem | trust in the gates | checks run on an export of the git index | REQ-020, smoke `test_staged_snapshot` |
 | Commit cites invented requirements or slips past checks | trust in the gates | ID and trailer checks on every commit, re-run in CI | REQ-011, REQ-022, smoke `test_commit_bypasses` |
