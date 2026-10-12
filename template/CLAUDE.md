@@ -9,6 +9,11 @@
   `/kickoff`, `/persona`, `/feature`, `/bugfix`, `/refactor`, `/requirements`, `/docs`, `/security`, `/review`,
   `/release`.
 - Use plan mode for anything touching more than two files.
+- Optional: `/model opusplan` (or `"model": "opusplan"` in `.claude/settings.local.json`) plans
+  with Opus in plan mode and implements with Sonnet. Needs Opus access; without it use
+  `/model sonnet`, the prompts work unchanged. To pin a model for one command, add `model:` to
+  the front matter of its `.claude/commands/*.md`; it applies to the current turn only (the plan
+  up to the first approval point). The template sets no model, so each user's choice applies.
 - The imports above load the rules and the requirements index into every session; read a single
   requirement with `scripts/req.sh show REQ-nnn`. `docs/clean-code.md` is not imported (it costs
   tokens in every session); the prompts that write or review code tell you when to read it.

@@ -25,6 +25,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-055 | job | should | done | Maintainers use the project commands on the scaffold itself |
 | REQ-060 | job | should | done | Every change happens on its own branch and worktree and reaches main through a pull request |
 | REQ-061 | job | should | done | Assistants check solutions against the project's user personas |
+| REQ-063 | job | could | done | Claude Code users can plan with a stronger model and implement with a cheaper one |
 
 ## Project setup (`project-setup`)
 

@@ -853,6 +853,17 @@ test_add_on_rule_sets() {
   assert "AGENTS.md ranks add-on rule sets below itself" grep -q 'they never override this file' "$PROJECT/AGENTS.md"
 }
 
+# REQ-063 opusplan is a documented option; the template pins no model
+test_model_routing_option() {
+  local claude_md="$PROJECT/CLAUDE.md"
+  assert "CLAUDE.md names opusplan for the session" grep -q '/model opusplan' "$claude_md"
+  assert "CLAUDE.md keeps opusplan in local settings" grep -q '"model": "opusplan". in .\.claude/settings\.local\.json' "$claude_md"
+  assert "CLAUDE.md names the fallback without Opus" grep -q '/model sonnet., the prompts work unchanged' "$claude_md"
+  assert "CLAUDE.md explains per-command model front matter" grep -q 'it applies to the current turn only' "$claude_md"
+  assert_fails "project settings pin no model" grep -q '"model"' "$PROJECT/.claude/settings.json"
+  assert_fails "no command pins a model" grep -lq '^model:' "$PROJECT"/.claude/commands/*.md
+}
+
 # REQ-035 one workflow and approval model across prompts
 test_prompt_workflow() {
   local prompts="$PROJECT/prompts" name
@@ -1124,6 +1135,7 @@ test_requirement_files
 test_requirements_migration
 test_assistant_trust_rules
 test_add_on_rule_sets
+test_model_routing_option
 test_claude_permissions
 test_prompt_workflow
 test_setup_and_commit_checks

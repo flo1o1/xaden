@@ -17,6 +17,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - `scripts/pack-context.sh --brief REQ-nnn <prompt>` builds a smaller pack for local models: rules, security checklist, personas, the requirements index and only the named requirements (a new project: about 7,300 instead of 11,000 tokens). Every pack run prints its estimated size in tokens and warns above 12,000.
 - claude-mem (memory across sessions) is documented as an optional add-on, with where it stores sessions, the warning that its hosted memory service receives session content, and the rule that memories never replace the rule and requirement files.
 - obsidian-skills (Obsidian formats for the prompt library) is documented as an optional add-on, with the rule that Obsidian syntax stays in `prompts/` and rule files, requirements and guides stay plain Markdown.
+- `CLAUDE.md` documents `opusplan` as an optional Claude Code model setting (plan with Opus in plan mode, implement with Sonnet), the fallback `/model sonnet` without Opus access, and per-command `model:` front matter; new projects still set no model.
 
 ## [0.2.0] - 2026-10-12
 
