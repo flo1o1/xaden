@@ -20,7 +20,7 @@ install_link() {
   if is_our_link "$link"; then
     info "already installed: $link"
   else
-    [ ! -e "$link" ] && [ ! -L "$link" ] || die "$link exists and is not this checkout's xaden; left unchanged"
+    if [ -e "$link" ] || [ -L "$link" ]; then die "$link exists and is not this checkout's xaden; left unchanged"; fi
     mkdir -p "$1"
     ln -s "$COMMAND_SCRIPT" "$link"
     info "installed $link -> $COMMAND_SCRIPT"

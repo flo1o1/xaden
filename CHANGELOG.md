@@ -22,6 +22,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - Project generation copies only git-tracked template files; untracked or ignored files (`.env`, `node_modules/`, `inbox/` content) are never copied or committed. Symlinks are refused; failed runs remove the partial project.
 
 ### Fixed
+- Shell lint failed on Linux CI: Ubuntu's shellcheck 0.9.0 rejects `A && B || C` in `scripts/pack-context.sh` and `scripts/install.sh`, which newer versions accept; both are now plain `if` statements.
 - The full check chose the files for each checker with several processes per tracked file (about 12 s per checker for 5,000 files); it now filters the list in one pass.
 - `scripts/context-status.sh` reads the rules from `RULES_FILE` when set, so maintainers get a complete `CONTEXT CHECK` at the scaffold root (command in the root AGENTS.md) instead of an error and an empty rule list.
 - `xaden update` and `scripts/update-scaffold.sh` work in git worktrees and submodules, where `.git` is a file instead of a folder.

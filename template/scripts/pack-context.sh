@@ -123,7 +123,7 @@ main() {
   done
   mv "$PACK" "$OUT"
   info "wrote $OUT ($(wc -c <"$OUT" | tr -d ' ') bytes)"
-  copy_to_clipboard && info "copied to clipboard" || true
+  if copy_to_clipboard; then info "copied to clipboard"; fi
 }
 
 main "$@"
