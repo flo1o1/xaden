@@ -12,6 +12,7 @@ Every prompt has frontmatter (`status`, `version`, `works-with`) visible in Obsi
 | Prompt | Use when | Claude Code |
 |--------|----------|-------------|
 | [[kickoff]] | New project: capture goals, requirements, stack | `/kickoff` |
+| [[persona]] | Add a user persona that solutions are checked against | `/persona` |
 | [[feature]] | Build a new capability | `/feature` |
 | [[bugfix]] | Fix a defect | `/bugfix` |
 | [[refactor]] | Improve structure, same behaviour | `/refactor` |

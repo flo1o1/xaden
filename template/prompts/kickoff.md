@@ -2,7 +2,7 @@
 title: Project kickoff
 type: prompt
 status: stable
-version: 1.1.0
+version: 1.2.0
 works-with: [claude-code, chatgpt, local-llm]
 tags: [prompt, planning]
 ---
@@ -19,15 +19,17 @@ Turn my idea into tracked requirements, a stack decision, and a first runnable s
 1. Read `AGENTS.md`. Do not write code yet.
 2. Ask me up to 7 questions that block decisions: users, platform, data, constraints,
    language/stack preference, hosting, security/privacy needs. Wait for answers.
-3. Find the jobs my users hire the software for: group them into epics (topic folders under
-   `docs/requirements/`, each with an `EPIC.md` goal) and write one file per job with
-   `scripts/req.sh new <epic> job "<title>"`: *When <situation>, I want to <motivation>, so I
-   can <expected outcome>*, plus Given/When/Then acceptance criteria. Add measurable quality
-   goals (`type: quality`) for performance, security or compliance needs. Rewrite the placeholder
-   REQ-001 as the first job and rename `first-epic` (folder and `epic:`) to its topic.
-   Keep everything `draft`; run `scripts/req.sh index` and
-   `scripts/check-requirements.sh`. **Approval point:** show me `docs/requirements/INDEX.md`
-   and the job stories; set the ones I approve to `approved`.
+3. Draft 3 to 5 user personas from my answers ([[persona]]; `scripts/persona.sh new "<name>"`),
+   marking facts I did not give "(assumption)". Find the jobs my users hire the software for:
+   group them into epics (topic folders under `docs/requirements/`, each with an `EPIC.md`
+   goal) and write one file per job with `scripts/req.sh new <epic> job "<title>"`: *When
+   <situation>, I want to <motivation>, so I can <expected outcome>*, plus Given/When/Then
+   acceptance criteria. Add measurable quality goals (`type: quality`) for performance,
+   security or compliance needs. Rewrite the placeholder REQ-001 as the first job and rename
+   `first-epic` (folder and `epic:`) to its topic. Keep everything `draft`; run
+   `scripts/req.sh index` and `scripts/check-requirements.sh`. **Approval point:** show me
+   the personas, `docs/requirements/INDEX.md` and the job stories; set the ones I approve to
+   `approved`.
 4. Fill `docs/threat-model.md` from my answers: assets, sensitive data, entry points, trust
    boundaries, attackers, deployment assumptions. Propose an OWASP ASVS level with a one-line
    reason. Write "unknown" and ask me where you lack facts; never invent them.
@@ -45,7 +47,7 @@ Turn my idea into tracked requirements, a stack decision, and a first runnable s
 9. Commit: `chore: bootstrap <stack> skeleton`.
 
 ## Done when
-- [ ] Requirements approved by me
+- [ ] Personas and requirements approved by me
 - [ ] Threat model filled; open questions listed
 - [ ] Skeleton runs; `scripts/check.sh` passes
 - [ ] Decision record, architecture and README written
