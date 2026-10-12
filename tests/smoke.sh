@@ -978,6 +978,14 @@ test_update_safety() {
   assert "update applies with a foreign manifest entry" "$SCAFFOLD_ROOT/scripts/update-scaffold.sh" "$PROJECT" --apply
   assert "project file listed in the manifest kept" test -f "$PROJECT/src/app.py"
   git -C "$PROJECT" reset -q --hard HEAD~1 && git -C "$PROJECT" clean -qfdx
+
+  # A manifest path that climbs out of a managed folder is a project file too.
+  mkdir -p "$PROJECT/src" && printf 'print(1)\n' >"$PROJECT/src/app.py"
+  printf '%s\tscripts/../src/app.py\n' "$(content_sum <"$PROJECT/src/app.py")" >>"$PROJECT/.scaffold/manifest"
+  git -C "$PROJECT" add -A && git -C "$PROJECT" commit -qn -m "chore: manifest path climbs out of scripts/"
+  assert "update applies with a climbing manifest entry" "$SCAFFOLD_ROOT/scripts/update-scaffold.sh" "$PROJECT" --apply
+  assert "project file behind a climbing manifest path kept" test -f "$PROJECT/src/app.py"
+  git -C "$PROJECT" reset -q --hard HEAD~1 && git -C "$PROJECT" clean -qfdx
 }
 
 # REQ-056: `xaden` runs the scaffold's and the current project's scripts from any directory.

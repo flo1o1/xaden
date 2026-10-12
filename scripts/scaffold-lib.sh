@@ -21,9 +21,11 @@ SCAFFOLD_STATE_DIR=".scaffold"
 # hyphens; starts with a letter; 2-51 characters).
 is_project_name() { printf '%s' "$1" | grep -Eq '^[a-z][a-z0-9-]{1,50}$'; }
 
-# is_managed <relative-path>: true if the scaffold owns this path.
+# is_managed <relative-path>: true if the scaffold owns this path. Paths from a project's
+# manifest are untrusted: a ".." segment could climb out of a managed folder (scripts/../src/x).
 is_managed() {
   local managed
+  case "/$1/" in */../*) return 1 ;; esac
   for managed in $MANAGED_PATHS; do
     case "$managed" in
       */) case "$1" in "$managed"*) return 0 ;; esac ;;
