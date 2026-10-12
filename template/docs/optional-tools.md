@@ -50,11 +50,16 @@ takes precedence over them (§10). Install from the named sources only.
 | [Ponytail](https://github.com/DietrichGebert/ponytail) | Smallest complete change: reuse before writing, one test for risky logic | `/plugin marketplace add DietrichGebert/ponytail`, then `/plugin install ponytail@ponytail` |
 | [Caveman](https://github.com/JuliusBrussee/caveman) | Shorter replies, fewer output tokens; code, commits and project files stay in normal prose | `/plugin marketplace add JuliusBrussee/caveman`, then `/plugin install caveman@caveman` |
 | [Token Optimizer](https://github.com/alexgreensh/token-optimizer) | Smaller context: compresses command, search and tool output; context audits. License: PolyForm Noncommercial (small-business permission), not open source | `/plugin marketplace add alexgreensh/token-optimizer`, then `/plugin install token-optimizer@alexgreensh-token-optimizer` |
+| [claude-mem](https://github.com/thedotmack/claude-mem) | Memory of past sessions: records sessions, compresses them with a model and adds relevant memories to new ones. License: Apache-2.0 | `/plugin marketplace add thedotmack/claude-mem`, then `/plugin install claude-mem` |
 
 Compressed output is a summary: a completion report must quote failing lines from the full output
 (rerun the check or expand the archived result). Use one output-compression plugin at a time.
 Token Optimizer keeps full tool output on disk in your home directory (private file permissions;
 credentials removed by pattern only), so never print secrets in a session.
+claude-mem stores sessions in `~/.claude-mem` (use its `<private>` tags for sensitive text); its
+hosted memory service (the claude-mem observer) receives session content, so choose your Anthropic
+plan or your own model key when code must not leave your assistant's provider. Its memories are
+context: requirements and rules are still looked up in the files (`AGENTS.md` §0).
 
 Not recommended: frameworks that bring their own complete workflow (for example Superpowers,
 with its own brainstorm, plan, TDD and review phases). They duplicate the workflow in

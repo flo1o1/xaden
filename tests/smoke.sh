@@ -810,6 +810,12 @@ test_add_on_rule_sets() {
     assert "compressed output never replaces verbatim failures: $doc" grep -q 'quote failing lines from the full output' "$doc"
     assert "the on-disk archive of tool output is disclosed: $doc" grep -q 'credentials removed by pattern' "$doc"
   done
+  assert "guide lists claude-mem as optional" grep -q '^| Optional: \[claude-mem\]' "$guide"
+  for doc in "$guide" "$PROJECT/docs/optional-tools.md"; do
+    assert "claude-mem install is documented: $doc" grep -q 'plugin install claude-mem' "$doc"
+    assert "claude-mem session store is disclosed: $doc" grep -q '/\.claude-mem`' "$doc"
+    assert "claude-mem hosted service is disclosed: $doc" grep -q 'receives session content' "$doc"
+  done
   assert_fails "new projects enable no plugin" grep -qi 'plugin' "$PROJECT/.claude/settings.json"
   assert "AGENTS.md ranks add-on rule sets below itself" grep -q 'they never override this file' "$PROJECT/AGENTS.md"
 }

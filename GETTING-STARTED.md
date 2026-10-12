@@ -16,6 +16,7 @@ private skills.
 | Optional: [Ponytail](https://github.com/DietrichGebert/ponytail) | Third-party rule set (MIT) that pushes assistants towards less new code; see below |
 | Optional: [Caveman](https://github.com/JuliusBrussee/caveman) | Third-party rule set (Apache-2.0) that makes assistant replies shorter; see below |
 | Optional: [Token Optimizer](https://github.com/alexgreensh/token-optimizer) | Third-party plugin (PolyForm Noncommercial, not open source) that compresses context and tool output; see below |
+| Optional: [claude-mem](https://github.com/thedotmack/claude-mem) | Third-party plugin (Apache-2.0) that carries memory of past sessions into new ones; see below |
 
 ### Optional: Ponytail
 
@@ -69,6 +70,23 @@ archived result before reporting. Use one output-compression plugin at a time. I
 output on disk in your home directory (private file permissions; credentials removed by pattern
 only), so never print secrets in a session. Your project's `AGENTS.md` takes precedence over it
 (§10).
+
+### Optional: claude-mem
+
+claude-mem records what the assistant does in a session, compresses it with a model, and adds
+relevant memories to later sessions. The scaffold does not install it:
+
+- Claude Code: `/plugin marketplace add thedotmack/claude-mem`, then `/plugin install claude-mem`.
+- Other tools: `npx claude-mem install --ide <tool>`, as its README describes.
+
+Install only from `thedotmack/claude-mem` on GitHub. It installs Bun and uv if they are missing,
+runs a local worker service, and stores sessions in `~/.claude-mem`, so never print secrets in a
+session (wrap sensitive text in its `<private>` tags). Its installer offers a hosted memory
+service (the claude-mem observer, sign-in required) that receives session content: choose your
+Anthropic plan or your own model key instead when your code must stay with your assistant's
+provider, or set `CLAUDE_MEM_ONLINE_OPTIN=false`. Injected memories are context, not rules:
+requirements and rules are still looked up in the files (`AGENTS.md` §0), and your project's
+`AGENTS.md` takes precedence over it (§10).
 
 ## 2. Get the scaffold
 
