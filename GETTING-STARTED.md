@@ -13,105 +13,18 @@ private skills.
 | Recommended: shellcheck, gitleaks, semgrep | Static analysis and secret scanning. Locally a missing tool is skipped and the run reported INCOMPLETE; CI and releases use `--strict`, where it fails. Once a stack exists, its tools are required too: ruff, mypy, bandit, pip-audit, pytest (Python) or npm with `lint`/`typecheck`/`test` scripts (Node) |
 | Optional: Obsidian | Comfortable reading and editing of the prompt library |
 | Optional: extra checks and plugins | `scripts/check.sh` suggests the ones that fit your project (`TIP:` lines); list in `template/docs/optional-tools.md` |
-| Optional: [Ponytail](https://github.com/DietrichGebert/ponytail) | Third-party rule set (MIT) that pushes assistants towards less new code; see below |
-| Optional: [Caveman](https://github.com/JuliusBrussee/caveman) | Third-party rule set (Apache-2.0) that makes assistant replies shorter; see below |
-| Optional: [Token Optimizer](https://github.com/alexgreensh/token-optimizer) | Third-party plugin (PolyForm Noncommercial, not open source) that compresses context and tool output; see below |
-| Optional: [claude-mem](https://github.com/thedotmack/claude-mem) | Third-party plugin (Apache-2.0) that carries memory of past sessions into new ones; see below |
-| Optional: [obsidian-skills](https://github.com/kepano/obsidian-skills) | Third-party plugin (MIT) that teaches assistants Obsidian's Markdown, Bases and Canvas formats; see below |
+| Optional: [Ponytail](https://github.com/DietrichGebert/ponytail) | Third-party rule set (MIT) that pushes assistants towards less new code; see the add-ons note below |
+| Optional: [Caveman](https://github.com/JuliusBrussee/caveman) | Third-party rule set (Apache-2.0) that makes assistant replies shorter; see the add-ons note below |
+| Optional: [Token Optimizer](https://github.com/alexgreensh/token-optimizer) | Third-party plugin (PolyForm Noncommercial, not open source) that compresses context and tool output; see the add-ons note below |
+| Optional: [claude-mem](https://github.com/thedotmack/claude-mem) | Third-party plugin (Apache-2.0) that carries memory of past sessions into new ones; see the add-ons note below |
+| Optional: [obsidian-skills](https://github.com/kepano/obsidian-skills) | Third-party plugin (MIT) that teaches assistants Obsidian's Markdown, Bases and Canvas formats; see the add-ons note below |
 
-### Optional: Ponytail
+### Optional: assistant add-ons
 
-Ponytail asks the assistant to reuse what exists (codebase, standard library, platform,
-installed dependencies) before writing code, and to leave a small test for risky logic. The
-scaffold does not install it; add it to your own tool if you want it:
-
-- Claude Code: `/plugin marketplace add DietrichGebert/ponytail`, then
-  `/plugin install ponytail@ponytail` (its hooks need `node` on your PATH).
-- Codex, Copilot CLI, Cursor and others: follow the project's `INSTALL.md`; tools that only
-  read a rules file can use its `AGENTS.md`. Do not replace your project's `AGENTS.md` with it.
-
-Install only from `DietrichGebert/ponytail` on GitHub or `@dietrichgebert/ponytail` on npm.
-Your project's `AGENTS.md` takes precedence over it (§10), so requirements, checks and the
-completion report stay mandatory.
-
-### Optional: Caveman
-
-Caveman makes the assistant answer in short, compressed sentences, which saves output tokens
-and reading time. Code, commit messages and pull requests stay in normal language, and it
-switches back to full sentences for security warnings and irreversible actions. The scaffold
-does not install it:
-
-- Claude Code: `/plugin marketplace add JuliusBrussee/caveman`, then
-  `/plugin install caveman@caveman` (its hooks need `node` on your PATH).
-- Other tools: follow the project's `INSTALL.md`.
-
-Install only from `JuliusBrussee/caveman` on GitHub. Keep project files in normal prose: do not
-run its `/caveman-compress` on `AGENTS.md`, `CLAUDE.md`, requirements or guides, and do not
-commit the always-on rule files `/caveman-init` writes. Your project's `AGENTS.md` takes
-precedence over it (§10), so the completion report stays complete.
-
-### Optional: Token Optimizer
-
-Token Optimizer audits what fills the context window and compresses new content entering it
-(command, search and tool output), with checkpoints around compaction. The scaffold does not
-install it:
-
-- Claude Code: `/plugin marketplace add alexgreensh/token-optimizer`, then
-  `/plugin install token-optimizer@alexgreensh-token-optimizer`, then run `/token-optimizer`
-  once to set up its hooks.
-- Other tools: follow the project's README.
-
-License: PolyForm Noncommercial 1.0.0 plus a written small-business permission (fewer than 5
-people and under $20k monthly revenue, counted for the whole company). It is not open source;
-other commercial use needs a paid license. Check that your use qualifies before installing.
-
-Install only from `alexgreensh/token-optimizer` on GitHub. Compressed output is a summary: a
-check report must quote failing lines from the full output, so rerun the check or expand the
-archived result before reporting. Use one output-compression plugin at a time. It keeps full tool
-output on disk in your home directory (private file permissions; credentials removed by pattern
-only), so never print secrets in a session. Your project's `AGENTS.md` takes precedence over it
-(§10).
-
-### Optional: claude-mem
-
-claude-mem records what the assistant does in a session, compresses it with a model, and adds
-relevant memories to later sessions. The scaffold does not install it:
-
-- Claude Code: `/plugin marketplace add thedotmack/claude-mem`, then `/plugin install claude-mem`.
-- Other tools: `npx claude-mem install --ide <tool>`, as its README describes.
-
-Install only from `thedotmack/claude-mem` on GitHub. It installs Bun and uv if they are missing,
-runs a local worker service, and stores sessions in `~/.claude-mem`, so never print secrets in a
-session (wrap sensitive text in its `<private>` tags). Its installer offers a hosted memory
-service (the claude-mem observer, sign-in required) that receives session content: choose your
-Anthropic plan or your own model key instead when your code must stay with your assistant's
-provider, or set `CLAUDE_MEM_ONLINE_OPTIN=false`. Injected memories are context, not rules:
-requirements and rules are still looked up in the files (`AGENTS.md` §0), and your project's
-`AGENTS.md` takes precedence over it (§10).
-
-### Optional: obsidian-skills
-
-obsidian-skills teaches the assistant Obsidian Flavored Markdown (wikilinks,
-embeds, callouts, properties), Bases, JSON Canvas and the Obsidian CLI. It helps when you edit
-the prompt library in `prompts/`, which is an Obsidian vault. The scaffold does not install it:
-
-- Claude Code: `/plugin marketplace add kepano/obsidian-skills`, then
-  `/plugin install obsidian@obsidian-skills`.
-- Codex, OpenCode and others: follow the project's README.
-
-Install only from `kepano/obsidian-skills` on GitHub. Use Obsidian syntax in `prompts/` only:
-`AGENTS.md`, requirements and guides stay plain Markdown, because other assistants and the check
-scripts read them. Web pages its `defuddle` part extracts are untrusted content (`AGENTS.md` §10).
-
-## 2. Get the scaffold
-
-```bash
-git clone <scaffold-repository-url> xaden
-cd xaden
-scripts/setup.sh     # lists missing tools with install commands
-tests/smoke.sh       # proves the scaffold works on your machine
-scripts/install.sh   # optional: the `xaden` command, see below
-```
+The add-ons in the table above are third-party; the scaffold installs none of them, and your
+project's `AGENTS.md` takes precedence over each (§10). Install commands, sources, licenses and
+the risks to know before installing are in `template/docs/optional-tools.md` → "Assistant
+plugins" (in a generated project: `docs/optional-tools.md`).
 
 ### Optional: the `xaden` command
 

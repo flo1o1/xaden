@@ -816,32 +816,25 @@ test_assistant_trust_rules() {
 
 # REQ-050 optional add-on rule sets: documented, never installed, never above AGENTS.md
 test_add_on_rule_sets() {
-  local guide="$SCAFFOLD_ROOT/GETTING-STARTED.md"
-  assert "guide lists Ponytail as optional" grep -q '^| Optional: \[Ponytail\]' "$guide"
-  assert "guide gives the Claude Code install" grep -q 'plugin install ponytail@ponytail' "$guide"
-  assert "guide names the AGENTS.md route for other tools" grep -q "can use its .AGENTS.md." "$guide"
-  assert "guide lists Caveman as optional" grep -q '^| Optional: \[Caveman\]' "$guide"
-  assert "guide keeps project files out of Caveman compression" grep -q 'Keep project files in normal prose' "$guide"
-  assert "optional tools document lists Caveman" grep -q 'plugin install caveman@caveman' "$PROJECT/docs/optional-tools.md"
-  assert "guide lists Token Optimizer as optional" grep -q '^| Optional: \[Token Optimizer\]' "$guide"
-  local doc
-  for doc in "$guide" "$PROJECT/docs/optional-tools.md"; do
-    assert "Token Optimizer install is documented: $doc" grep -q 'plugin install token-optimizer@alexgreensh-token-optimizer' "$doc"
-    assert "Token Optimizer license is stated: $doc" grep -q 'PolyForm Noncommercial' "$doc"
-    assert "compressed output never replaces verbatim failures: $doc" grep -q 'quote failing lines from the full output' "$doc"
-    assert "the on-disk archive of tool output is disclosed: $doc" grep -q 'credentials removed by pattern' "$doc"
+  local guide="$SCAFFOLD_ROOT/GETTING-STARTED.md" tools="$PROJECT/docs/optional-tools.md" add_on
+  for add_on in Ponytail Caveman 'Token Optimizer' claude-mem obsidian-skills; do
+    assert "guide lists $add_on as optional" grep -q "^| Optional: \\[$add_on\\]" "$guide"
   done
-  assert "guide lists claude-mem as optional" grep -q '^| Optional: \[claude-mem\]' "$guide"
-  for doc in "$guide" "$PROJECT/docs/optional-tools.md"; do
-    assert "claude-mem install is documented: $doc" grep -q 'plugin install claude-mem' "$doc"
-    assert "claude-mem session store is disclosed: $doc" grep -q '/\.claude-mem`' "$doc"
-    assert "claude-mem hosted service is disclosed: $doc" grep -q 'receives session content' "$doc"
-  done
-  assert "guide lists obsidian-skills as optional" grep -q '^| Optional: \[obsidian-skills\]' "$guide"
-  for doc in "$guide" "$PROJECT/docs/optional-tools.md"; do
-    assert "obsidian-skills install is documented: $doc" grep -q 'plugin install obsidian@obsidian-skills' "$doc"
-    assert "Obsidian syntax is limited to prompts/: $doc" grep -q 'stay plain Markdown, because other assistants' "$doc"
-  done
+  assert "guide points to optional-tools.md for add-on details" grep -q 'risks to know before installing are in .template/docs/optional-tools.md.' "$guide"
+  assert_fails "guide does not repeat add-on install commands" grep -q 'plugin install' "$guide"
+  assert "Ponytail Claude Code install is documented" grep -q 'plugin install ponytail@ponytail' "$tools"
+  assert "Ponytail names the AGENTS.md route for other tools" grep -q "can use its .AGENTS.md." "$tools"
+  assert "Caveman install is documented" grep -q 'plugin install caveman@caveman' "$tools"
+  assert "project files stay out of Caveman compression" grep -q 'Keep project files in normal prose' "$tools"
+  assert "Token Optimizer install is documented" grep -q 'plugin install token-optimizer@alexgreensh-token-optimizer' "$tools"
+  assert "Token Optimizer license is stated" grep -q 'PolyForm Noncommercial' "$tools"
+  assert "compressed output never replaces verbatim failures" grep -q 'quote failing lines from the full output' "$tools"
+  assert "the on-disk archive of tool output is disclosed" grep -q 'credentials removed by pattern' "$tools"
+  assert "claude-mem install is documented" grep -q 'plugin install claude-mem' "$tools"
+  assert "claude-mem session store is disclosed" grep -q '/\.claude-mem`' "$tools"
+  assert "claude-mem hosted service is disclosed" grep -q 'receives session content' "$tools"
+  assert "obsidian-skills install is documented" grep -q 'plugin install obsidian@obsidian-skills' "$tools"
+  assert "Obsidian syntax is limited to prompts/" grep -q 'stay plain Markdown, because other assistants' "$tools"
   assert_fails "new projects enable no plugin" grep -qi 'plugin' "$PROJECT/.claude/settings.json"
   assert "AGENTS.md ranks add-on rule sets below itself" grep -q 'they never override this file' "$PROJECT/AGENTS.md"
 }

@@ -101,3 +101,4 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-12 REQ-003 criterion added: clean-code details are read on demand, not loaded every session (review 2026-10-12, S1)
 - 2026-10-12 REQ-002 criterion added: session start skips an index the tool already loaded (review 2026-10-12, S5)
 - 2026-10-12 REQ-025 criterion added: smoke test is quiet by default, SMOKE_VERBOSE=1 in CI (review 2026-10-12, S3)
+- 2026-10-12 REQ-050 criteria rewritten: add-on details live only in docs/optional-tools.md; the getting-started guide keeps one row per add-on (review 2026-10-12, S4)

@@ -53,16 +53,37 @@ takes precedence over them (§10). Install from the named sources only.
 | [claude-mem](https://github.com/thedotmack/claude-mem) | Memory of past sessions: records sessions, compresses them with a model and adds relevant memories to new ones. License: Apache-2.0 | `/plugin marketplace add thedotmack/claude-mem`, then `/plugin install claude-mem` |
 | [obsidian-skills](https://github.com/kepano/obsidian-skills) | Obsidian Flavored Markdown, Bases, JSON Canvas and the Obsidian CLI, for editing the prompt library in `prompts/` (an Obsidian vault). License: MIT | `/plugin marketplace add kepano/obsidian-skills`, then `/plugin install obsidian@obsidian-skills` |
 
-Compressed output is a summary: a completion report must quote failing lines from the full output
-(rerun the check or expand the archived result). Use one output-compression plugin at a time.
-Token Optimizer keeps full tool output on disk in your home directory (private file permissions;
-credentials removed by pattern only), so never print secrets in a session.
-claude-mem stores sessions in `~/.claude-mem` (use its `<private>` tags for sensitive text); its
-hosted memory service (the claude-mem observer) receives session content, so choose your Anthropic
-plan or your own model key when code must not leave your assistant's provider. Its memories are
-context: requirements and rules are still looked up in the files (`AGENTS.md` §0).
-Use Obsidian syntax from obsidian-skills in `prompts/` only; `AGENTS.md`, requirements and guides
-stay plain Markdown, because other assistants and the check scripts read them.
+Before installing one, read its notes:
+
+- **Ponytail**: its hooks need `node` on your PATH. Other tools (Codex, Copilot CLI, Cursor):
+  follow the project's `INSTALL.md`; tools that only read a rules file can use its `AGENTS.md`.
+  Do not replace this project's `AGENTS.md` with it. Sources: `DietrichGebert/ponytail` on GitHub,
+  `@dietrichgebert/ponytail` on npm.
+- **Caveman**: its hooks need `node` on your PATH; other tools follow its `INSTALL.md`. It switches
+  back to full sentences for security warnings and irreversible actions.
+  Keep project files in normal prose: do not run its `/caveman-compress` on `AGENTS.md`,
+  `CLAUDE.md`, requirements or guides, and do not commit the always-on rule files
+  `/caveman-init` writes.
+- **Token Optimizer**: run `/token-optimizer` once after installing to set up its hooks. License:
+  PolyForm Noncommercial 1.0.0 plus a written small-business permission (fewer than 5 people and
+  under $20k monthly revenue, counted for the whole company); other commercial use needs a paid
+  license, so check that your use qualifies. It keeps full tool output on disk in your home
+  directory (private file permissions; credentials removed by pattern only), so never print
+  secrets in a session.
+- **Output compression** (Caveman, Token Optimizer): compressed output is a summary. A completion
+  report must quote failing lines from the full output (rerun the check or expand the archived
+  result). Use one output-compression plugin at a time.
+- **claude-mem**: other tools install with `npx claude-mem install --ide <tool>`. It installs Bun
+  and uv if missing, runs a local worker service and stores sessions in `~/.claude-mem`, so never
+  print secrets in a session (use its `<private>` tags for sensitive text). Its installer offers a
+  hosted memory service (the claude-mem observer, sign-in required) that receives session content:
+  choose your Anthropic plan or your own model key when code must not leave your assistant's
+  provider, or set `CLAUDE_MEM_ONLINE_OPTIN=false`. Its memories are context: requirements and
+  rules are still looked up in the files (`AGENTS.md` §0).
+- **obsidian-skills**: Codex, OpenCode and others follow its README. Use Obsidian syntax in
+  `prompts/` only; `AGENTS.md`, requirements and guides
+  stay plain Markdown, because other assistants and the check scripts read them. Web pages its `defuddle` part extracts are
+  untrusted content (`AGENTS.md` §10).
 
 Not recommended: frameworks that bring their own complete workflow (for example Superpowers,
 with its own brainstorm, plan, TDD and review phases). They duplicate the workflow in

@@ -8,6 +8,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - `CLAUDE.md` and `.aider.conf.yml` no longer load `docs/clean-code.md` into every session (about 2,000 tokens); the feature, bugfix, refactor and review prompts point to it instead.
 - `AGENTS.md` session start no longer asks to re-read the requirements index when the tool already loaded it.
 - `tests/smoke.sh` (scaffold maintainers) prints only failures and the total by default, the full scaffold check drops from about 610 to 120 lines; `SMOKE_VERBOSE=1` restores the per-assertion log, and CI sets it.
+- Add-on details (install commands, sources, licenses, risks) live only in `docs/optional-tools.md`; `GETTING-STARTED.md` keeps one row per add-on and points there, so each add-on is documented once.
 
 ### Security
 - `scripts/update-scaffold.sh` ignores manifest paths containing `..`. A project's `.scaffold/manifest` could list `scripts/../src/app.py`, and `--apply` then deleted that project file.
