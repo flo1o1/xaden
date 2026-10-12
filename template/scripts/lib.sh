@@ -203,6 +203,25 @@ stamp_changelog() {
     { print }'
 }
 
+# --- branch rule (REQ-060): changes reach main through pull requests -------------------
+
+# Branches that receive changes only through pull requests.
+PROTECTED_BRANCHES="main master"
+
+# refuse_commit_on_protected_branch: dies when HEAD is a protected branch. Allowed anyway with
+# ALLOW_MAIN_COMMIT=1 (project generation, releases, explicit overrides), while concluding a
+# merge, and on a detached HEAD (rebases, CI). Used by the pre-commit hooks.
+refuse_commit_on_protected_branch() {
+  local branch
+  [ "${ALLOW_MAIN_COMMIT:-0}" = "1" ] && return 0
+  git rev-parse -q --verify MERGE_HEAD >/dev/null && return 0
+  branch="$(git symbolic-ref -q --short HEAD)" || return 0
+  case " $PROTECTED_BRANCHES " in *" $branch "*) ;; *) return 0 ;; esac
+  die "commits on $branch go through a pull request (AGENTS.md §7). Start the change in its own folder:
+  git worktree add ../<repo>-<slug> -b <type>/<slug> $branch
+Override only when told to commit on $branch: ALLOW_MAIN_COMMIT=1 git commit ..."
+}
+
 # --- release helpers (REQ-024): never leave a partial release behind -----------------
 
 # ensure_tag_absent <tag>: dies before anything changes if the release tag already exists.
@@ -218,7 +237,8 @@ commit_release_or_restore() {
   local message=$1
   shift
   git add -- "$@"
-  if ! git commit -q -m "$message"; then
+  # Releases are cut on main after the branches are merged (REQ-060).
+  if ! ALLOW_MAIN_COMMIT=1 git commit -q -m "$message"; then
     git reset -q -- "$@"
     git checkout -q -- "$@"
     die "release commit failed; release files restored, nothing was changed"

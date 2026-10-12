@@ -15,6 +15,9 @@ source "$SCAFFOLD_ROOT/scripts/scaffold-lib.sh"
 export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
 # Strictness is chosen per test call; an inherited STRICT=1 (CI) must not leak into fixtures.
 unset STRICT
+# Fixtures commit on main; test_branch_rule (REQ-060) and the generation and release asserts
+# run with ALLOW_MAIN_COMMIT=0 to prove the rule and its built-in exceptions.
+export ALLOW_MAIN_COMMIT=1
 WORKDIR="$(mktemp -d)"
 trap 'rm -rf "$WORKDIR"' EXIT
 PROJECT="$WORKDIR/demo app/demo-app" # space in the path on purpose (REQ-018)
@@ -132,7 +135,7 @@ test_license() {
 # REQ-001 project creation, REQ-013 template separation
 test_new_project() {
   assert_fails "reject bad project name" "$SCAFFOLD_ROOT/scripts/new-project.sh" "Bad Name" "$WORKDIR/x"
-  assert "create project" "$SCAFFOLD_ROOT/scripts/new-project.sh" demo-app "$PROJECT"
+  assert "create project (first commit on main allowed)" env ALLOW_MAIN_COMMIT=0 "$SCAFFOLD_ROOT/scripts/new-project.sh" demo-app "$PROJECT"
   assert "no placeholders left" test -z "$(grep -rl '{{PROJECT_NAME}}' "$PROJECT" --exclude-dir=.git || true)"
   assert "scaffold-only files not copied" test ! -e "$PROJECT/tests" -a ! -e "$PROJECT/template" -a ! -e "$PROJECT/scripts/new-project.sh"
   assert "project gets template rules" grep -q 'CC-09' "$PROJECT/AGENTS.md"
@@ -559,7 +562,7 @@ test_release() {
   assert "the word TODO in guide prose does not block a release" "$PROJECT/scripts/check-docs.sh" --release
   git -C "$PROJECT" checkout -q -- docs/user-guide.md SECURITY.md
   test_release_failures
-  assert "release patch" "$PROJECT/scripts/release.sh" patch
+  assert "release patch (release commit on main allowed)" env ALLOW_MAIN_COMMIT=0 "$PROJECT/scripts/release.sh" patch
   assert "VERSION bumped" test "$(tr -d '[:space:]' <"$PROJECT/VERSION")" = "0.1.1"
   assert "guide stamped with version" grep -q 'Applies to version:\*\* 0.1.1' "$PROJECT/docs/user-guide.md"
   assert "tag created" git -C "$PROJECT" rev-parse v0.1.1
@@ -687,6 +690,34 @@ test_commit_bypasses() {
     env EVENT_NAME=pull_request BASE_REF='main;rm' "$PROJECT/scripts/verify-commits.sh" --ci
   git -C "$PROJECT" update-ref -d refs/remotes/origin/main
   git -C "$PROJECT" reset -q --hard "$before_bad~1"
+}
+
+# REQ-060: changes are committed on feature branches; the hooks refuse commits on main.
+test_branch_rule() {
+  local empty="$WORKDIR/empty-repo"
+  printf 'x\n' >>"$PROJECT/notes.txt" && git -C "$PROJECT" add notes.txt
+  assert_fails_with "commit on main refused" "git worktree add" \
+    env ALLOW_MAIN_COMMIT=0 git -C "$PROJECT" commit -q -m "docs: straight to main"
+  assert "ALLOW_MAIN_COMMIT=1 permits a commit on main" \
+    env ALLOW_MAIN_COMMIT=1 git -C "$PROJECT" commit -q -m "docs: allowed on main"
+  git -C "$PROJECT" reset -q --hard HEAD~1
+
+  git -C "$PROJECT" checkout -q -b docs/notes
+  printf 'branch\n' >"$PROJECT/notes.txt" && git -C "$PROJECT" add notes.txt
+  assert "commit on a feature branch allowed" env ALLOW_MAIN_COMMIT=0 git -C "$PROJECT" commit -q -m "docs: notes on a branch"
+  git -C "$PROJECT" checkout -q main
+  printf 'main\n' >"$PROJECT/notes.txt" && git -C "$PROJECT" add notes.txt
+  git -C "$PROJECT" commit -q -m "docs: conflicting notes on main"
+  git -C "$PROJECT" merge -q docs/notes >/dev/null 2>&1 || true
+  printf 'merged\n' >"$PROJECT/notes.txt" && git -C "$PROJECT" add notes.txt
+  assert "concluding a merge on main allowed" env ALLOW_MAIN_COMMIT=0 git -C "$PROJECT" commit -q --no-edit
+  git -C "$PROJECT" reset -q --hard HEAD~2 && git -C "$PROJECT" branch -q -D docs/notes
+
+  git init -q -b main "$empty"
+  assert_fails_with "scaffold hook refuses commits on main" "git worktree add" \
+    bash -c "cd '$empty' && ALLOW_MAIN_COMMIT=0 '$SCAFFOLD_ROOT/.githooks/pre-commit'"
+  assert "AGENTS.md tells assistants to use a branch and worktree per change" \
+    grep -q 'git worktree add ../<repo>-<slug> -b <type>/<slug> main' "$PROJECT/AGENTS.md"
 }
 
 # REQ-026 local drop zone
@@ -1002,6 +1033,7 @@ test_claude_permissions
 test_prompt_workflow
 test_setup_and_commit_checks
 test_commit_bypasses
+test_branch_rule
 test_missing_tools
 test_file_selection
 test_staged_checks

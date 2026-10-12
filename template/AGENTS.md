@@ -131,6 +131,14 @@ Details and examples: `docs/clean-code.md` (same IDs).
   Merge/Revert/fixup!/squash! messages skip only the format check; IDs are always verified,
   and CI re-checks every commit a push or pull request introduces.
 - Add a user-visible bullet to `CHANGELOG.md` → `Unreleased` for every `feat`/`fix`.
+- One branch per change, in its own folder, so parallel changes never touch each other:
+  `git worktree add ../<repo>-<slug> -b <type>/<slug> main` (`<type>` as in the commit types).
+  Work, commit and run the checks there. Never commit on `main` or `master`: the pre-commit hook
+  refuses it (`ALLOW_MAIN_COMMIT=1` only when the user tells you to; releases and the first
+  commit are allowed automatically).
+- Finish a change with the full `scripts/check.sh`, then push the branch and open a pull request
+  (both send code out: **Approval point**). CI runs on the pull request; the user merges.
+  After the merge: `git worktree remove ../<repo>-<slug>` and `git branch -d <type>/<slug>`.
 - Commit each coherent step. Never force-push, never rewrite published history.
 
 ## 8. Documentation (mandatory)
