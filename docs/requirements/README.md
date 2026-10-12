@@ -89,3 +89,4 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-12 REQ-009 criterion added: shell lint passes with Ubuntu's older shellcheck (first Linux CI run failed on SC2015)
 - 2026-10-12 REQ-060 added and approved: one branch and worktree per change, pull requests, hook refuses commits on main.
 - 2026-10-12 REQ-060 done: AGENTS.md §7 branch and worktree rule, pre-commit guard in both hooks; smoke test_branch_rule
+- 2026-10-12 REQ-061 added: user asked for 3-5 user personas that assistants check solutions against, and a command to create a prefilled persona file.
