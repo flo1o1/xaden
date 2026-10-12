@@ -87,3 +87,4 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-11 REQ-055 criterion added: context status works at the scaffold root (audit 2026-10-11 #2)
 - 2026-10-11 REQ-014 criterion added: file selection for checkers runs in one pass (audit 2026-10-11 #1)
 - 2026-10-12 REQ-009 criterion added: shell lint passes with Ubuntu's older shellcheck (first Linux CI run failed on SC2015)
+- 2026-10-12 REQ-060 added and approved: one branch and worktree per change, pull requests, hook refuses commits on main.
