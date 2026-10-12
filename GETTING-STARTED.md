@@ -15,6 +15,7 @@ private skills.
 | Optional: extra checks and plugins | `scripts/check.sh` suggests the ones that fit your project (`TIP:` lines); list in `template/docs/optional-tools.md` |
 | Optional: [Ponytail](https://github.com/DietrichGebert/ponytail) | Third-party rule set (MIT) that pushes assistants towards less new code; see below |
 | Optional: [Caveman](https://github.com/JuliusBrussee/caveman) | Third-party rule set (Apache-2.0) that makes assistant replies shorter; see below |
+| Optional: [Token Optimizer](https://github.com/alexgreensh/token-optimizer) | Third-party plugin (PolyForm Noncommercial, not open source) that compresses context and tool output; see below |
 
 ### Optional: Ponytail
 
@@ -46,6 +47,26 @@ Install only from `JuliusBrussee/caveman` on GitHub. Keep project files in norma
 run its `/caveman-compress` on `AGENTS.md`, `CLAUDE.md`, requirements or guides, and do not
 commit the always-on rule files `/caveman-init` writes. Your project's `AGENTS.md` takes
 precedence over it (§10), so the completion report stays complete.
+
+### Optional: Token Optimizer
+
+Token Optimizer audits what fills the context window and compresses new content entering it
+(command, search and tool output), with checkpoints around compaction. The scaffold does not
+install it:
+
+- Claude Code: `/plugin marketplace add alexgreensh/token-optimizer`, then
+  `/plugin install token-optimizer@alexgreensh-token-optimizer`, then run `/token-optimizer`
+  once to set up its hooks.
+- Other tools: follow the project's README.
+
+License: PolyForm Noncommercial 1.0.0 plus a written small-business permission (fewer than 5
+people and under $20k monthly revenue, counted for the whole company). It is not open source;
+other commercial use needs a paid license. Check that your use qualifies before installing.
+
+Install only from `alexgreensh/token-optimizer` on GitHub. Compressed output is a summary: a
+check report must quote failing lines from the full output, so rerun the check or expand the
+archived result before reporting. Use one output-compression plugin at a time. Your project's
+`AGENTS.md` takes precedence over it (§10).
 
 ## 2. Get the scaffold
 
