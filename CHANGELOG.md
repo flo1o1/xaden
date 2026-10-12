@@ -4,6 +4,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+### Changed
+- `CLAUDE.md` and `.aider.conf.yml` no longer load `docs/clean-code.md` into every session (about 2,000 tokens); the feature, bugfix, refactor and review prompts point to it instead.
+
 ### Security
 - `scripts/update-scaffold.sh` ignores manifest paths containing `..`. A project's `.scaffold/manifest` could list `scripts/../src/app.py`, and `--apply` then deleted that project file.
 

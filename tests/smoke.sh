@@ -305,6 +305,13 @@ test_requirement_files() {
   assert "pack includes the index and requirement files" bash -c "grep -q '^# REQUIREMENTS INDEX' '$PROJECT/context-pack.md' \
     && grep -q '^# REQUIREMENTS (docs/requirements/first-epic/REQ-001-' '$PROJECT/context-pack.md'"
   assert "CLAUDE.md imports the requirements index" grep -qx '@docs/requirements/INDEX.md' "$PROJECT/CLAUDE.md"
+  # REQ-003: the CC summary loads every session; the details are read when code is written or reviewed
+  assert_fails "CLAUDE.md does not import the clean-code details" grep -qx '@docs/clean-code.md' "$PROJECT/CLAUDE.md"
+  assert_fails "Aider does not preload the clean-code details" grep -q 'docs/clean-code.md' "$PROJECT/.aider.conf.yml"
+  local prompt
+  for prompt in feature bugfix refactor code-review; do
+    assert "$prompt prompt points to the clean-code details" grep -q 'docs/clean-code.md' "$PROJECT/prompts/$prompt.md"
+  done
 }
 
 # write_requirements_table <root>: a project in the old single-table format.

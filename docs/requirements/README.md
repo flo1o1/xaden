@@ -98,3 +98,4 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-12 REQ-050 criterion added: claude-mem documented as optional add-on (local session store, hosted observer, memories never replace the rule files)
 - 2026-10-12 REQ-050 criterion added: obsidian-skills documented as optional add-on (Obsidian syntax in prompts/ only)
 - 2026-10-12 REQ-017 criterion added: manifest paths with ".." are ignored by the update (review 2026-10-12, M1)
+- 2026-10-12 REQ-003 criterion added: clean-code details are read on demand, not loaded every session (review 2026-10-12, S1)

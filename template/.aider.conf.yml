@@ -2,7 +2,6 @@
 read:
   - AGENTS.md
   - docs/requirements/INDEX.md
-  - docs/clean-code.md
 # Run static analysis after edits; Aider offers to fix failures.
 lint-cmd: scripts/check.sh
 auto-lint: false

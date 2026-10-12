@@ -17,7 +17,7 @@ Fix the root cause, prove it with a regression test.
 - Repro: {{steps, input, error text}}
 
 ## Steps
-1. Read `AGENTS.md`. Find which `REQ-nnn` the correct behaviour belongs to; if none, ask me.
+1. Read `AGENTS.md` (CC rule details: `docs/clean-code.md`). Find which `REQ-nnn` the correct behaviour belongs to; if none, ask me.
 2. Reproduce with a failing test. Do not change production code before the test fails for the right reason.
 3. Find the root cause (state it in one sentence). No symptom patches. **Approval point** if
    the fix touches more than 2 files, changes a requirement or adds a dependency.

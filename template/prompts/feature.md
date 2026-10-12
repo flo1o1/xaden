@@ -33,7 +33,7 @@ Implement one capability, test-first, tracked in requirements.
    commit, tests green). Otherwise leave unrelated code alone (CC-09).
 5. For each step: write a failing test that cites the `REQ-nnn`, make it pass, refactor
    (Red → Green → Refactor). Validate all external input at the boundary (CC-07); make errors
-   explicit (CC-05).
+   explicit (CC-05). Details and examples for the CC rules: `docs/clean-code.md`.
 6. Run `scripts/check.sh`; fix all findings.
 7. If the feature touches input, auth, data, files, network or dependencies: run the
    [[security-review]] prompt on the changed files.
