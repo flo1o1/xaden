@@ -4,6 +4,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+### Fixed
+- The commit-msg check finds `CC-nn` rules in a rules file outside the repository top (the scaffold's `template/AGENTS.md`) when git runs it as a hook. Before, scaffold commits citing a rule failed with "commit cites unknown rule".
+
 ### Changed
 - `CLAUDE.md` and `.aider.conf.yml` no longer load `docs/clean-code.md` into every session (about 2,000 tokens); the feature, bugfix, refactor and review prompts point to it instead.
 - `AGENTS.md` session start no longer asks to re-read the requirements index when the tool already loaded it.

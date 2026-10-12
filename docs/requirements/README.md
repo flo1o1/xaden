@@ -104,3 +104,4 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-12 REQ-050 criteria rewritten: add-on details live only in docs/optional-tools.md; the getting-started guide keeps one row per add-on (review 2026-10-12, S4)
 - 2026-10-12 REQ-023 criterion added: brief context pack for small context windows and a token estimate (review 2026-10-12, S2)
 - 2026-10-12 REQ-063 added: opusplan documented as an optional Claude Code model setting; the template pins no model
+- 2026-10-12 REQ-022 criterion added: CC-nn lookup works when git exports GIT_DIR to the hook (review 2026-10-12, N1)

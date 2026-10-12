@@ -725,6 +725,23 @@ test_commit_bypasses() {
     env EVENT_NAME=pull_request BASE_REF='main;rm' "$PROJECT/scripts/verify-commits.sh" --ci
   git -C "$PROJECT" update-ref -d refs/remotes/origin/main
   git -C "$PROJECT" reset -q --hard "$before_bad~1"
+
+  # git exports GIT_DIR to hooks. A rules file in a subfolder (the scaffold's template/AGENTS.md)
+  # must still be read from that folder, not from the repository top.
+  local git_dir cites_rule cites_unknown_rule
+  mkdir -p "$PROJECT/rules" && printf -- '- **CC-77** test rule\n' >"$PROJECT/rules/AGENTS.md"
+  git -C "$PROJECT" add rules/AGENTS.md
+  git_dir="$(git -C "$PROJECT" rev-parse --absolute-git-dir)"
+  cites_rule="$(msg 'docs: x\n\nSee CC-77.\n')"
+  assert "rule in a subfolder found with GIT_DIR exported (worktree hook)" bash -c \
+    "cd '$PROJECT' && GIT_DIR='$git_dir' RULES_FILE='$PROJECT/rules/AGENTS.md' scripts/verify-refs.sh '$cites_rule'"
+  assert "rule in a subfolder found with a relative GIT_DIR and index" bash -c \
+    "cd '$PROJECT' && GIT_DIR=.git GIT_INDEX_FILE=.git/index RULES_FILE='$PROJECT/rules/AGENTS.md' scripts/verify-refs.sh '$cites_rule'"
+  cites_unknown_rule="$WORKDIR/unknown-rule.txt"
+  printf 'docs: x\n\nSee CC-78.\n' >"$cites_unknown_rule"
+  assert_fails_with "unknown rule still rejected with GIT_DIR exported" "unknown rule CC-78" bash -c \
+    "cd '$PROJECT' && GIT_DIR='$git_dir' RULES_FILE='$PROJECT/rules/AGENTS.md' scripts/verify-refs.sh '$cites_unknown_rule'"
+  git -C "$PROJECT" rm -q --cached rules/AGENTS.md && rm -rf "$PROJECT/rules"
 }
 
 # REQ-060: changes are committed on feature branches; the hooks refuse commits on main.

@@ -18,8 +18,15 @@ RULES_FILE="${RULES_FILE:-$ROOT/AGENTS.md}"  # where CC-nn rules are defined
 
 # read_committed_version <path>: the file as it will be committed (git index) when tracked,
 # otherwise the working-tree file. Unstaged edits must not validate a commit (REQ-020).
+# git exports GIT_DIR to hooks, which would make `-C <dir>` treat <dir> as the top of the work
+# tree and read a file of the same name from the repository top; the subshell drops GIT_DIR and
+# GIT_WORK_TREE and keeps the index git commits from, made absolute before -C changes directory.
 read_committed_version() {
-  git -C "$(dirname "$1")" show ":./$(basename "$1")" 2>/dev/null || cat "$1"
+  (
+    unset GIT_DIR GIT_WORK_TREE
+    case "${GIT_INDEX_FILE:-/}" in /*) ;; *) GIT_INDEX_FILE="$PWD/$GIT_INDEX_FILE" ;; esac
+    git -C "$(dirname "$1")" show ":./$(basename "$1")"
+  ) 2>/dev/null || cat "$1"
 }
 
 # Temporary export of the git index; removed on exit.
