@@ -6,7 +6,7 @@ A completed review records what was checked; it is not proof that the scaffold i
 - Reviewer: Claude Code (Claude Opus 5.5). The maintainer asked for a code audit and a security
   review with the recommended changes applied, before going offline; that request is the approval
   for the fixes below.
-- Version / commit: reviewed at `658bf53`, fixes up to `d3cfe45` (scaffold 0.1.0, unreleased)
+- Version / commit: reviewed at `7c3ac51`, fixes up to `c1d7834` (scaffold 0.1.0, unreleased)
 - Threat model: `docs/threat-model.md` of 2026-10-11 (updated by this review); ASVS L1
 
 ## Scope
@@ -32,7 +32,7 @@ Out of scope: prompts and guides as text, the semgrep rules' coverage (tested by
 
 ## Evidence
 
-- `STRICT=1 scripts/check-scaffold.sh` at `d3cfe45`: passed, `9 passed, 0 failed, skipped: none`,
+- `STRICT=1 scripts/check-scaffold.sh` at `c1d7834`: passed, `9 passed, 0 failed, skipped: none`,
   smoke test 428 assertions (416 before this review).
 - `zizmor --offline` 1.30.1 on both workflows: no findings (4 suppressed by its defaults).
   `actionlint` 1.7.12: no findings.
@@ -69,9 +69,9 @@ Verified safe (by reading the code):
 
 | # | Severity | Location | Issue (what an attacker does) | Status |
 |---|----------|----------|-------------------------------|--------|
-| 1 | low | `template/scripts/migrate-requirements.sh:61` (before the fix) | A contributor to a project still using the old table commits a row with the ID `REQ-/../../../../x` and an empty folder `docs/requirements/unsorted/REQ-/`. When a maintainer runs the one-time migration, it writes `x-<slug>.md` with partly attacker-chosen text wherever the user can write, and may overwrite an existing file of that name. No code runs. Verified by proof of concept. | fixed in `12d5d51`, smoke "migration rejects an ID that is not REQ-nnn" |
-| 2 | low | `template/scripts/check-security-exceptions.sh:33` (before the fix) | The expiry pattern allowed months 13–19 and days 32–39. An exception dated `2026-13-01` (typo or on purpose) passes and sorts after every real 2026 date, so an accepted vulnerability stays "valid" until 2027 without anyone renewing it. | fixed in `154f7bc`, smoke "exception with an impossible month fails" |
-| 3 | low | `template/scripts/verify-refs.sh:90` (before the fix) | The `fix` trailer check matched the substring `none`, so `Refs: nonexistent` or any value containing it passed in the hook and in CI. This weakens the gate that every fix names its requirement or says "none". | fixed in `e15a801`, smoke "fix with a word merely containing none rejected" |
+| 1 | low | `template/scripts/migrate-requirements.sh:61` (before the fix) | A contributor to a project still using the old table commits a row with the ID `REQ-/../../../../x` and an empty folder `docs/requirements/unsorted/REQ-/`. When a maintainer runs the one-time migration, it writes `x-<slug>.md` with partly attacker-chosen text wherever the user can write, and may overwrite an existing file of that name. No code runs. Verified by proof of concept. | fixed in `9d85f4a`, smoke "migration rejects an ID that is not REQ-nnn" |
+| 2 | low | `template/scripts/check-security-exceptions.sh:33` (before the fix) | The expiry pattern allowed months 13–19 and days 32–39. An exception dated `2026-13-01` (typo or on purpose) passes and sorts after every real 2026 date, so an accepted vulnerability stays "valid" until 2027 without anyone renewing it. | fixed in `76ec9ff`, smoke "exception with an impossible month fails" |
+| 3 | low | `template/scripts/verify-refs.sh:90` (before the fix) | The `fix` trailer check matched the substring `none`, so `Refs: nonexistent` or any value containing it passed in the hook and in CI. This weakens the gate that every fix names its requirement or says "none". | fixed in `3ae4a93`, smoke "fix with a word merely containing none rejected" |
 
 ### Fixes as applied
 
@@ -93,8 +93,8 @@ Verified safe (by reading the code):
    No earlier `fix` commit in this repository uses another form, so CI's first full-history check
    still passes.
 
-Non-security fixes from the same audit, with regression tests: `d3cfe45` (file selection in one
-pass, REQ-014), `4d49f49` (context status at the scaffold root, REQ-055), `79f6617` (updates in
+Non-security fixes from the same audit, with regression tests: `c1d7834` (file selection in one
+pass, REQ-014), `1c31429` (context status at the scaffold root, REQ-055), `6394e7e` (updates in
 worktrees, REQ-017).
 
 ## Remediation summary

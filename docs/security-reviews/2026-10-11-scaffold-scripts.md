@@ -4,7 +4,7 @@ Written by `template/prompts/security-review.md` (`/security`, REQ-055).
 A completed review records what was checked; it is not proof that the scaffold is secure.
 
 - Reviewer: Claude Code (Claude Opus 5.5); fixes to be approved by the maintainer
-- Version / commit: `52169d5` (scaffold 0.1.0)
+- Version / commit: `0135aa3` (scaffold 0.1.0)
 - Threat model: `docs/threat-model.md` of 2026-10-11 (updated by this review); ASVS L1
 
 ## Scope
@@ -131,7 +131,7 @@ Regression test: smoke check that every `actions/checkout` step in both workflow
 
 ## Remediation summary
 
-Fixed with maintainer approval in the `fix(security)` commit after `fe5ca49`: #1, #2 (`scripts/update-scaffold.sh`,
+Fixed with maintainer approval in the `fix(security)` commit after `d12200e`: #1, #2 (`scripts/update-scaffold.sh`,
 `scripts/scaffold-lib.sh`, smoke `test_update_safety`), #3 (both workflows, smoke
 `test_ci_credentials`). Accepted: none. Open: none. An update that hits a symlink stops at that
 file; actions applied before it stay staged (`git reset --hard` undoes them). Next review: before the next scaffold release, or when a script gains

@@ -4,7 +4,7 @@ Written by `template/prompts/security-review.md` (`/security`, REQ-055).
 A completed review records what was checked; it is not proof that the scaffold is secure.
 
 - Reviewer: Claude Code (Claude Opus 5.5); maintainer asked for the review
-- Version / commit: `6f0acdd` (scaffold 0.1.0, unreleased)
+- Version / commit: `28b95ab` (scaffold 0.1.0, unreleased)
 - Threat model: `docs/threat-model.md` of 2026-10-11 (updated by this review); ASVS L1
 
 ## Scope
@@ -16,7 +16,7 @@ Changes since the first review (`docs/security-reviews/2026-10-11-scaffold-scrip
 - `template/scripts/check-security-exceptions.sh` and its call in `check.sh` (REQ-057)
 - `template/scripts/check-docs.sh --release` on `SECURITY.md` and the threat model (REQ-058)
 - `.claude/settings.json` as a scaffold-managed path in `scripts/scaffold-lib.sh` (REQ-059)
-- Refactors `157dc84`, `90f6b03`, `7f31b1e` in the update and generation code
+- Refactors `61e15cd`, `8312b92`, `dea008c` in the update and generation code
 - Both GitHub workflows (re-checked with zizmor)
 
 Out of scope: unchanged scripts (reviewed in the first report), prompts and guides as text, the
@@ -24,7 +24,7 @@ logo image (inspected only: PNG without embedded text other than the creating so
 
 ## Evidence
 
-- `STRICT=1 scripts/check-scaffold.sh` at `a12e77d` (same code as `6f0acdd`, which only adds the
+- `STRICT=1 scripts/check-scaffold.sh` at `2a96e59` (same code as `28b95ab`, which only adds the
   logo): passed, `9 passed, 0 failed, skipped: none`, smoke test 416 assertions, including
   `test_xaden_command`, `test_security_exceptions`, `test_settings_update`, `test_release` and
   the first review's `test_update_safety` and `test_ci_credentials`.
