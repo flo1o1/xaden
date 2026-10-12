@@ -60,7 +60,12 @@ check_files() {
     -v statuses="$REQUIREMENT_STATUSES" -v allow_placeholders="${ALLOW_TEMPLATE_PLACEHOLDERS:-0}" \
     -v date_placeholder="$DATE_PLACEHOLDER" '
     function fail(msg) { printf "ERROR: %s: %s\n", short, msg > "/dev/stderr"; errors++ }
-    function allowed(value, list) { return (" " list " ") ~ (" " value " ") && value != "" }
+    # allowed: exact match against a space-separated list (a regex would let "d.*e" pass).
+    function allowed(value, list,   names, count, i) {
+      count = split(list, names, " ")
+      for (i = 1; i <= count; i++) if (names[i] == value) return 1
+      return 0
+    }
     function valid_date(d) { return d ~ /^[0-9][0-9][0-9][0-9]-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/ }
     function finish() {
       if (path == "") return

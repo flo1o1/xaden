@@ -268,6 +268,8 @@ test_generated_project() {
   local check="$PROJECT/scripts/check-requirements.sh"
   assert_fails_with "invalid requirement status rejected" 'unknown status' \
     "$check" "$(requirements_variant bad-status 's/^status: .*/status: bogus/')"
+  assert_fails_with "status pattern matching a real status rejected" 'unknown status' \
+    "$check" "$(requirements_variant regex-status 's/^status: .*/status: d.*e/')"
   # REQ-021 complete fields and real dates
   assert_fails_with "empty acceptance criteria rejected" 'Acceptance criteria' \
     "$check" "$(requirements_variant no-criteria '/^- TODO: Given/d')"
