@@ -562,6 +562,10 @@ test_release_failures() {
   assert_fails "failing release commit aborts" "$PROJECT/scripts/release.sh" patch
   assert "files restored after failed commit" test "$(git -C "$PROJECT" rev-parse HEAD)$(git -C "$PROJECT" status --porcelain)" = "$head"
   git -C "$PROJECT" config core.hooksPath scripts/hooks
+  chmod 444 "$PROJECT/docs/admin-guide.md"
+  assert_fails "unwritable guide aborts the release" "$PROJECT/scripts/release.sh" patch
+  assert "files restored after failed docs stamp" test "$(git -C "$PROJECT" rev-parse HEAD)$(git -C "$PROJECT" status --porcelain)" = "$head"
+  chmod 644 "$PROJECT/docs/admin-guide.md"
   chmod 500 "$PROJECT/.git/refs/tags"
   assert "failed tag is reported with recovery steps" bash -c "! '$PROJECT/scripts/release.sh' patch 2>&1 | tee '$WORKDIR/tag-fail.log' >/dev/null; grep -q 'PARTIAL RELEASE' '$WORKDIR/tag-fail.log'"
   chmod 700 "$PROJECT/.git/refs/tags"

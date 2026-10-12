@@ -183,13 +183,14 @@ require() {
 is_semver() { printf '%s' "$1" | grep -Eq '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'; }
 
 # rewrite_file <file> <command...>: replaces the file with the command's output (the command
-# reads the file on stdin). The file keeps its mode; on failure it stays unchanged.
+# reads the file on stdin). The file keeps its mode. When the command fails, the file stays
+# unchanged; when writing fails, it may be partly written and the status is non-zero.
 rewrite_file() {
   local file=$1 tmp status=0
   shift
   tmp="$(mktemp)"
   "$@" <"$file" >"$tmp" || status=$?
-  [ "$status" -eq 0 ] && cat "$tmp" >"$file"
+  [ "$status" -eq 0 ] && { cat "$tmp" >"$file" || status=$?; }
   rm -f "$tmp"
   return "$status"
 }
