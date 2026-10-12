@@ -17,6 +17,7 @@ private skills.
 | Optional: [Caveman](https://github.com/JuliusBrussee/caveman) | Third-party rule set (Apache-2.0) that makes assistant replies shorter; see below |
 | Optional: [Token Optimizer](https://github.com/alexgreensh/token-optimizer) | Third-party plugin (PolyForm Noncommercial, not open source) that compresses context and tool output; see below |
 | Optional: [claude-mem](https://github.com/thedotmack/claude-mem) | Third-party plugin (Apache-2.0) that carries memory of past sessions into new ones; see below |
+| Optional: [obsidian-skills](https://github.com/kepano/obsidian-skills) | Third-party plugin (MIT) that teaches assistants Obsidian's Markdown, Bases and Canvas formats; see below |
 
 ### Optional: Ponytail
 
@@ -87,6 +88,20 @@ Anthropic plan or your own model key instead when your code must stay with your 
 provider, or set `CLAUDE_MEM_ONLINE_OPTIN=false`. Injected memories are context, not rules:
 requirements and rules are still looked up in the files (`AGENTS.md` §0), and your project's
 `AGENTS.md` takes precedence over it (§10).
+
+### Optional: obsidian-skills
+
+obsidian-skills teaches the assistant Obsidian Flavored Markdown (wikilinks,
+embeds, callouts, properties), Bases, JSON Canvas and the Obsidian CLI. It helps when you edit
+the prompt library in `prompts/`, which is an Obsidian vault. The scaffold does not install it:
+
+- Claude Code: `/plugin marketplace add kepano/obsidian-skills`, then
+  `/plugin install obsidian@obsidian-skills`.
+- Codex, OpenCode and others: follow the project's README.
+
+Install only from `kepano/obsidian-skills` on GitHub. Use Obsidian syntax in `prompts/` only:
+`AGENTS.md`, requirements and guides stay plain Markdown, because other assistants and the check
+scripts read them. Web pages its `defuddle` part extracts are untrusted content (`AGENTS.md` §10).
 
 ## 2. Get the scaffold
 

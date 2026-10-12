@@ -816,6 +816,11 @@ test_add_on_rule_sets() {
     assert "claude-mem session store is disclosed: $doc" grep -q '/\.claude-mem`' "$doc"
     assert "claude-mem hosted service is disclosed: $doc" grep -q 'receives session content' "$doc"
   done
+  assert "guide lists obsidian-skills as optional" grep -q '^| Optional: \[obsidian-skills\]' "$guide"
+  for doc in "$guide" "$PROJECT/docs/optional-tools.md"; do
+    assert "obsidian-skills install is documented: $doc" grep -q 'plugin install obsidian@obsidian-skills' "$doc"
+    assert "Obsidian syntax is limited to prompts/: $doc" grep -q 'stay plain Markdown, because other assistants' "$doc"
+  done
   assert_fails "new projects enable no plugin" grep -qi 'plugin' "$PROJECT/.claude/settings.json"
   assert "AGENTS.md ranks add-on rule sets below itself" grep -q 'they never override this file' "$PROJECT/AGENTS.md"
 }

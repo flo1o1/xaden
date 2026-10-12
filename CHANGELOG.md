@@ -6,6 +6,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ### Added
 - claude-mem (memory across sessions) is documented as an optional add-on, with where it stores sessions, the warning that its hosted memory service receives session content, and the rule that memories never replace the rule and requirement files.
+- obsidian-skills (Obsidian formats for the prompt library) is documented as an optional add-on, with the rule that Obsidian syntax stays in `prompts/` and rule files, requirements and guides stay plain Markdown.
 
 ## [0.2.0] - 2026-10-12
 

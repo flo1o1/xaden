@@ -96,3 +96,4 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-12 REQ-062 added: user wants to push to main without own PRs, but only commits that passed CI; CI on every branch push, GitHub ruleset on main, root AGENTS.md flow; smoke test_ci_credentials
 - 2026-10-12 REQ-062 done: ruleset 24936940 on main (public repository); push without checks rejected, push after green branch CI accepted
 - 2026-10-12 REQ-050 criterion added: claude-mem documented as optional add-on (local session store, hosted observer, memories never replace the rule files)
+- 2026-10-12 REQ-050 criterion added: obsidian-skills documented as optional add-on (Obsidian syntax in prompts/ only)
