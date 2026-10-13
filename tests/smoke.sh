@@ -1155,7 +1155,12 @@ test_ci_credentials() {
   for workflow in "$SCAFFOLD_ROOT/.github/workflows/scaffold-ci.yml" "$SCAFFOLD_ROOT/template/.github/workflows/ci.yml"; do
     assert "$(basename "$workflow"): checkout does not persist credentials" \
       test "$(grep -c 'uses: actions/checkout@' "$workflow")" = "$(grep -c 'persist-credentials: false' "$workflow")"
+    # REQ-004: the registry rules are the one unpinned input; the workflow says so where it runs
+    assert "$(basename "$workflow"): unpinned semgrep registry rules are marked as intentional" \
+      grep -q 'registry rules are not pinned on purpose' "$workflow"
   done
+  assert "security checklist explains new semgrep registry findings" \
+    grep -q 'report a finding without a code change' "$SCAFFOLD_ROOT/template/docs/security.md"
   # REQ-062: every branch push runs CI, so a commit has checks before it is pushed to main
   assert "scaffold-ci.yml runs on every branch push" \
     grep -q "branches: \['\*\*'\]" "$SCAFFOLD_ROOT/.github/workflows/scaffold-ci.yml"

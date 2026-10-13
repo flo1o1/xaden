@@ -8,6 +8,9 @@ Local semgrep rules (`.semgrep/rules.yml`, run by `scripts/check.sh`) catch simp
 items — shell and code injection, SQL strings, unsafe deserialization and XML, open redirects,
 regexes from input, weak randomness and password hashes, cookie flags, disabled TLS checks.
 Pattern rules miss data that flows through other functions; everything else needs review and tests.
+CI also runs semgrep's registry rules (`--config p/default`), which are not pinned: they change
+when semgrep publishes new rules, so CI can report a finding without a code change. Fix it, or
+suppress that line with a `nosemgrep: <rule-id>` comment and a one-line reason (AGENTS.md section 5).
 
 ## All applications
 

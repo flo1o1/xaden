@@ -53,6 +53,8 @@ jobs:
         run: npm ci
       - name: Static analysis (full run, missing tools fail)
         run: scripts/check.sh --strict
+      # The registry rules are not pinned on purpose: new rules catch new vulnerability patterns,
+      # so a finding can appear without a code change (docs/security.md, Static analysis).
       - name: SAST with semgrep registry rules (broader, needs network)
         run: semgrep scan --config p/default --metrics=off --error --quiet
       - name: Commit messages (contributors may not have local hooks)

@@ -109,3 +109,4 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-12 REQ-024 criterion added: a failed docs stamp restores all release files (review 2026-10-12, C2)
 - 2026-10-13 REQ-024 criterion added: the scaffold release restores its files when stamping fails
 - 2026-10-13 REQ-011 criterion added: context status counts requirements per status and lists only those not done (review 2026-10-12, C6)
+- 2026-10-13 REQ-004 criterion added: unpinned semgrep registry rules documented as intentional (review 2026-10-12, C3)

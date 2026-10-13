@@ -43,6 +43,8 @@ jobs:
           SMOKE_VERBOSE: "1" # full assertion log in CI; locally only failures and the total
           STRICT: "1"
         run: scripts/check-scaffold.sh
+      # The registry rules are not pinned on purpose: new rules catch new vulnerability patterns,
+      # so a finding can appear without a code change (template/docs/security.md).
       - name: SAST with semgrep registry rules (broader, needs network)
         run: semgrep scan --config p/default --metrics=off --error --quiet
       - name: Commit messages
