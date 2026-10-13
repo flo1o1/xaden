@@ -37,6 +37,7 @@ fi
 info "check mode: $MODE"
 run_tool "scaffold requirements" "$TEMPLATE_SCRIPTS/check-requirements.sh" --release "$ROOT/docs/requirements" # REQ-049: no TODO: left
 run_tool "scaffold traceability" env PROJECT_ROOT="$ROOT" "$TEMPLATE_SCRIPTS/check-traceability.sh"
+run_tool "site pages" "$ROOT/scripts/check-site-pages.sh" "$ROOT" # REQ-064
 run_tool "template requirements format" env PROJECT_ROOT="$ROOT/template" ALLOW_TEMPLATE_PLACEHOLDERS=1 "$TEMPLATE_SCRIPTS/check-requirements.sh"
 run_tool "template docs structure" env PROJECT_ROOT="$ROOT/template" "$TEMPLATE_SCRIPTS/check-docs.sh"
 lint_shell "$MODE"

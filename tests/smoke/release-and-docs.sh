@@ -134,7 +134,22 @@ test_install_ways() {
 }
 
 
+# REQ-064: the site contract lists existing pages and the scaffold holds no site credential.
+test_site_pages() {
+  local copy="$WORKDIR/site-pages" check="$SCAFFOLD_ROOT/scripts/check-site-pages.sh"
+  assert "every listed site page exists" "$check" "$SCAFFOLD_ROOT"
+  mkdir -p "$copy/docs" "$copy/template/scripts" "$copy/.github/workflows"
+  cp "$SCAFFOLD_ROOT/template/scripts/lib.sh" "$copy/template/scripts/"
+  printf 'README.md\n' >"$copy/docs/site-pages.txt"
+  assert_fails "a missing site page fails the check" "$check" "$copy"
+  : >"$copy/README.md"
+  assert "a present site page passes" "$check" "$copy"
+  printf 'token: $%s\n' '{{ secrets.SITE_DEPLOY_KEY }}' >"$copy/.github/workflows/x.yml"
+  assert_fails "a site credential in a workflow fails the check" "$check" "$copy"
+}
+
 test_bump_version
+test_site_pages
 test_scaffold_release_failures
 test_release
 test_install_ways

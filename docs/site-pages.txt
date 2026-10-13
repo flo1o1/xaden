@@ -1,0 +1,4 @@
+GETTING-STARTED.md
+template/docs/security.md
+template/docs/optional-tools.md
+template/docs/local-llm.md
