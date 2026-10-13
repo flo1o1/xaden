@@ -1,0 +1,373 @@
+# shellcheck shell=bash
+# Smoke test area "quality-gates" (docs/requirements/quality-gates). Sourced by tests/smoke.sh, which
+# defines the helpers and creates the demo project first.
+
+# msg <text with \n escapes>: writes a commit message file (git passes a regular file to hooks); prints its path.
+msg() {
+  printf '%b' "$1" >"$WORKDIR/commit-msg.txt"
+  printf '%s' "$WORKDIR/commit-msg.txt"
+}
+
+# fake_tools <name...>: a directory of stand-in commands that report a finding and fail.
+fake_tools() {
+  local bin="$WORKDIR/fake-tools" name
+  mkdir -p "$bin"
+  for name in "$@"; do
+    printf '#!/bin/sh\necho "fake finding from %s"\nexit 1\n' "$name" >"$bin/$name"
+    chmod +x "$bin/$name"
+  done
+  printf '%s' "$bin"
+}
+
+# REQ-025 passed assertions are silent unless SMOKE_VERBOSE=1; failures always print
+test_quiet_output() {
+  assert "passed assertions print nothing by default" test -z "$(SMOKE_VERBOSE=0 pass probe)"
+  assert "SMOKE_VERBOSE=1 prints passed assertions" test "$(SMOKE_VERBOSE=1 pass probe)" = "ok   probe"
+  # one area can run alone: tests/smoke.sh <area>
+  assert "smoke test lists its areas, one per epic" test "$("$SCAFFOLD_ROOT/tests/smoke.sh" --list | tr '\n' ' ')" = \
+    "assistant-guidance project-setup quality-gates requirements security release-and-docs "
+  assert_fails_with "smoke test rejects an unknown area" 'unknown area' "$SCAFFOLD_ROOT/tests/smoke.sh" no-such-area
+}
+
+# REQ-004 static analysis, REQ-006 requirements tracking, REQ-010 docs, REQ-011 grounding, REQ-002 chat context pack
+test_generated_project() {
+  assert "checks pass" "$PROJECT/scripts/check.sh"
+  assert "docs structure valid" "$PROJECT/scripts/check-docs.sh"
+  assert_fails "docs check --release flags TODOs" "$PROJECT/scripts/check-docs.sh" --release
+  assert "pack-context works" "$PROJECT/scripts/pack-context.sh" feature
+  assert_fails "pack-context rejects path traversal" "$PROJECT/scripts/pack-context.sh" ../AGENTS
+  assert_fails "bad commit message rejected" "$PROJECT/scripts/hooks/commit-msg" "$(msg "did stuff\n")"
+  assert_fails "feat citing a draft requirement rejected (REQ-021)" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat(api): add endpoint\n\nRefs: REQ-001\n')"
+  set_status REQ-001 approved
+  git -C "$PROJECT" add docs/requirements
+  assert "feat citing an approved requirement accepted" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat(api): add endpoint\n\nRefs: REQ-001\n')"
+  git -C "$PROJECT" reset -q --hard
+  assert_fails "feat without Refs rejected" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat(api): add endpoint\n')"
+  assert_fails "invented requirement ID rejected" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat(api): add x\n\nRefs: REQ-042\n')" # traceability: ignore
+  assert_fails "invented rule ID rejected" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'refactor: tidy per CC-77\n')"
+  assert "fix with Refs none accepted" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'fix: typo\n\nRefs: none\n')"
+  assert "req.sh shows known requirement" "$PROJECT/scripts/req.sh" show REQ-001
+  assert_fails "req.sh rejects unknown requirement" "$PROJECT/scripts/req.sh" show REQ-999 # traceability: ignore
+  assert "context status lists rules" grep -q 'CC-09' <("$PROJECT/scripts/context-status.sh")
+  # REQ-011: counts per status, IDs only for requirements not done (the list stays short)
+  assert "context status counts requirements per status" grep -qx 'requirements: 1 (1 draft); not done: REQ-001(draft)' <("$PROJECT/scripts/context-status.sh")
+  assert "context status leaves out done requirement IDs" bash -c "PROJECT_ROOT='$SCAFFOLD_ROOT' RULES_FILE='$SCAFFOLD_ROOT/template/AGENTS.md' '$SCAFFOLD_ROOT/template/scripts/context-status.sh' | grep -E '^requirements: [0-9]+ \([0-9]+ done' | grep -qv 'REQ-002'"
+  assert "pack carries fingerprint and clean-code details" grep -q 'CLEAN CODE DETAILS' "$PROJECT/context-pack.md"
+  # REQ-023 complete and safely written pack
+  assert "pack includes the security checklist" grep -q 'Secure coding checklist' "$PROJECT/context-pack.md"
+  assert "pack includes unreleased changes" grep -q 'Project created from the Xaden scaffold' "$PROJECT/context-pack.md"
+  assert "pack lists what it excludes" grep -q 'NOT INCLUDED' "$PROJECT/context-pack.md"
+  # REQ-028 threat model at kickoff
+  assert "project has a threat model with an ASVS level" grep -q 'ASVS level' "$PROJECT/docs/threat-model.md"
+  assert "kickoff fills the threat model" grep -q 'docs/threat-model.md' "$PROJECT/prompts/kickoff.md"
+  assert "security review reads the threat model" grep -q 'docs/threat-model.md' "$PROJECT/prompts/security-review.md"
+  assert "pack includes the threat model" grep -q '^# PROJECT DOCUMENT (docs/threat-model.md)' "$PROJECT/context-pack.md"
+  mv "$PROJECT/docs/threat-model.md" "$WORKDIR/threat-model.md"
+  assert "pack names a missing threat model" bash -c "'$PROJECT/scripts/pack-context.sh' && grep -q 'threat-model.md (MISSING' '$PROJECT/context-pack.md'"
+  mv "$WORKDIR/threat-model.md" "$PROJECT/docs/threat-model.md"
+  # REQ-029 precise security checklist
+  local topic
+  for topic in 'not a replacement' 'DNS rebinding' 'hard links' 'size limit before reading' \
+    'tenant A cannot reach' 'revoke sessions' 'Password reset' 'Rate and resource limits' \
+    'Safe parsing' 'Data retention' '## Web applications \*(web)\*'; do
+    assert "security checklist covers: $topic" grep -q "$topic" "$PROJECT/docs/security.md"
+  done
+  # REQ-039 WSTG test areas missing so far, in checklist and review prompt
+  for topic in 'open redirect' 'parameter pollution' 'response splitting' 'request smuggling' \
+    'LDAP' 'file inclusion' 'vertical privilege escalation' 'user enumeration' 'default or shared accounts' \
+    'session tokens in URLs' 'Strict-Transport-Security' '\.git/' 'is public: no secrets there' \
+    'at rest' 'separate origin' 'upload frequency' 'Anti-automation' 'LIKE' 'ReDoS' 'audit trail' \
+    'Separate duties' 'postMessage' 'localStorage' 'PCI DSS'; do
+    assert "security checklist covers: $topic" grep -qi "$topic" "$PROJECT/docs/security.md"
+  done
+  for topic in 'open redirects' 'privilege escalation' 'user enumeration' 'ReDoS' 'request' \
+    'smuggling' 'postMessage' 'segregation of duties'; do
+    assert "security review checks: $topic" grep -qi "$topic" "$PROJECT/prompts/security-review.md"
+  done
+  assert_fails "obsolete technologies left out" grep -Eqi 'flash|silverlight|cvss v2' "$PROJECT/docs/security.md" "$PROJECT/prompts/security-review.md"
+  # REQ-030 dependency policy with accountable exceptions
+  for topic in '^## Dependencies' 'Lockfiles' 'Licenses' 'install scripts' 'Updates'; do
+    assert "dependency policy covers: $topic" grep -q "$topic" "$PROJECT/docs/security.md"
+  done
+  assert "exceptions need owner and expiry" grep -q '| Owner | Expires (YYYY-MM-DD) |' "$PROJECT/docs/security-exceptions.md"
+  assert "release prompt blocks on expired exceptions" grep -q 'security-exceptions.md' "$PROJECT/prompts/release.md"
+  # REQ-031 vulnerability reporting and incident policy
+  for topic in '^## Reporting a vulnerability' '^## Secret rotation' '^## Incident response basics' 'SBOM'; do
+    assert "SECURITY.md covers: $topic" grep -q "$topic" "$PROJECT/SECURITY.md"
+  done
+  # REQ-032 recorded security review reports
+  for topic in '^## Scope' '^## Evidence' '^## Limitations' '^## Findings' '^## Remediation summary'; do
+    assert "review report template has: $topic" grep -q "$topic" "$PROJECT/docs/security-reviews/0000-template.md"
+  done
+  assert "review prompt writes the report" grep -q 'docs/security-reviews/0000-template.md' "$PROJECT/prompts/security-review.md"
+  assert "review prompt says a checklist is not proof" grep -q 'not proof of security' "$PROJECT/prompts/security-review.md"
+  assert "review template is updated with the scaffold" is_managed docs/security-reviews/0000-template.md
+  local owned
+  for owned in SECURITY.md docs/threat-model.md docs/security-exceptions.md; do
+    assert_fails "$owned is project-owned, never overwritten by updates" is_managed "$owned"
+  done
+  # REQ-042 architecture document with rules for new code
+  local section
+  for section in '^## Layers and dependency direction' '^## Composition root' '^## Rules for new code' '^## Third-party code'; do
+    assert "architecture template has: $section" grep -q "$section" "$PROJECT/docs/architecture.md"
+  done
+  # REQ-043 versioned persisted data, migrations without data loss
+  for section in 'carries a version' 'migrates older versions automatically' 'only that part is dropped' \
+    'Keep the old data until' 'migration test' 'breaking change (major version)'; do
+    assert "architecture migration rules: $section" grep -q "$section" "$PROJECT/docs/architecture.md"
+  done
+  assert "clean-code guide points to the migration rules" grep -q 'migration rules in .docs/architecture.md.' "$PROJECT/docs/clean-code.md"
+  assert "release prompt counts format changes as breaking" grep -q 'stored or exchanged data formats' "$PROJECT/prompts/release.md"
+  assert "kickoff fills the architecture" grep -q 'docs/architecture.md' "$PROJECT/prompts/kickoff.md"
+  assert "feature prompt follows the rules for new code" grep -q 'Rules for new code' "$PROJECT/prompts/feature.md"
+  assert "code review checks layering" grep -q 'docs/architecture.md' "$PROJECT/prompts/code-review.md"
+  assert "pack includes the architecture" grep -q '^# PROJECT DOCUMENT (docs/architecture.md)' "$PROJECT/context-pack.md"
+  assert_fails "architecture is project-owned, never overwritten by updates" is_managed docs/architecture.md
+  "$PROJECT/scripts/pack-context.sh" feature >/dev/null 2>&1
+  cp "$PROJECT/context-pack.md" "$WORKDIR/pack-before.md"
+  assert_fails "unknown prompt name rejected" "$PROJECT/scripts/pack-context.sh" feature no-such-prompt
+  assert "failed pack keeps the previous pack" cmp -s "$PROJECT/context-pack.md" "$WORKDIR/pack-before.md"
+  # REQ-023 brief pack for small context windows: rules, security, personas, index, chosen requirements
+  local pack="$PROJECT/context-pack.md"
+  assert "brief pack works" "$PROJECT/scripts/pack-context.sh" --brief REQ-001 feature
+  assert "brief pack keeps the rules and the security checklist" bash -c "grep -q '^# PROJECT RULES' '$pack' && grep -q 'Secure coding checklist' '$pack'"
+  assert "brief pack has the index and the chosen requirement" bash -c "grep -q '^# REQUIREMENTS INDEX' '$pack' \
+    && grep -q '^# REQUIREMENTS (docs/requirements/first-epic/REQ-001-' '$pack' && grep -q '^# TASK PROMPT (feature)' '$pack'"
+  assert_fails "brief pack leaves out the clean-code details" grep -q '^# CLEAN CODE DETAILS' "$pack"
+  assert "brief pack names what it leaves out" grep -q '^NOT INCLUDED: docs/clean-code.md' "$pack"
+  assert "brief pack without IDs has no requirement files" bash -c "'$PROJECT/scripts/pack-context.sh' --brief >/dev/null && ! grep -q '^# REQUIREMENTS (docs' '$pack'"
+  cp "$pack" "$WORKDIR/pack-before.md"
+  assert_fails_with "brief pack rejects an unknown requirement" 'does not exist' "$PROJECT/scripts/pack-context.sh" --brief REQ-999 # traceability: ignore
+  assert "failed brief pack keeps the previous pack" cmp -s "$pack" "$WORKDIR/pack-before.md"
+  assert_fails_with "requirement IDs need --brief" 'need --brief' "$PROJECT/scripts/pack-context.sh" REQ-001
+  assert "pack reports its estimated size in tokens" bash -c "'$PROJECT/scripts/pack-context.sh' | grep -q 'about [0-9][0-9]* tokens'"
+
+  local check="$PROJECT/scripts/check-requirements.sh"
+  assert_fails_with "invalid requirement status rejected" 'unknown status' \
+    "$check" "$(requirements_variant bad-status 's/^status: .*/status: bogus/')"
+  assert_fails_with "status pattern matching a real status rejected" 'unknown status' \
+    "$check" "$(requirements_variant regex-status 's/^status: .*/status: d.*e/')"
+  # REQ-021 complete fields and real dates
+  assert_fails_with "empty acceptance criteria rejected" 'Acceptance criteria' \
+    "$check" "$(requirements_variant no-criteria '/^- TODO: Given/d')"
+  assert_fails_with "invalid date rejected" 'invalid date' \
+    "$check" "$(requirements_variant bad-date 's/^updated: .*/updated: not-a-date/')"
+  assert_fails_with "unfilled date placeholder rejected in projects" 'unfilled' \
+    "$check" "$(requirements_variant placeholder-date 's/^updated: .*/updated: {{DATE}}/')"
+  assert_fails_with "placeholder requirement blocks a release" 'before a release' "$check" --release
+}
+
+# REQ-022 commit reference checks cannot be bypassed
+test_commit_bypasses() {
+  local hook="$PROJECT/scripts/hooks/commit-msg" zero="0000000000000000000000000000000000000000" before_bad
+  assert_fails "Merge prefix cannot smuggle an unknown ID" "$hook" "$(msg 'Merge branch x\n\nRefs: REQ-777\n')" # traceability: ignore
+  assert_fails "fixup! prefix cannot smuggle an unknown ID" "$hook" "$(msg 'fixup! feat: x\n\nSee REQ-778\n')" # traceability: ignore
+  assert "plain Merge message still accepted" "$hook" "$(msg 'Merge branch x\n')"
+  assert "IDs in comments and the git commit -v diff are ignored" "$hook" \
+    "$(msg 'docs: x\n\n# REQ-779 in a comment\n# ------------------------ >8 ------------------------\n+REQ-780 in the diff\n')" # traceability: ignore
+  assert "fix with 'Refs: none' accepted" "$hook" "$(msg 'fix: x\n\nRefs: none\n')"
+  assert_fails_with "fix with a word merely containing none rejected" "Refs: none" "$hook" "$(msg 'fix: x\n\nRefs: nonexistent\n')"
+  set_status REQ-001 approved
+  git -C "$PROJECT" commit -q -am "docs(requirements): approve REQ-001"
+  assert "Refs in prose is not a trailer" bash -c "'$hook' '$(msg 'feat: x\n\nRefs: REQ-001\n\nMore prose after it.\n')' 2>&1 | grep -q \"need a 'Refs: REQ-nnn' trailer\""
+  # A first push with a bad commit in the middle: every introduced commit is checked.
+  before_bad="$(git -C "$PROJECT" rev-parse HEAD)"
+  git -C "$PROJECT" commit -q --allow-empty --no-verify -m "feat: no refs in the middle"
+  git -C "$PROJECT" commit -q --allow-empty -m "docs: fine on top"
+  assert_fails "CI first push checks the whole new history" \
+    env EVENT_NAME=push BEFORE_SHA="$zero" DEFAULT_BRANCH=main "$PROJECT/scripts/verify-commits.sh" --ci
+  git -C "$PROJECT" update-ref refs/remotes/origin/main "$before_bad"
+  assert_fails "CI pull request range includes the bad commit" \
+    env EVENT_NAME=pull_request BASE_REF=main "$PROJECT/scripts/verify-commits.sh" --ci
+  assert_fails "CI rejects a malformed base ref" \
+    env EVENT_NAME=pull_request BASE_REF='main;rm' "$PROJECT/scripts/verify-commits.sh" --ci
+  git -C "$PROJECT" update-ref -d refs/remotes/origin/main
+  git -C "$PROJECT" reset -q --hard "$before_bad~1"
+
+  # git exports GIT_DIR to hooks. A rules file in a subfolder (the scaffold's template/AGENTS.md)
+  # must still be read from that folder, not from the repository top.
+  local git_dir cites_rule cites_unknown_rule
+  mkdir -p "$PROJECT/rules" && printf -- '- **CC-77** test rule\n' >"$PROJECT/rules/AGENTS.md"
+  git -C "$PROJECT" add rules/AGENTS.md
+  git_dir="$(git -C "$PROJECT" rev-parse --absolute-git-dir)"
+  cites_rule="$(msg 'docs: x\n\nSee CC-77.\n')"
+  assert "rule in a subfolder found with GIT_DIR exported (worktree hook)" bash -c \
+    "cd '$PROJECT' && GIT_DIR='$git_dir' RULES_FILE='$PROJECT/rules/AGENTS.md' scripts/verify-refs.sh '$cites_rule'"
+  assert "rule in a subfolder found with a relative GIT_DIR and index" bash -c \
+    "cd '$PROJECT' && GIT_DIR=.git GIT_INDEX_FILE=.git/index RULES_FILE='$PROJECT/rules/AGENTS.md' scripts/verify-refs.sh '$cites_rule'"
+  cites_unknown_rule="$WORKDIR/unknown-rule.txt"
+  printf 'docs: x\n\nSee CC-78.\n' >"$cites_unknown_rule"
+  assert_fails_with "unknown rule still rejected with GIT_DIR exported" "unknown rule CC-78" bash -c \
+    "cd '$PROJECT' && GIT_DIR='$git_dir' RULES_FILE='$PROJECT/rules/AGENTS.md' scripts/verify-refs.sh '$cites_unknown_rule'"
+  git -C "$PROJECT" rm -q --cached rules/AGENTS.md && rm -rf "$PROJECT/rules"
+}
+
+# REQ-019 required checks cannot be skipped silently
+test_missing_tools() {
+  need_tool gitleaks "missing-scanner fixture" || return 0
+  local restricted
+  restricted="$(path_without gitleaks)"
+  assert "local check reports INCOMPLETE without gitleaks" bash -c "cd '$PROJECT' && PATH='$restricted' scripts/check.sh 2>&1 | grep -q 'INCOMPLETE'"
+  assert_fails "strict check fails without gitleaks" bash -c "cd '$PROJECT' && PATH='$restricted' scripts/check.sh --strict"
+  assert "summary lists the skipped check" bash -c "cd '$PROJECT' && PATH='$restricted' scripts/check.sh 2>&1 | grep -q 'skipped: secret scan'"
+}
+
+# REQ-014: checkers get exactly the matching tracked files, chosen in one pass over the list.
+test_file_selection() {
+  local repo="$WORKDIR/selection"
+  mkdir -p "$repo/hooks" "$repo/tests/semgrep" && git -C "$repo" init -q
+  : >"$repo/a.sh" && : >"$repo/with space.sh" && : >"$repo/hooks/pre-commit" && : >"$repo/x.py" && : >"$repo/tests/semgrep/fixture.py"
+  git -C "$repo" add -A
+  assert "shell files and extension-less hooks selected" bash -c "cd '$repo' && source '$SCAFFOLD_ROOT/template/scripts/lib.sh' \
+    && collect_files full '(\.sh\$|(^|/)hooks/[^/.]+\$)' && test \"\${TARGETS[*]}\" = 'a.sh hooks/pre-commit with space.sh'"
+  assert "excluded paths left out" bash -c "cd '$repo' && source '$SCAFFOLD_ROOT/template/scripts/lib.sh' \
+    && collect_files full '\.py\$' '^tests/semgrep/' && test \"\${TARGETS[*]}\" = 'x.py'"
+}
+
+# REQ-014 fast offline pre-commit, REQ-005 security (SAST blocks eval)
+test_staged_checks() {
+  printf 'x = 1\n' >"$PROJECT/clean.py"
+  git -C "$PROJECT" add clean.py
+  assert "staged check passes on clean file" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
+  if need_tool semgrep "staged SAST fixture"; then
+    printf 'def run(user_input):\n    return eval(user_input)\n' >"$PROJECT/unsafe.py"
+    git -C "$PROJECT" add unsafe.py
+    assert_fails "staged check blocks eval via local semgrep rule" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
+    # REQ-040 the new rules ship with projects and run in the pre-commit check
+    printf 'from flask import redirect, request\n\n\ndef go():\n    return redirect(request.args.get("next"))\n' >"$PROJECT/unsafe.py"
+    git -C "$PROJECT" add unsafe.py
+    assert_fails "staged check blocks an open redirect via local semgrep rule" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
+  fi
+  git -C "$PROJECT" reset -q --hard
+  rm -f "$PROJECT/clean.py" "$PROJECT/unsafe.py"
+}
+
+# REQ-020 staged snapshot: checks and commit-msg validate what will be committed
+test_staged_snapshot() {
+  local requirements before_status before_diff in_snapshot
+  # REQ-014: large files the commit does not change are not copied; staged ones always are.
+  head -c 1100000 /dev/zero >"$PROJECT/large-unchanged.bin"
+  git -C "$PROJECT" add large-unchanged.bin && git -C "$PROJECT" commit -q --no-verify -m "chore: large file"
+  head -c 1100000 /dev/zero >"$PROJECT/large-staged.bin" && printf 'x\n' >"$PROJECT/small-staged.txt"
+  git -C "$PROJECT" add large-staged.bin small-staged.txt
+  in_snapshot="source '$PROJECT/scripts/lib.sh'; enter_staged_snapshot '$PROJECT'"
+  assert "snapshot leaves out large unchanged files" bash -c "$in_snapshot; test ! -e large-unchanged.bin && test -f AGENTS.md"
+  assert "snapshot keeps staged files of any size" bash -c "$in_snapshot; test -f large-staged.bin && test -f small-staged.txt"
+  git -C "$PROJECT" reset -q --hard HEAD~1
+  requirements="$(req_file "$PROJECT" REQ-001)"
+  cp "$requirements" "$WORKDIR/req-original.md"
+  # staged content broken, working tree fixed: must fail
+  sed 's/^status: .*/status: bogus/' "$WORKDIR/req-original.md" >"$requirements"
+  git -C "$PROJECT" add docs/requirements
+  cp "$WORKDIR/req-original.md" "$requirements"
+  before_status="$(git -C "$PROJECT" status --porcelain)"
+  before_diff="$(git -C "$PROJECT" diff)"
+  assert_fails "staged invalid requirement not hidden by unstaged fix" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
+  assert "working tree and index untouched by staged check" test "$(git -C "$PROJECT" status --porcelain)$(git -C "$PROJECT" diff)" = "$before_status$before_diff"
+  git -C "$PROJECT" reset -q --hard
+  # staged content fine, working tree broken: must pass
+  sed 's/^status: .*/status: bogus/' "$WORKDIR/req-original.md" >"$requirements"
+  assert "unstaged breakage does not fail the staged check" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
+  git -C "$PROJECT" checkout -q -- docs
+  if need_tool semgrep "staged SAST snapshot fixture"; then
+    printf 'def run(user_input):\n    return eval(user_input)\n' >"$PROJECT/hidden.py"
+    git -C "$PROJECT" add hidden.py
+    printf 'def run(user_input):\n    return user_input\n' >"$PROJECT/hidden.py"
+    assert_fails "staged eval not hidden by unstaged fix" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
+    git -C "$PROJECT" reset -q --hard && git -C "$PROJECT" clean -qfd
+  fi
+  # requirement only in the working tree cannot validate a commit
+  "$PROJECT/scripts/req.sh" new first-epic job "Second job" >/dev/null
+  set_status REQ-002 approved
+  assert_fails "REQ only in unstaged file rejected by commit-msg" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat: x\n\nRefs: REQ-002\n')"
+  git -C "$PROJECT" add docs/requirements
+  assert "same REQ accepted once staged" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat: x\n\nRefs: REQ-002\n')"
+  git -C "$PROJECT" reset -q --hard && git -C "$PROJECT" clean -qfd
+}
+
+# REQ-003 clean-code rules, REQ-015 linter presets and mandatory stack checks
+test_stack_enforcement() {
+  assert "CI installs requirements-dev.txt only when present" \
+    grep -q 'if \[ -f requirements-dev.txt \]; then python -m pip install -r requirements-dev.txt' "$PROJECT/.github/workflows/ci.yml"
+  if need_tool ruff "python preset fixture"; then
+    printf '[project]\nname = "demo"\nversion = "0.1.0"\n' >"$PROJECT/pyproject.toml"
+    printf '"""Demo."""\n' >"$PROJECT/ok.py"
+    git -C "$PROJECT" add pyproject.toml ok.py
+    assert_fails "python without ruff config fails" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
+    assert "python preset applies" "$PROJECT/scripts/apply-preset.sh" python
+    printf '"""Demo."""\n\n\ndef f(a, b, c, d, e):\n    """Too many args."""\n    return a\n' >"$PROJECT/bad.py"
+    git -C "$PROJECT" add ruff.toml bad.py
+    assert_fails "preset rejects too many parameters (CC-01)" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
+    git -C "$PROJECT" rm -q --cached bad.py
+    assert "preset accepts clean code" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
+    git -C "$PROJECT" reset -q --hard && git -C "$PROJECT" clean -qfd
+  fi
+  if need_tool npm "node stack fixture"; then
+    (cd "$PROJECT" && npm init -y >/dev/null)
+    git -C "$PROJECT" add package.json
+    assert_fails "node without lint script fails" bash -c "cd '$PROJECT' && scripts/check.sh --staged"
+    git -C "$PROJECT" reset -q --hard && git -C "$PROJECT" clean -qfd
+  fi
+}
+
+# REQ-051 optional tools: tips where they fit, checks once adopted
+test_optional_tools() {
+  local log="$WORKDIR/optional.log" fakes tip_text label
+  printf '[project]\nname = "demo"\n' >"$PROJECT/pyproject.toml"
+  printf '{ "name": "demo" }\n' >"$PROJECT/package.json"
+  printf '"""Demo."""\n' >"$PROJECT/ok.py"
+  git -C "$PROJECT" add pyproject.toml package.json ok.py
+  (cd "$PROJECT" && scripts/check.sh >"$log" 2>&1) || true
+  for tip_text in 'python: vulture' 'python: Hypothesis' 'python: mutmut' 'node: knip' 'node: fast-check' \
+    'node: StrykerJS' 'duplication: jscpd'; do
+    assert "full check suggests $tip_text" grep -q "^TIP: $tip_text" "$log"
+  done
+  has_command zizmor || assert "workflow security tip without zizmor" grep -q '^TIP: workflows: zizmor' "$log"
+  assert "staged check prints no tips" bash -c "cd '$PROJECT' && ! scripts/check.sh --staged 2>&1 | grep -q '^TIP:'"
+
+  fakes="$(fake_tools actionlint zizmor vulture jscpd)"
+  printf '\n[tool.vulture]\npaths = ["ok.py"]\n' >>"$PROJECT/pyproject.toml"
+  printf '{ "threshold": 5 }\n' >"$PROJECT/.jscpd.json"
+  git -C "$PROJECT" add pyproject.toml .jscpd.json
+  (cd "$PROJECT" && PATH="$fakes:$PATH" scripts/check.sh >"$log" 2>&1) || true
+  for label in 'python: vulture (dead code)' 'duplication: jscpd' 'workflows: actionlint' 'workflows: zizmor'; do
+    assert "adopted $label runs and its findings fail" grep -q "$label failed" "$log"
+  done
+  assert_fails "adopted tools are no longer suggested" grep -qE '^TIP: (python: vulture|duplication|workflows)' "$log"
+  assert "staged check lints staged workflows" bash -c "cd '$PROJECT' && printf '# staged edit\\n' >>.github/workflows/ci.yml && git add .github/workflows/ci.yml && PATH='$fakes:$PATH' scripts/check.sh --staged 2>&1 | grep -q 'workflows: zizmor failed'"
+  git -C "$PROJECT" reset -q --hard && git -C "$PROJECT" clean -qfd
+
+  assert "AGENTS.md says how to handle tips" grep -q 'install nothing without approval' "$PROJECT/AGENTS.md"
+  assert "optional tools are a managed document" grep -q 'docs/optional-tools.md' "$PROJECT/.scaffold/manifest"
+  assert "setup points to the optional tools" bash -c "'$PROJECT/scripts/setup.sh' --tools-only 2>&1 | grep -q 'docs/optional-tools.md'"
+  assert "clean-code guide covers property and mutation testing" bash -c "grep -q 'property-based tests' '$PROJECT/docs/clean-code.md' && grep -q 'Mutation testing' '$PROJECT/docs/clean-code.md'"
+}
+
+# REQ-019: CI never leaves the job token in .git/config while project code runs
+# (security review 2026-10-11, finding 3).
+test_ci_credentials() {
+  local workflow
+  for workflow in "$SCAFFOLD_ROOT/.github/workflows/scaffold-ci.yml" "$SCAFFOLD_ROOT/template/.github/workflows/ci.yml"; do
+    assert "$(basename "$workflow"): checkout does not persist credentials" \
+      test "$(grep -c 'uses: actions/checkout@' "$workflow")" = "$(grep -c 'persist-credentials: false' "$workflow")"
+    # REQ-004: the registry rules are the one unpinned input; the workflow says so where it runs
+    assert "$(basename "$workflow"): unpinned semgrep registry rules are marked as intentional" \
+      grep -q 'registry rules are not pinned on purpose' "$workflow"
+  done
+  assert "security checklist explains new semgrep registry findings" \
+    grep -q 'report a finding without a code change' "$SCAFFOLD_ROOT/template/docs/security.md"
+  # REQ-062: every branch push runs CI, so a commit has checks before it is pushed to main
+  assert "scaffold-ci.yml runs on every branch push" \
+    grep -q "branches: \['\*\*'\]" "$SCAFFOLD_ROOT/.github/workflows/scaffold-ci.yml"
+}
+
+test_quiet_output
+test_generated_project
+test_commit_bypasses
+test_missing_tools
+test_file_selection
+test_staged_checks
+test_staged_snapshot
+test_stack_enforcement
+test_optional_tools
+test_ci_credentials

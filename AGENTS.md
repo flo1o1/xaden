@@ -58,4 +58,4 @@ prompts from `template/prompts/` unchanged. Where a prompt names a project path,
 | `docs/architecture.md` | the "Layout" section of `README.md` and this file |
 | `docs/threat-model.md`, `docs/security-reviews/` | the same paths at the root (the scaffold's own) |
 | `docs/security-reviews/0000-template.md` | `template/docs/security-reviews/0000-template.md` |
-| `CHANGELOG.md`, tests | `CHANGELOG.md` at the root, `tests/smoke.sh` |
+| `CHANGELOG.md`, tests | `CHANGELOG.md` at the root, `tests/smoke.sh` (areas in `tests/smoke/`; one area: `tests/smoke.sh <area>`) |

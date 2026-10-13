@@ -40,7 +40,8 @@ template/             the product: copied 1:1 into every new project
 scripts/              scaffold tools: xaden + install, new-project, update-scaffold, setup, check-scaffold, release-scaffold
 docs/requirements/    requirements of the scaffold itself
 inbox/                local drop zone (git-ignored contents)
-tests/smoke.sh        end-to-end test: generates a project and exercises its tooling
+tests/smoke.sh        end-to-end test: generates a project and exercises its tooling;
+                      areas in tests/smoke/ (one per epic), run one: tests/smoke.sh <area>
 AGENTS.md CLAUDE.md   rules for maintaining the scaffold
 ```
 

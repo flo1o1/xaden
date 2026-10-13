@@ -1,0 +1,265 @@
+# shellcheck shell=bash
+# Smoke test area "assistant-guidance" (docs/requirements/assistant-guidance). Sourced by tests/smoke.sh, which
+# defines the helpers and creates the demo project first.
+
+# read_denied <file-name>: true if a Read(./...) deny pattern in .claude/settings.json matches
+# the name. Shell globs stand in for Claude Code's gitignore-style matching of plain names.
+read_denied() {
+  local pattern
+  while IFS= read -r pattern; do
+    # shellcheck disable=SC2254 # the pattern is meant to glob
+    case "$1" in $pattern) return 0 ;; esac
+  done < <(sed -n 's/^ *"Read(\.\/\(.*\))",*$/\1/p' "$PROJECT/.claude/settings.json")
+  return 1
+}
+
+# rule_ids <file>: prints the sorted, unique CC-nn IDs a file mentions.
+rule_ids() {
+  grep -o 'CC-[0-9][0-9]' "$1" | sort -u
+}
+
+# REQ-002 tool-agnostic rules, REQ-005 security review, REQ-008 Obsidian vault
+test_template_contents() {
+  local pointer
+  for pointer in CLAUDE.md .clinerules .continue/rules/project.md .github/copilot-instructions.md .aider.conf.yml; do
+    assert "$pointer points to AGENTS.md" grep -q 'AGENTS.md' "$PROJECT/$pointer"
+  done
+  assert "/security runs the tool-agnostic review prompt" grep -q '@prompts/security-review.md' "$PROJECT/.claude/commands/security.md"
+  # REQ-045 no personal skills, plugins or private tools: the generated project names none
+  # optional-tools.md names a public plugin catalogue whose repository is called "skills" (REQ-053)
+  assert_fails "generated project references no skills" grep -rli 'skill' "$PROJECT" --exclude-dir=.git --exclude=optional-tools.md
+  assert "tool-agnostic security prompt present" grep -q 'OWASP' "$PROJECT/prompts/security-review.md"
+  assert "Obsidian vault configured" test -f "$PROJECT/.obsidian/app.json"
+  assert "shared Obsidian config stays tracked" bash -c "! git -C '$PROJECT' check-ignore -q .obsidian/app.json"
+  assert "per-user Obsidian state is ignored" bash -c "git -C '$PROJECT' check-ignore -q .obsidian/workspace.json && git -C '$PROJECT' check-ignore -q .obsidian/appearance.json && git -C '$PROJECT' check-ignore -q .obsidian/plugins/x/data.json"
+  assert "every prompt has frontmatter" bash -c "cd '$PROJECT/prompts' && for f in *.md; do head -1 \"\$f\" | grep -qx -- '---' || exit 1; done"
+}
+
+# REQ-027 proportional, consistent clean-code guidance
+test_clean_code_guidance() {
+  assert "every CC rule is explained in clean-code.md and none is invented there" \
+    test "$(rule_ids "$PROJECT/AGENTS.md")" = "$(rule_ids "$PROJECT/docs/clean-code.md")"
+  assert "CC-06 scope agrees in AGENTS.md and clean-code.md" \
+    bash -c "grep -q 'CC-06.* Document public APIs' '$PROJECT/AGENTS.md' && grep -q '^- Document public' '$PROJECT/docs/clean-code.md'"
+  assert "CC-05 accepts result and option types" grep -q 'exceptions, result or option types' "$PROJECT/AGENTS.md"
+  assert "CC-09 forbids unrelated refactoring" grep -q 'No unrelated refactoring' "$PROJECT/AGENTS.md"
+  # REQ-041 design, test and refactoring practices
+  local practice
+  for practice in 'Composition root' 'does work (an algorithm) or coordinates' 'polymorphic objects' \
+    'hidden temporal coupling' 'Law of Demeter' 'Size heuristics' 'Name length follows scope' \
+    'positive' 'A wrong comment is worse than none' 'English unless' 'Parallel implementation' \
+    'characterization' 'check results and state' 'a test that cannot fail' 'Flaky tests' \
+    'Test doubles replace' 'Pyramid' 'Given / When / Then'; do
+    assert "clean-code guide covers: $practice" grep -q "$practice" "$PROJECT/docs/clean-code.md"
+  done
+  # REQ-044 linter configuration only gets stricter without approval
+  assert "loosening linters is an approval point" grep -q 'raising a threshold, or adding an ignore or suppression is an \*\*Approval point' "$PROJECT/AGENTS.md"
+  assert "linter baselines may only shrink" grep -q 'it may only shrink' "$PROJECT/AGENTS.md"
+  assert "presets require approval to relax" bash -c "grep -q \"user's approval\" '$PROJECT/presets/node/eslint.config.mjs' && grep -q \"user's approval\" '$PROJECT/presets/python/ruff.toml'"
+  assert "ESLint preset forbids var" grep -q '"no-var": "error"' "$PROJECT/presets/node/eslint.config.mjs"
+}
+
+# REQ-033 trusted instructions versus untrusted content, explicit approvals
+test_assistant_trust_rules() {
+  local item
+  for item in 'issue and pull-request text' 'output of tools and dependencies' 'files in .inbox/.' \
+    'authorise running commands' 'destructive or irreversible' 'adding, removing or upgrading dependencies' \
+    'affecting production' 'sending code or data outside' 'reading, printing or changing secrets'; do
+    assert "AGENTS.md trust rules cover: $item" grep -q -- "$item" "$PROJECT/AGENTS.md"
+  done
+  assert "pack carries the trust rules" grep -q '^## 10. Trusted instructions and approvals' "$(full_pack)"
+}
+
+# REQ-050 optional add-on rule sets: documented, never installed, never above AGENTS.md
+test_add_on_rule_sets() {
+  local guide="$SCAFFOLD_ROOT/GETTING-STARTED.md" tools="$PROJECT/docs/optional-tools.md" add_on
+  for add_on in Ponytail Caveman 'Token Optimizer' claude-mem obsidian-skills; do
+    assert "guide lists $add_on as optional" grep -q "^| Optional: \\[$add_on\\]" "$guide"
+  done
+  assert "guide points to optional-tools.md for add-on details" grep -q 'risks to know before installing are in .template/docs/optional-tools.md.' "$guide"
+  assert_fails "guide does not repeat add-on install commands" grep -q 'plugin install' "$guide"
+  assert "Ponytail Claude Code install is documented" grep -q 'plugin install ponytail@ponytail' "$tools"
+  assert "Ponytail names the AGENTS.md route for other tools" grep -q "can use its .AGENTS.md." "$tools"
+  assert "Caveman install is documented" grep -q 'plugin install caveman@caveman' "$tools"
+  assert "project files stay out of Caveman compression" grep -q 'Keep project files in normal prose' "$tools"
+  assert "Token Optimizer install is documented" grep -q 'plugin install token-optimizer@alexgreensh-token-optimizer' "$tools"
+  assert "Token Optimizer license is stated" grep -q 'PolyForm Noncommercial' "$tools"
+  assert "compressed output never replaces verbatim failures" grep -q 'quote failing lines from the full output' "$tools"
+  assert "the on-disk archive of tool output is disclosed" grep -q 'credentials removed by pattern' "$tools"
+  assert "claude-mem install is documented" grep -q 'plugin install claude-mem' "$tools"
+  assert "claude-mem session store is disclosed" grep -q '/\.claude-mem`' "$tools"
+  assert "claude-mem hosted service is disclosed" grep -q 'receives session content' "$tools"
+  assert "obsidian-skills install is documented" grep -q 'plugin install obsidian@obsidian-skills' "$tools"
+  assert "Obsidian syntax is limited to prompts/" grep -q 'stay plain Markdown, because other assistants' "$tools"
+  assert_fails "new projects enable no plugin" grep -qi 'plugin' "$PROJECT/.claude/settings.json"
+  assert "AGENTS.md ranks add-on rule sets below itself" grep -q 'they never override this file' "$PROJECT/AGENTS.md"
+}
+
+# REQ-063 opusplan is a documented option; the template pins no model
+test_model_routing_option() {
+  local claude_md="$PROJECT/CLAUDE.md"
+  assert "CLAUDE.md names opusplan for the session" grep -q '/model opusplan' "$claude_md"
+  assert "CLAUDE.md keeps opusplan in local settings" grep -q '"model": "opusplan". in .\.claude/settings\.local\.json' "$claude_md"
+  assert "CLAUDE.md names the fallback without Opus" grep -q '/model sonnet., the prompts work unchanged' "$claude_md"
+  assert "CLAUDE.md explains per-command model front matter" grep -q 'it applies to the current turn only' "$claude_md"
+  assert_fails "project settings pin no model" grep -q '"model"' "$PROJECT/.claude/settings.json"
+  assert_fails "no command pins a model" grep -lq '^model:' "$PROJECT"/.claude/commands/*.md
+}
+
+# REQ-034 accurate Claude Code permission rules
+test_claude_permissions() {
+  local secret
+  for secret in .env .env.local .env.production.local .env.development .env.test .env.staging .env.production; do
+    assert "Read denied for $secret" read_denied "$secret"
+  done
+  assert_fails "Read allowed for .env.example (documentation prompt needs it)" read_denied .env.example
+  assert "force-push variants denied" bash -c "grep -q 'git push -f:' '$PROJECT/.claude/settings.json' && grep -q 'git push --force-with-lease:' '$PROJECT/.claude/settings.json'"
+  assert "CLAUDE.md states the limits" grep -q 'not a security boundary' "$PROJECT/CLAUDE.md"
+  if need_tool python3 "settings.json syntax"; then
+    assert "settings.json is valid JSON" python3 -m json.tool "$PROJECT/.claude/settings.json"
+  fi
+}
+
+# REQ-035 one workflow and approval model across prompts
+test_prompt_workflow() {
+  local prompts="$PROJECT/prompts" name
+  for name in kickoff feature bugfix refactor requirements-update security-review release; do
+    assert "$name prompt marks its approval points" grep -q '\*\*Approval point' "$prompts/$name.md"
+  done
+  assert "AGENTS.md defines approval points and prior approval" grep -q 'already approved that exact step' "$PROJECT/AGENTS.md"
+  assert_fails "no prompt uses an unmarked wait phrase" grep -lE 'Wait for my confirmation|Ask me before installing|wait for my OK' "$prompts"/*.md
+  assert_fails "feature prompt does not skip requirement approval" grep -q 'status .in-progress.) and' "$prompts/feature.md"
+  assert "bugfix is regression-test first" grep -q 'Do not change production code before the test fails' "$prompts/bugfix.md"
+  # REQ-036 truthful completion report
+  assert "AGENTS.md defines the completion report" bash -c "grep -q '^  COMPLETION REPORT' '$PROJECT/AGENTS.md' && grep -q 'Checks skipped:' '$PROJECT/AGENTS.md' && grep -q 'Acceptance evidence:' '$PROJECT/AGENTS.md'"
+  assert "skipped checks are never reported as passed" grep -q 'listed as skipped,' "$PROJECT/AGENTS.md"
+  for name in kickoff feature bugfix refactor requirements-update security-review release documentation; do
+    assert "$name prompt ends with the completion report" grep -q 'Completion report given' "$prompts/$name.md"
+  done
+  # REQ-037 honest docs checks, operations guidance
+  assert "docs check says it verifies structure only" grep -q 'structure only' <("$PROJECT/scripts/check-docs.sh")
+  assert "AGENTS.md says docs check is structure only" grep -q 'It checks structure only' "$PROJECT/AGENTS.md"
+  for topic in 'timeouts' 'bounded retries' 'graceful shutdown' 'health checks' 'no secrets or personal data' \
+    'rollback path' 'actually tested'; do
+    assert "documentation prompt asks for: $topic" grep -q "$topic" "$prompts/documentation.md"
+  done
+  assert "admin guide asks when the restore was tested" grep -q 'restore was last tested' "$PROJECT/docs/admin-guide.md"
+  assert "feature refactors first only when needed" grep -q 'refactor first (\[\[refactor\]\]' "$prompts/feature.md"
+}
+
+# REQ-060: changes are committed on feature branches; the hooks refuse commits on main.
+test_branch_rule() {
+  local empty="$WORKDIR/empty-repo"
+  printf 'x\n' >>"$PROJECT/notes.txt" && git -C "$PROJECT" add notes.txt
+  assert_fails_with "commit on main refused" "git worktree add" \
+    env ALLOW_MAIN_COMMIT=0 git -C "$PROJECT" commit -q -m "docs: straight to main"
+  assert "ALLOW_MAIN_COMMIT=1 permits a commit on main" \
+    env ALLOW_MAIN_COMMIT=1 git -C "$PROJECT" commit -q -m "docs: allowed on main"
+  git -C "$PROJECT" reset -q --hard HEAD~1
+
+  git -C "$PROJECT" checkout -q -b docs/notes
+  printf 'branch\n' >"$PROJECT/notes.txt" && git -C "$PROJECT" add notes.txt
+  assert "commit on a feature branch allowed" env ALLOW_MAIN_COMMIT=0 git -C "$PROJECT" commit -q -m "docs: notes on a branch"
+  git -C "$PROJECT" checkout -q main
+  printf 'main\n' >"$PROJECT/notes.txt" && git -C "$PROJECT" add notes.txt
+  git -C "$PROJECT" commit -q -m "docs: conflicting notes on main"
+  git -C "$PROJECT" merge -q docs/notes >/dev/null 2>&1 || true
+  printf 'merged\n' >"$PROJECT/notes.txt" && git -C "$PROJECT" add notes.txt
+  assert "concluding a merge on main allowed" env ALLOW_MAIN_COMMIT=0 git -C "$PROJECT" commit -q --no-edit
+  git -C "$PROJECT" reset -q --hard HEAD~2 && git -C "$PROJECT" branch -q -D docs/notes
+
+  git init -q -b main "$empty"
+  assert_fails_with "scaffold hook refuses commits on main" "git worktree add" \
+    bash -c "cd '$empty' && ALLOW_MAIN_COMMIT=0 '$SCAFFOLD_ROOT/.githooks/pre-commit'"
+  assert "AGENTS.md tells assistants to use a branch and worktree per change" \
+    grep -q 'git worktree add ../<repo>-<slug> -b <type>/<slug> main' "$PROJECT/AGENTS.md"
+}
+
+# REQ-053 optional assistant plugins are documented, not installed
+test_assistant_plugins() {
+  local doc="$PROJECT/docs/optional-tools.md" item
+  for item in 'code-review@claude-plugins-official' 'trailofbits/skills' 'ponytail@ponytail' \
+    'takes precedence over them' 'Not recommended'; do
+    assert "optional tools document covers: $item" grep -q -- "$item" "$doc"
+  done
+  assert "/review offers ponytail-review as an optional second pass" \
+    grep -q 'Optional second pass: if the Ponytail plugin is installed' "$PROJECT/.claude/commands/review.md"
+}
+
+# REQ-054 look for mature existing solutions before building
+test_look_before_build() {
+  local item
+  for item in 'Look before you build' 'search the web for a mature solution' 'name, one-line summary, license, website' \
+    'No web access: say so'; do
+    assert "AGENTS.md rule covers: $item" grep -q -- "$item" "$PROJECT/AGENTS.md"
+  done
+  assert "feature prompt applies the rule" grep -q 'Look before you build (AGENTS.md' "$PROJECT/prompts/feature.md"
+  assert "pack carries the rule" grep -q 'Look before you build' "$(full_pack)"
+}
+
+# REQ-061 user personas that assistants check solutions against
+test_personas() {
+  local copy="$WORKDIR/variants/personas" persona name
+  rm -rf "$copy" && mkdir -p "$WORKDIR/variants" && cp -R "$PROJECT" "$copy"
+  persona="$copy/docs/personas/ada-admin.md"
+  assert "persona.sh new creates the persona file" bash -c "'$copy/scripts/persona.sh' new 'Ada Admin' | grep -qx 'docs/personas/ada-admin.md'"
+  assert "persona name and date are filled in" bash -c "grep -qx 'name: Ada Admin' '$persona' && grep -Eq '^updated: [0-9]{4}-[0-9]{2}-[0-9]{2}$' '$persona' && ! grep -q '{{' '$persona'"
+  assert "persona sections are prefilled" bash -c "grep -q '^## A solution fails this persona when' '$persona' && grep -q '^TODO: ' '$persona'"
+  printf 'edited\n' >>"$persona"
+  assert_fails_with "an existing persona is not overwritten" 'exists already' "$copy/scripts/persona.sh" new 'Ada Admin'
+  assert "the existing persona keeps its content" grep -qx 'edited' "$persona"
+  assert_fails_with "a name that breaks the file is rejected" 'without' "$copy/scripts/persona.sh" new 'a/b'
+  for name in Ben Cleo Dan Eve; do "$copy/scripts/persona.sh" new "$name" >/dev/null; done
+  assert "a sixth persona warns about focus" bash -c "'$copy/scripts/persona.sh' new Finn 2>&1 | grep -q '3 to 5'"
+  assert "pack includes personas but not the template" bash -c "'$copy/scripts/pack-context.sh' >/dev/null \
+    && grep -q '^# USER PERSONA (docs/personas/ada-admin.md)' '$copy/context-pack.md' && ! grep -q '0000-template' '$copy/context-pack.md'"
+  # REQ-023: a committed link must not copy a file from outside the project into the pack.
+  printf 'LINKED_SECRET\n' >"$WORKDIR/outside-secret"
+  ln -s "$WORKDIR/outside-secret" "$copy/docs/personas/zed.md"
+  assert_fails_with "pack refuses a symbolically linked file" 'symbolic link' "$copy/scripts/pack-context.sh"
+  assert_fails "the linked file's content never reaches the pack" grep -q 'LINKED_SECRET' "$copy/context-pack.md"
+  rm "$copy/docs/personas/zed.md"
+  # REQ-061: a dangling link in docs/personas/ must not make persona.sh write outside the project.
+  ln -s "$WORKDIR/outside-persona" "$copy/docs/personas/mallory.md"
+  assert_fails_with "persona.sh refuses a dangling symbolic link" 'exists already' "$copy/scripts/persona.sh" new Mallory
+  assert_fails "nothing is written through the link" test -e "$WORKDIR/outside-persona"
+  rm "$copy/docs/personas/mallory.md"
+  assert "AGENTS.md checks solutions against personas" grep -q 'against each one; name the persona it fails' "$PROJECT/AGENTS.md"
+  for name in kickoff feature code-review; do
+    assert "$name prompt uses the personas" grep -q 'docs/personas\|\[\[persona\]\]' "$PROJECT/prompts/$name.md"
+  done
+  assert "/persona runs the persona prompt" grep -qx '@prompts/persona.md' "$PROJECT/.claude/commands/persona.md"
+  assert "the scaffold manages the persona template" is_managed docs/personas/0000-template.md
+  assert_fails "the scaffold never manages project personas" is_managed docs/personas/ada-admin.md
+}
+
+# REQ-055 maintainers use the project commands on the scaffold itself
+test_scaffold_commands() {
+  local name prompt mapped
+  for name in bugfix refactor review security; do
+    prompt="$(sed -n 's|^@template/prompts/\(.*\)$|\1|p' "$SCAFFOLD_ROOT/.claude/commands/$name.md")"
+    assert "/$name includes an existing template prompt" test -n "$prompt" -a -f "$SCAFFOLD_ROOT/template/prompts/$prompt"
+  done
+  assert "AGENTS.md maps prompt paths for the scaffold" grep -q '^## Using the project commands here' "$SCAFFOLD_ROOT/AGENTS.md"
+  # shellcheck disable=SC2016 # backticks are Markdown in AGENTS.md, not command substitution
+  mapped="$(sed -n 's/^| `scripts\/context-status.sh` | `\(.*\)` |$/\1/p' "$SCAFFOLD_ROOT/AGENTS.md")"
+  assert "AGENTS.md maps the context status for the scaffold" test -n "$mapped"
+  assert "mapped context status prints no error" bash -c "cd '$SCAFFOLD_ROOT' && test -z \"\$($mapped 2>&1 >/dev/null)\""
+  assert "mapped context status lists the CC rules" bash -c "cd '$SCAFFOLD_ROOT' && $mapped | grep -q '^rules: CC-01 '"
+  assert "scaffold threat model names entry points" grep -q '^## Entry points' "$SCAFFOLD_ROOT/docs/threat-model.md"
+  assert_fails "projects get no scaffold commands" grep -rq 'template/prompts' "$PROJECT/.claude/commands"
+  assert_fails "projects get no scaffold threat model" grep -q 'Xaden' "$PROJECT/docs/threat-model.md"
+}
+
+test_template_contents
+test_clean_code_guidance
+test_assistant_trust_rules
+test_add_on_rule_sets
+test_model_routing_option
+test_claude_permissions
+test_prompt_workflow
+test_branch_rule
+test_assistant_plugins
+test_look_before_build
+test_personas
+test_scaffold_commands
