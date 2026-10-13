@@ -4,6 +4,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-10-13
+
 ### Added
 - The pages the website renders are listed in `docs/site-pages.txt`; `scripts/check-scaffold.sh` fails when one is missing or when a workflow holds a credential for the site.
 - Getting Started documents both ways to get Xaden, the zip download and the clone, with how to verify, update and choose, and notes for Linux, macOS and Windows (WSL recommended; Windows untested).
