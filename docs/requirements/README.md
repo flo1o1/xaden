@@ -108,3 +108,4 @@ scripts/req.sh new <epic> <job|quality> "<title>".
 - 2026-10-12 REQ-021 criterion added: status, type and priority must match a listed name exactly (review 2026-10-12, C1)
 - 2026-10-12 REQ-024 criterion added: a failed docs stamp restores all release files (review 2026-10-12, C2)
 - 2026-10-13 REQ-024 criterion added: the scaffold release restores its files when stamping fails
+- 2026-10-13 REQ-011 criterion added: context status counts requirements per status and lists only those not done (review 2026-10-12, C6)

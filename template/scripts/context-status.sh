@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Prints rule IDs, requirement IDs and a fingerprint of the rule/requirement files. The
+# Prints rule IDs, requirement counts (IDs of those not done) and a fingerprint of the rule/requirement files. The
 # assistant quotes the CONTEXT CHECK line in its first reply; the user compares it with their
 # own run to spot stale or missing context. A consistency aid only: a matching fingerprint
 # does not prove that the files were read or followed.
@@ -26,9 +26,20 @@ fingerprint() { rule_and_requirement_files | tr '\n' '\0' | xargs -0 cat | cksum
 # rule_ids: defined rule IDs, e.g. "CC-01 CC-02 ...".
 rule_ids() { grep -oE '^- \*\*CC-[0-9]{2}\*\*' "$RULES_FILE" | grep -oE 'CC-[0-9]{2}' | tr '\n' ' '; }
 
-# requirement_ids: "REQ-001(draft) REQ-002(done) ...".
-requirement_ids() { "$SCRIPTS/req.sh" list | sed -E 's/^(REQ-[0-9]+) \[([^,]*),.*/\1(\2)/' | tr '\n' ' '; }
+# requirement_summary: "63 (62 done, 1 draft); not done: REQ-063(draft)". Done IDs are only
+# counted, so the line stays short however many requirements a project has.
+requirement_summary() {
+  "$SCRIPTS/req.sh" list | awk '
+    { id = $1; status = $2; sub(/^\[/, "", status); sub(/,$/, "", status) }
+    !(status in count) { order[++kinds] = status }
+    { count[status]++; total++ }
+    status != "done" { open = open " " id "(" status ")" }
+    END {
+      for (i = 1; i <= kinds; i++) counts = counts (i > 1 ? ", " : "") count[order[i]] " " order[i]
+      printf "%d (%s); not done:%s\n", total, counts, (open == "" ? " none" : open)
+    }'
+}
 
 echo "CONTEXT CHECK $(fingerprint)"
 echo "rules: $(rule_ids)"
-echo "requirements: $(requirement_ids)"
+echo "requirements: $(requirement_summary)"

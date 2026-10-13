@@ -175,6 +175,9 @@ test_generated_project() {
   assert "req.sh shows known requirement" "$PROJECT/scripts/req.sh" show REQ-001
   assert_fails "req.sh rejects unknown requirement" "$PROJECT/scripts/req.sh" show REQ-999 # traceability: ignore
   assert "context status lists rules" grep -q 'CC-09' <("$PROJECT/scripts/context-status.sh")
+  # REQ-011: counts per status, IDs only for requirements not done (the list stays short)
+  assert "context status counts requirements per status" grep -qx 'requirements: 1 (1 draft); not done: REQ-001(draft)' <("$PROJECT/scripts/context-status.sh")
+  assert "context status leaves out done requirement IDs" bash -c "PROJECT_ROOT='$SCAFFOLD_ROOT' RULES_FILE='$SCAFFOLD_ROOT/template/AGENTS.md' '$SCAFFOLD_ROOT/template/scripts/context-status.sh' | grep -E '^requirements: [0-9]+ \([0-9]+ done' | grep -qv 'REQ-002'"
   assert "pack carries fingerprint and clean-code details" grep -q 'CLEAN CODE DETAILS' "$PROJECT/context-pack.md"
   # REQ-023 complete and safely written pack
   assert "pack includes the security checklist" grep -q 'Secure coding checklist' "$PROJECT/context-pack.md"

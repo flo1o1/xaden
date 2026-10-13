@@ -4,6 +4,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+### Changed
+- `scripts/context-status.sh` prints the number of requirements per status and the IDs of those not done (`requirements: 63 (62 done, 1 draft); not done: REQ-063(draft)`) instead of every ID, so the session-start output stays short in projects with hundreds of requirements.
+
 ## [0.2.1] - 2026-10-13
 
 ### Fixed
