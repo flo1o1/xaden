@@ -3,7 +3,7 @@ id: REQ-065
 type: job
 epic: release-and-docs
 priority: should
-status: approved
+status: in-progress
 updated: 2026-10-13
 ---
 

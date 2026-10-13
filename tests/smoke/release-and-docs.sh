@@ -94,6 +94,47 @@ test_release_failures() {
   git -C "$PROJECT" reset -q --hard "$head"
 }
 
+# REQ-065: Getting Started documents both ways to get Xaden, and both ways work as written.
+test_install_ways() {
+  local guide="$SCAFFOLD_ROOT/GETTING-STARTED.md" extracted="$WORKDIR/extracted-zip" clone="$WORKDIR/cloned-xaden"
+  local heading version
+  for heading in '## 2\. Get Xaden' '### Download the release \(zip\)' '### Clone the repository' \
+    '### When to choose which' '### Linux' '### macOS' '### Windows'; do
+    assert "guide has the heading $heading" grep -qE "^$heading\$" "$guide"
+  done
+  assert "guide states the Windows support level" grep -q 'untested' "$guide"
+  assert "guide says native PowerShell is not supported" grep -qi 'native PowerShell is not supported' "$guide"
+  assert "guide says Xaden publishes no checksums" grep -q 'publishes no checksums or signatures' "$guide"
+  assert "guide explains the zip update" grep -q 'download the new release' "$guide"
+  assert "guide explains the clone update" grep -q 'git pull' "$guide"
+  assert "guide explains picking a release tag" grep -q 'git checkout v' "$guide"
+
+  # The zip way: an archive has no .git; install.sh and xaden new must still work from it.
+  version="$(tr -d '[:space:]' <"$SCAFFOLD_ROOT/VERSION")"
+  mkdir -p "$extracted"
+  git -C "$SCAFFOLD_ROOT" archive HEAD | tar -x -C "$extracted"
+  assert "extracted archive has no git history" test ! -e "$extracted/.git"
+  assert "extracted archive installs the xaden command" "$extracted/scripts/install.sh" "$WORKDIR/zip-bin"
+  assert "xaden from the archive prints the version" test "$("$WORKDIR/zip-bin/xaden" version)" = "$version"
+  assert "xaden from the archive creates a project" bash -c "cd '$WORKDIR' && '$WORKDIR/zip-bin/xaden' new zip-app"
+  # The documented zip update: a second extraction replaces the link only after the first is uninstalled.
+  mkdir -p "$extracted-next"
+  git -C "$SCAFFOLD_ROOT" archive HEAD | tar -x -C "$extracted-next"
+  assert_fails "a newer extraction does not replace the old link" "$extracted-next/scripts/install.sh" "$WORKDIR/zip-bin"
+  assert "the old extraction removes its own link" "$extracted/scripts/install.sh" --uninstall "$WORKDIR/zip-bin"
+  assert "the newer extraction installs afterwards" "$extracted-next/scripts/install.sh" "$WORKDIR/zip-bin"
+
+  # The clone way: a release tag can be checked out and git pull follows the branch.
+  git clone -q "$SCAFFOLD_ROOT" "$clone"
+  # A clone has the release tags; a checkout between releases has none yet.
+  git -C "$clone" rev-parse -q --verify "refs/tags/v$version" >/dev/null || git -C "$clone" tag "v$version"
+  assert "a release tag can be checked out in a clone" git -C "$clone" checkout -q "v$version"
+  assert "the clone installs the xaden command" "$clone/scripts/install.sh" "$WORKDIR/clone-bin"
+  assert "xaden from the clone prints the version" test "$("$WORKDIR/clone-bin/xaden" version)" = "$version"
+}
+
+
 test_bump_version
 test_scaffold_release_failures
 test_release
+test_install_ways

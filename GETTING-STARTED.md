@@ -45,6 +45,62 @@ is: the link points into it.
 Project commands run that project's scripts, just as typing them would: use them only in
 projects you trust.
 
+## 2. Get Xaden
+
+Two ways, same files. Below, `<xaden-repo-url>` is the address of the Xaden repository you found
+this guide in. Both need git, because new projects get their own git repository.
+
+### Download the release (zip)
+
+1. Download the release archive: `<xaden-repo-url>/archive/refs/tags/v<version>.zip`
+   (`<version>` as in `CHANGELOG.md`, for example `0.2.2`).
+2. Extract it somewhere permanent, for example `unzip xaden-<version>.zip -d ~/tools`. The optional
+   `xaden` command links into this folder, so do not move it afterwards.
+3. `cd ~/tools/xaden-<version>`, then continue with section 3 (`scripts/new-project.sh my-app`) or install the
+   `xaden` command (`scripts/install.sh`, below).
+
+Verify: Xaden publishes no checksums or signatures. Download only from the repository address over
+HTTPS, check that `scripts/xaden.sh version` prints the version in the file name, and read the scripts
+you are about to run: they are plain shell.
+
+Update: download the new release and extract it next to the old one. Remove the old command link
+with `old-folder/scripts/install.sh --uninstall`, run `new-folder/scripts/install.sh`, then delete the
+old folder. `install.sh` never replaces a link that points somewhere else.
+
+### Clone the repository
+
+```bash
+git clone <xaden-repo-url> xaden && cd xaden
+```
+
+Update: `git pull` in the clone; the `xaden` command keeps working. To use a fixed release instead of
+`main`, run `git tag -l` and `git checkout v<version>`; return with `git checkout main` before the
+next `git pull`.
+
+### When to choose which
+
+- Zip: you only want to use Xaden, need no git history, and are happy to download updates yourself.
+- Clone: you want `git pull` updates, a choice of release tags, or to read the history and contribute.
+
+### Linux
+
+git, bash, awk, sed, tar, grep and cksum are normally preinstalled; install a missing one with your
+distribution's package manager. If `~/.local/bin` is not on your `PATH`, `scripts/install.sh` prints the
+line to add, usually to `~/.bashrc` (bash) or `~/.zshrc` (zsh).
+
+### macOS
+
+bash 3.2, the version macOS ships, is supported. If `git` is missing, running it once offers to install
+Apple's command line tools. The default shell is zsh: put the `PATH` line that `scripts/install.sh`
+prints into `~/.zshrc`.
+
+### Windows
+
+Untested: nobody has run these steps on Windows yet, so expect to adapt them. WSL is recommended: open a
+WSL shell and follow the Linux steps, keeping Xaden and your projects in the Linux file system (your
+WSL home directory) rather than under `/mnt/c`. Git Bash is also possible but untested.
+Native PowerShell is not supported, because the scripts are bash.
+
 ## 3. Create your project
 
 ```bash

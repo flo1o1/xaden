@@ -5,6 +5,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 ## [Unreleased]
 
 ### Added
+- Getting Started documents both ways to get Xaden, the zip download and the clone, with how to verify, update and choose, and notes for Linux, macOS and Windows (WSL recommended; Windows untested).
 - impeccable (design guidance and deterministic checks for web UIs) is documented as an optional add-on, with its downloaded engine, the edit hook it installs and how to skip it, and its calls to impeccable.style with the telemetry opt-out.
 
 ## [0.2.2] - 2026-10-13
