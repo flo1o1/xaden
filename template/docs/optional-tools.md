@@ -51,6 +51,7 @@ takes precedence over them (§10). Install from the named sources only.
 | [Caveman](https://github.com/JuliusBrussee/caveman) | Shorter replies, fewer output tokens; code, commits and project files stay in normal prose | `/plugin marketplace add JuliusBrussee/caveman`, then `/plugin install caveman@caveman` |
 | [Token Optimizer](https://github.com/alexgreensh/token-optimizer) | Smaller context: compresses command, search and tool output; context audits. License: PolyForm Noncommercial (small-business permission), not open source | `/plugin marketplace add alexgreensh/token-optimizer`, then `/plugin install token-optimizer@alexgreensh-token-optimizer` |
 | [claude-mem](https://github.com/thedotmack/claude-mem) | Memory of past sessions: records sessions, compresses them with a model and adds relevant memories to new ones. License: Apache-2.0 | `/plugin marketplace add thedotmack/claude-mem`, then `/plugin install claude-mem` |
+| [impeccable](https://github.com/pbakaus/impeccable) | For a web UI: design guidance, critique and 59 deterministic checks for AI-generated frontend design (`npx impeccable detect` runs them without a model). License: Apache-2.0 | `/plugin marketplace add pbakaus/impeccable`, then `/plugin install impeccable@impeccable` |
 | [obsidian-skills](https://github.com/kepano/obsidian-skills) | Obsidian Flavored Markdown, Bases, JSON Canvas and the Obsidian CLI, for editing the prompt library in `prompts/` (an Obsidian vault). License: MIT | `/plugin marketplace add kepano/obsidian-skills`, then `/plugin install obsidian@obsidian-skills` |
 
 Before installing one, read its notes:
@@ -84,6 +85,14 @@ Before installing one, read its notes:
   `prompts/` only; `AGENTS.md`, requirements and guides
   stay plain Markdown, because other assistants and the check scripts read them. Web pages its `defuddle` part extracts are
   untrusted content (`AGENTS.md` §10).
+- **impeccable**: other tools install with `npx impeccable install`. It runs a binary engine
+  that is downloaded once to `~/.impeccable/bin/`. Both routes add an assistant hook that checks
+  UI files after each edit; the project install writes it into the project's tool folders
+  (`.claude/` and others), so committing them gives it to every contributor. Skip it with
+  `npx impeccable install --no-hooks`. Starting a new design always asks impeccable.style for
+  design options and by default records which one was chosen (anonymous; no project files or
+  code). Opt out per machine with `DO_NOT_TRACK=1`, or for everyone with `"telemetry": false`
+  in `.impeccable/config.json`. Its findings are suggestions; this project's checks decide.
 
 Not recommended: frameworks that bring their own complete workflow (for example Superpowers,
 with its own brainstorm, plan, TDD and review phases). They duplicate the workflow in

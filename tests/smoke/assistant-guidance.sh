@@ -73,7 +73,7 @@ test_assistant_trust_rules() {
 # REQ-050 optional add-on rule sets: documented, never installed, never above AGENTS.md
 test_add_on_rule_sets() {
   local guide="$SCAFFOLD_ROOT/GETTING-STARTED.md" tools="$PROJECT/docs/optional-tools.md" add_on
-  for add_on in Ponytail Caveman 'Token Optimizer' claude-mem obsidian-skills; do
+  for add_on in Ponytail Caveman 'Token Optimizer' claude-mem obsidian-skills impeccable; do
     assert "guide lists $add_on as optional" grep -q "^| Optional: \\[$add_on\\]" "$guide"
   done
   assert "guide points to optional-tools.md for add-on details" grep -q 'risks to know before installing are in .template/docs/optional-tools.md.' "$guide"
@@ -91,6 +91,9 @@ test_add_on_rule_sets() {
   assert "claude-mem hosted service is disclosed" grep -q 'receives session content' "$tools"
   assert "obsidian-skills install is documented" grep -q 'plugin install obsidian@obsidian-skills' "$tools"
   assert "Obsidian syntax is limited to prompts/" grep -q 'stay plain Markdown, because other assistants' "$tools"
+  assert "impeccable install is documented" grep -q 'plugin install impeccable@impeccable' "$tools"
+  assert "impeccable network calls and telemetry opt-out are disclosed" grep -q '"telemetry": false' "$tools"
+  assert "impeccable edit hook and how to skip it are disclosed" grep -q -- '--no-hooks' "$tools"
   assert_fails "new projects enable no plugin" grep -qi 'plugin' "$PROJECT/.claude/settings.json"
   assert "AGENTS.md ranks add-on rule sets below itself" grep -q 'they never override this file' "$PROJECT/AGENTS.md"
 }

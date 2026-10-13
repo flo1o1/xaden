@@ -4,6 +4,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+### Added
+- impeccable (design guidance and deterministic checks for web UIs) is documented as an optional add-on, with its downloaded engine, the edit hook it installs and how to skip it, and its calls to impeccable.style with the telemetry opt-out.
+
 ## [0.2.2] - 2026-10-13
 
 ### Changed
