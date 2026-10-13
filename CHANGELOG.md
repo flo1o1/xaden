@@ -7,6 +7,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 ### Changed
 - `scripts/context-status.sh` prints the number of requirements per status and the IDs of those not done (`requirements: 63 (62 done, 1 draft); not done: REQ-063(draft)`) instead of every ID, so the session-start output stays short in projects with hundreds of requirements.
 - CI and `docs/security.md` state that semgrep's registry rules (`p/default`) are not pinned on purpose, so a new finding can appear without a code change, and how to handle it.
+- Requirement changes no longer need a line in a `Change log` in `docs/requirements/README.md`: the history is `git log -- docs/requirements`, the commit message says what changed and why (`AGENTS.md` §2, the feature and requirements-update prompts). Existing projects keep their log as it is.
 
 ## [0.2.1] - 2026-10-13
 

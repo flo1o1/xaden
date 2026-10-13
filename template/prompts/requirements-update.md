@@ -23,8 +23,8 @@ Keep the requirement files in `docs/requirements/` true after scope changed in t
    Write functional needs as jobs (*When …, I want to …, so I can …*), not as features.
    Never delete, reuse or renumber IDs. Update `updated:`. New requirements are `draft`; use
    `approved` only for what I explicitly asked for in this session.
-3. Append one line per change to the `Change log` in `docs/requirements/README.md` (date, ID,
-   what, why).
+3. Note for the commit message what changed per requirement and why; the history is
+   `git log -- docs/requirements`.
 4. Run `scripts/req.sh index`, then `scripts/check-requirements.sh`.
 5. **Approval point:** show me a summary diff and list code or tests that are now outdated.
    Do not change code yet.

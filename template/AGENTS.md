@@ -38,7 +38,7 @@ Explicit user instructions in the current session override this file.
   `scripts/req.sh new <epic> <job|quality> "<title>"`; after edits run `scripts/req.sh index`.
 - IDs are global and stable. Never delete, reuse or renumber; set status `dropped` instead.
   Moving a requirement to another epic keeps its ID (move the file, change `epic:`).
-- Add one line per change to the `Change log` in `docs/requirements/README.md`.
+- History: `git log -- docs/requirements`. Say in the commit message what changed and why.
 - Run `scripts/check-requirements.sh` after editing; it validates front matter, job stories,
   acceptance criteria and the index. TODO text is a warning and blocks releases.
 - Lifecycle: `draft` (idea) → `approved` by the user → `in-progress` → `done` (with a citing test).

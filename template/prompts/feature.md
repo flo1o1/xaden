@@ -20,7 +20,7 @@ Implement one capability, test-first, tracked in requirements.
 1. Run `scripts/context-status.sh`; read `AGENTS.md` and `docs/requirements/INDEX.md`. Look
    requirements up with `scripts/req.sh show REQ-nnn`; never from memory.
 2. If the feature has no `REQ-nnn`, create one as a job (`scripts/req.sh new <epic> job
-   "<title>"`: *When …, I want to …, so I can …*) and a change-log line.
+   "<title>"`: *When …, I want to …, so I can …*).
    **Approval point:** show me the file; after my OK set it to `in-progress`.
    If it conflicts with an existing requirement, stop and ask me.
 3. Look before you build (AGENTS.md §9): if a mature library, service or platform feature

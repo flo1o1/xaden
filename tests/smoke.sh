@@ -306,6 +306,9 @@ test_job_stories() {
     "$PROJECT/scripts/check-requirements.sh" --release "$SCAFFOLD_ROOT/docs/requirements"
   assert "AGENTS.md defines the job story format" grep -q 'When <situation>, I want to <motivation>, so I can <expected' "$PROJECT/AGENTS.md"
   assert "kickoff writes requirements as jobs" grep -q 'Find the jobs my users hire the software for' "$PROJECT/prompts/kickoff.md"
+  # REQ-006: requirement history comes from git, not from a hand-kept change log
+  assert "AGENTS.md points to git for requirement history" grep -q 'git log -- docs/requirements' "$PROJECT/AGENTS.md"
+  assert "no hand-kept requirements change log in new projects" bash -c "! grep -qi 'change.log' '$PROJECT/AGENTS.md' '$PROJECT/docs/requirements/README.md' '$PROJECT/prompts/requirements-update.md' '$PROJECT/prompts/feature.md'"
 }
 
 # REQ-047 one file per requirement, epic folders, global IDs, generated index
