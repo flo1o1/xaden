@@ -4,8 +4,8 @@ The scaffold's own threat model, read by `/security` in this repository (REQ-055
 projects get their own from `template/docs/threat-model.md`. Update this file when a change
 adds an entry point, a downloaded tool or a new place the scripts write to.
 
-**Last reviewed:** 2026-10-13, security review `docs/security-reviews/2026-10-13-pre-release-0.2.1.md`
-(previous: `2026-10-12-pre-release-0.2.0.md`, `2026-10-11-audit-fixes.md`, `2026-10-11-xaden-command.md`, `2026-10-11-scaffold-scripts.md`).
+**Last reviewed:** 2026-10-13, security review `docs/security-reviews/2026-10-13-pre-release-0.2.2.md`
+(previous: `2026-10-13-pre-release-0.2.1.md`, `2026-10-12-pre-release-0.2.0.md`, `2026-10-11-audit-fixes.md`, `2026-10-11-xaden-command.md`, `2026-10-11-scaffold-scripts.md`).
 
 ## System summary
 
