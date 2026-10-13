@@ -11,13 +11,14 @@ source "$ROOT/template/scripts/lib.sh"
 
 [ -s "$LIST" ] || die "docs/site-pages.txt is missing or empty"
 missing=0
-while IFS= read -r page; do
+while IFS= read -r page || [ -n "$page" ]; do # the last line may lack a newline
   [ -f "$ROOT/$page" ] || { warn "site page missing: $page (listed in docs/site-pages.txt)"; missing=1; }
 done <"$LIST"
 [ "$missing" -eq 0 ] || exit 1
 
-# Only the built-in GITHUB_TOKEN may appear; any other secret could be a site credential.
-if grep -rnE 'secrets\.' "$ROOT/.github" 2>/dev/null | grep -v 'secrets\.GITHUB_TOKEN'; then
+# Only the built-in GITHUB_TOKEN may appear; any other use of the word (secrets.X, secrets['X'],
+# toJSON(secrets), secrets: inherit) could hand the scaffold a site credential.
+if grep -rnw 'secrets' "$ROOT/.github" 2>/dev/null | grep -v 'secrets\.GITHUB_TOKEN'; then
   die "workflow references a secret other than GITHUB_TOKEN; the scaffold must hold no site credential"
 fi
 info "site pages: $(wc -l <"$LIST" | tr -d ' ') present, no site credential"

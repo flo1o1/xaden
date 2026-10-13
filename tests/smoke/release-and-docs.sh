@@ -146,6 +146,14 @@ test_site_pages() {
   assert "a present site page passes" "$check" "$copy"
   printf 'token: $%s\n' '{{ secrets.SITE_DEPLOY_KEY }}' >"$copy/.github/workflows/x.yml"
   assert_fails "a site credential in a workflow fails the check" "$check" "$copy"
+  printf 'token: $%s\n' '{{ secrets["SITE_DEPLOY_KEY"] }}' >"$copy/.github/workflows/x.yml"
+  assert_fails "a bracket-style secret in a workflow fails the check" "$check" "$copy"
+  printf 'all: $%s\n' '{{ toJSON(secrets) }}' >"$copy/.github/workflows/x.yml"
+  assert_fails "passing all secrets fails the check" "$check" "$copy"
+  printf 'token: $%s\n' '{{ secrets.GITHUB_TOKEN }}' >"$copy/.github/workflows/x.yml"
+  assert "the built-in GITHUB_TOKEN passes" "$check" "$copy"
+  printf 'README.md\nGETTING-STARTED.md' >"$copy/docs/site-pages.txt"
+  assert_fails "a missing last line without newline fails the check" "$check" "$copy"
 }
 
 test_bump_version
