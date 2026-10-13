@@ -4,7 +4,7 @@ type: job
 epic: release-and-docs
 priority: must
 status: done
-updated: 2026-10-12
+updated: 2026-10-13
 ---
 
 # Releases never leave a partial state
@@ -19,3 +19,4 @@ When a release step fails, I want no partial state left behind, so I can retry w
 - a failing commit restores the files
 - a failing tag is reported with recovery steps
 - Given a guide that cannot be written, when a release stamps the files, then it aborts and `VERSION`, `CHANGELOG.md` and both guides are unchanged
+- Given a scaffold `VERSION` that cannot be written, when `scripts/release-scaffold.sh` stamps the files, then it aborts and `VERSION` and `CHANGELOG.md` are unchanged

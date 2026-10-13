@@ -22,6 +22,11 @@ stamp_docs() {
   done
 }
 
+# stamp_release <version>: writes the version into the changelog, both guides and VERSION.
+stamp_release() {
+  stamp_changelog CHANGELOG.md "$1" && stamp_docs "$1" && printf '%s\n' "$1" >VERSION
+}
+
 main() {
   local part=${1:-} current next
   local release_files=(VERSION CHANGELOG.md docs/user-guide.md docs/admin-guide.md)
@@ -37,11 +42,7 @@ main() {
   "$SCRIPTS/check-requirements.sh" --release || die "replace template placeholders in the requirements first"
   "$SCRIPTS/check-docs.sh" --release ||
     die "documentation incomplete (files named above): guides via /docs; fill SECURITY.md and docs/threat-model.md"
-  # The tree was clean above, so a failed stamp is undone by checking the files out (REQ-024).
-  if ! (stamp_changelog CHANGELOG.md "$next" && stamp_docs "$next" && printf '%s\n' "$next" >VERSION); then
-    git checkout -q -- "${release_files[@]}"
-    die "stamping the release files failed; they were restored, nothing was changed"
-  fi
+  stamp_release_or_restore stamp_release "$next" "${release_files[@]}"
   commit_release_or_restore "chore(release): v$next" "${release_files[@]}"
   tag_release_or_report "v$next"
   info "released v$next (not pushed; run: git push --follow-tags)"

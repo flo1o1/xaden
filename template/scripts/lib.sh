@@ -232,6 +232,18 @@ ensure_tag_absent() {
   fi
 }
 
+# stamp_release_or_restore <stamp-command> <version> <files...>: runs the command, which writes
+# the new version into the files; if it fails, restores them to HEAD (the release checked for a
+# clean tree first), then dies. The command runs in a subshell, so its own die is caught too.
+stamp_release_or_restore() {
+  local stamp=$1 version=$2
+  shift 2
+  if ! ("$stamp" "$version"); then
+    git checkout -q -- "$@"
+    die "stamping the release files failed; they were restored, nothing was changed"
+  fi
+}
+
 # commit_release_or_restore <message> <files...>: commits the release files; if the commit
 # fails, restores them to HEAD so the working tree is exactly as before, then dies.
 commit_release_or_restore() {

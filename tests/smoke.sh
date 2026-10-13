@@ -572,6 +572,24 @@ test_release_failures() {
   git -C "$PROJECT" reset -q --hard "$head"
 }
 
+# REQ-024: the scaffold's own release restores its files when stamping fails. Runs on a minimal
+# copy with the full scaffold check stubbed out (the real one would run this smoke test again).
+test_scaffold_release_failures() {
+  local copy="$WORKDIR/scaffold-release" head
+  mkdir -p "$copy/scripts" "$copy/template/scripts"
+  cp "$SCAFFOLD_ROOT/scripts/release-scaffold.sh" "$copy/scripts/"
+  cp "$SCAFFOLD_ROOT/template/scripts/lib.sh" "$copy/template/scripts/"
+  printf '#!/bin/sh\nexit 0\n' >"$copy/scripts/check-scaffold.sh" && chmod +x "$copy/scripts/check-scaffold.sh"
+  printf '0.1.0\n' >"$copy/VERSION"
+  printf '# Changelog\n\n## [Unreleased]\n\n- change\n' >"$copy/CHANGELOG.md"
+  git -C "$copy" init -q -b main && git -C "$copy" add -A && git -C "$copy" commit -q -m "chore: init"
+  head="$(git -C "$copy" rev-parse HEAD)"
+  chmod 444 "$copy/VERSION"
+  assert_fails "unwritable VERSION aborts the scaffold release" "$copy/scripts/release-scaffold.sh" patch
+  assert "scaffold release files restored after failed stamp" test "$(git -C "$copy" rev-parse HEAD)$(git -C "$copy" status --porcelain)" = "$head"
+  chmod 644 "$copy/VERSION"
+}
+
 # REQ-007 release, REQ-010 docs gate
 test_release() {
   assert_fails "release blocked by TODO markers in docs" "$PROJECT/scripts/release.sh" patch
@@ -1146,6 +1164,7 @@ export GIT_COMMITTER_NAME=smoke GIT_COMMITTER_EMAIL=smoke@example.invalid
 
 test_quiet_output
 test_bump_version
+test_scaffold_release_failures
 test_new_project
 test_license
 test_generation_safety
