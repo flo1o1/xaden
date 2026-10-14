@@ -97,7 +97,7 @@ project_mode() {
 # shellcheck disable=SC2016 # backticks are Markdown, not command substitution
 # adopted_text <project-name>: filter; the template's rules or prompts for an adopted project.
 adopted_text() {
-  sed -e "s/{{PROJECT_NAME}}/$1/g" \
+  sed -e "s/^# AGENTS.md — {{PROJECT_NAME}}$/# Xaden rules/" -e "s/{{PROJECT_NAME}}/$1/g" \
     -e 's#scripts/check-requirements\.sh#xaden check#g' \
     -e 's#scripts/check-traceability\.sh#xaden check#g' \
     -e 's#scripts/check-docs\.sh#xaden check#g' \
@@ -123,7 +123,7 @@ adopted_text() {
 }
 
 # shellcheck disable=SC2016 # backticks are Markdown, not command substitution
-# render_rules <project-name>: the content of xaden/RULES.md, from the rules of the Xaden that
+# render_rules: the content of xaden/RULES.md, from the rules of the Xaden that
 # is running: the template's AGENTS.md for an adopted project. Sections that need files an
 # adopted project does not have (the guides, the drop zone, the release script) are replaced.
 render_rules() {
@@ -144,7 +144,7 @@ render_rules() {
       print "  security-review, release, requirements-update, persona, documentation). A prompt of the same name in"
       print "  `xaden/prompts/` overrides the default. Follow the printed prompt."; next }
     /^- `inbox\/` is the user/ { getline; getline; next }
-    { print }' "$TOOLS_DIR/AGENTS.md" | adopted_text "$1"
+    { print }' "$TOOLS_DIR/AGENTS.md" | adopted_text "this project"
 }
 
 # resolve_prompt <name>: path of the prompt for an adopted project: the team's own in
@@ -156,6 +156,6 @@ resolve_prompt() {
   if [ -f "$TEAM_DIR/prompts/$name.md" ]; then printf '%s' "$TEAM_DIR/prompts/$name.md"; return 0; fi
   [ -f "$TOOLS_DIR/prompts/$name.md" ] || die "no such prompt: $name"
   file="$(mktemp)"
-  adopted_text "$(basename "${PROJECT_ROOT:-$PWD}")" <"$TOOLS_DIR/prompts/$name.md" >"$file"
+  adopted_text "this project" <"$TOOLS_DIR/prompts/$name.md" >"$file"
   printf '%s' "$file"
 }

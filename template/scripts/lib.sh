@@ -4,6 +4,8 @@
 
 # shellcheck source=SCRIPTDIR/layout.sh
 source "$(dirname "${BASH_SOURCE[0]}")/layout.sh"
+# shellcheck source=SCRIPTDIR/gate.sh
+source "$(dirname "${BASH_SOURCE[0]}")/gate.sh"
 
 # Check results (REQ-019): every check is passed, failed or skipped; finish_checks reports them.
 FAILURES=0
@@ -183,7 +185,11 @@ collect_files() {
 lint_shell() {
   collect_files "$1" '(\.sh$|(^|/)hooks/[^/.]+$|^\.githooks/)'
   [ ${#TARGETS[@]} -eq 0 ] && return 0
-  run_tool "shellcheck" shellcheck -x "${TARGETS[@]}" # -x: follow sourced lib.sh even if unstaged
+  if [ "${LAYOUT:-classic}" = "adopted" ]; then
+    run_gated shellcheck "shellcheck" shellcheck -x -f gcc "${TARGETS[@]}"
+  else
+    run_tool "shellcheck" shellcheck -x "${TARGETS[@]}" # -x: follow sourced lib.sh even if unstaged
+  fi
 }
 
 # scan_secrets <mode>: gitleaks on the staged diff, or on the whole git history. Always runs
@@ -204,8 +210,13 @@ scan_secrets() {
 scan_sast() {
   collect_files "$1" "$SOURCE_FILE_PATTERN" "${3:-^$}"
   [ ${#TARGETS[@]} -eq 0 ] && return 0
-  SEMGREP_ENABLE_VERSION_CHECK=0 run_tool "SAST (semgrep, local rules)" \
-    semgrep scan --config "$2" --metrics=off --disable-version-check --error --quiet "${TARGETS[@]}"
+  if [ "${LAYOUT:-classic}" = "adopted" ]; then
+    SEMGREP_ENABLE_VERSION_CHECK=0 run_gated semgrep "SAST (semgrep, local rules)" \
+      semgrep scan --config "$2" --metrics=off --disable-version-check --error --quiet --emacs "${TARGETS[@]}"
+  else
+    SEMGREP_ENABLE_VERSION_CHECK=0 run_tool "SAST (semgrep, local rules)" \
+      semgrep scan --config "$2" --metrics=off --disable-version-check --error --quiet "${TARGETS[@]}"
+  fi
 }
 
 # run_required_tool <label> <binary> [args...]: like run_tool, but a missing binary always

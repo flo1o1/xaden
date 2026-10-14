@@ -129,3 +129,28 @@ write_manifest() {
     printf '%s\t%s\n' "$(render_file "$template/$file" "$name" | content_sum)" "$file"
   done >"$project/$SCAFFOLD_STATE_DIR/manifest"
 }
+
+# --- versions and checksums (REQ-071, REQ-072) ------------------------------------------
+
+# sha256_stdin: filter; the SHA-256 (hex) of stdin.
+sha256_stdin() {
+  if has_command sha256sum; then sha256sum | awk '{ print $1 }'; else shasum -a 256 | awk '{ print $1 }'; fi
+}
+
+# tree_checksum <dir>: SHA-256 over the paths and contents of the files of an Xaden tree.
+# A git checkout counts its tracked files, an extracted release all files; both give the same
+# value for the same release. The CI workflow of an adopted project recomputes it with the same
+# find, sed, sort and sha256 steps (scripts/adopt/ci.yml).
+tree_checksum() {
+  (
+    cd "$1" || return
+    if [ -e .git ]; then git ls-files; else find . -type f | sed 's|^\./||'; fi |
+      LC_ALL=C sort |
+      while IFS= read -r file; do printf '%s  %s\n' "$(sha256_stdin <"$file")" "$file"; done |
+      sha256_stdin
+  )
+}
+
+# The installed versions of Xaden besides the one that runs: one folder per version.
+xaden_home() { printf '%s' "${XADEN_HOME:-${XDG_DATA_HOME:-${HOME:?HOME is not set}/.local/share}/xaden}"; }
+versions_dir() { printf '%s/versions' "$(xaden_home)"; }

@@ -55,6 +55,10 @@ check_epics() {
 check_files() {
   local files
   files="$(requirement_files "$DIR")"
+  if [ -z "$files" ] && [ "$LAYOUT" = "adopted" ]; then # a freshly adopted project starts without requirements
+    echo "no requirements yet (write them with: xaden prompt kickoff)"
+    return 0
+  fi
   [ -n "$files" ] || { warn "no requirement files found in $DIR"; FAILURES=$((FAILURES + 1)); return 0; }
   printf '%s\n' "$files" | tr '\n' '\0' | xargs -0 awk \
     -v types="$REQUIREMENT_TYPES" -v priorities="$REQUIREMENT_PRIORITIES" \

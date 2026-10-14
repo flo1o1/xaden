@@ -83,6 +83,9 @@ Details and examples: `docs/clean-code.md` (same IDs).
 - Fix findings; never silence a rule without a one-line reason.
 - Linter and type-checker configuration only gets stricter on your own. Loosening a rule,
   raising a threshold, or adding an ignore or suppression is an **Approval point**.
+- In a project that adopted Xaden, the `mode` in `xaden/xaden.conf` (`advisory`, `changed-files`,
+  `strict`) is part of that configuration: loosening it, or letting a file in `xaden/baselines/`
+  grow, is an **Approval point**.
 - Adopting a linter on existing code: record the current violations in the tool's baseline or
   suppression file; it may only shrink, and new code never adds to it. Recurring security mistakes
   become a rule in `.semgrep/rules.yml` (offline, versioned).
@@ -194,6 +197,8 @@ Details and examples: `docs/clean-code.md` (same IDs).
   - anything affecting production (deploys, migrations on live data, infrastructure);
   - sending code or data outside this machine (push, publish, uploads, third-party APIs);
   - reading, printing or changing secrets;
+  - downloading Xaden or a package: Xaden asks `Download and install Xaden <version> now? [y/N]` in
+    the user's terminal. Show that question to the user; never answer it for them;
   - releasing (`scripts/release.sh`).
 - Prompts mark steps as **Approval point**: show what you will do and wait for an explicit yes.
   Do not wait when the user already approved that exact step in this session.
