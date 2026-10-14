@@ -16,5 +16,5 @@ An adopted repository tracks Xaden content in at most `xaden/` plus `AGENTS.md` 
 ## Acceptance criteria
 
 - Given `xaden adopt` on a repository, when the plan is applied, then the files it creates or changes are all under `xaden/` or are `AGENTS.md` (marked block) or `CLAUDE.md` (one line, Claude users only).
-- Given the changed paths, then a smoke test fails if any other path appears, including `.gitignore`, CI workflows and hook manager files, except where REQ-069 says a step is added and documented.
+- Given the changed paths, then a smoke test fails if any other path appears, including `.gitignore`, CI workflows and hook manager files, except where REQ-069 says a step is added and documented, or where the team accepted a preset (its configuration files at the root are listed in the plan and committed separately).
 - Given `xaden remove`, then exactly those paths are removed or reverted and `git status` shows nothing else.

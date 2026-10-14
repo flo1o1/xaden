@@ -49,6 +49,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-071 | job | must | draft | A team upgrades Xaden and its rules through one reviewed pull request |
 | REQ-073 | quality | should | draft | The tracked Xaden footprint in an adopting repository is small and predictable |
 | REQ-074 | quality | could | draft | Xaden messages are recognisable at a glance and readable in plain logs |
+| REQ-076 | job | should | draft | Xaden sets up a plain new project in the best possible way with one confirmation |
 
 ## Quality gates (`quality-gates`)
 
