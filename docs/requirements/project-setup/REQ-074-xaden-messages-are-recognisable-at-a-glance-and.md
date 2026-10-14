@@ -3,7 +3,7 @@ id: REQ-074
 type: quality
 epic: project-setup
 priority: could
-status: draft
+status: approved
 updated: 2026-10-14
 ---
 

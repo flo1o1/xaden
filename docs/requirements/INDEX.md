@@ -42,14 +42,14 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-045 | job | must | done | The scaffold depends on no personal tools, skills or accounts |
 | REQ-056 | job | should | done | Run Xaden as one command from anywhere |
 | REQ-059 | job | should | done | Existing projects receive assistant permission updates without losing their edits |
-| REQ-066 | job | must | draft | A team adds Xaden to an existing repository without changing its build |
-| REQ-067 | job | should | draft | Adopting Xaden shows exactly what it would change before it changes anything |
-| REQ-069 | job | should | draft | Xaden reuses the repository's tests, linters, hooks and CI instead of replacing them |
-| REQ-070 | job | must | draft | Team content lives visibly in the repository, tooling stays pinned outside it |
-| REQ-071 | job | must | draft | A team upgrades Xaden and its rules through one reviewed pull request |
-| REQ-073 | quality | should | draft | The tracked Xaden footprint in an adopting repository is small and predictable |
-| REQ-074 | quality | could | draft | Xaden messages are recognisable at a glance and readable in plain logs |
-| REQ-076 | job | should | draft | Xaden sets up a plain new project in the best possible way with one confirmation |
+| REQ-066 | job | must | approved | A team adds Xaden to an existing repository without changing its build |
+| REQ-067 | job | should | approved | Adopting Xaden shows exactly what it would change before it changes anything |
+| REQ-069 | job | should | approved | Xaden reuses the repository's tests, linters, hooks and CI instead of replacing them |
+| REQ-070 | job | must | approved | Team content lives visibly in the repository, tooling stays pinned outside it |
+| REQ-071 | job | must | approved | A team upgrades Xaden and its rules through one reviewed pull request |
+| REQ-073 | quality | should | approved | The tracked Xaden footprint in an adopting repository is small and predictable |
+| REQ-074 | quality | could | approved | Xaden messages are recognisable at a glance and readable in plain logs |
+| REQ-076 | job | should | approved | Xaden sets up a plain new project in the best possible way with one confirmation |
 
 ## Quality gates (`quality-gates`)
 
@@ -65,7 +65,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-044 | job | should | done | Linter configuration only gets stricter without user approval |
 | REQ-051 | job | should | done | Optional quality tools are suggested when the project would benefit and run once adopted |
 | REQ-062 | job | should | done | Maintainer changes reach main only after CI passed on the exact commit |
-| REQ-068 | job | must | draft | Legacy code never blocks a team that adopts Xaden |
+| REQ-068 | job | must | approved | Legacy code never blocks a team that adopts Xaden |
 
 ## Releases and documentation (`release-and-docs`)
 
@@ -79,7 +79,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-058 | job | should | done | Releases are blocked while security documents have unfilled markers |
 | REQ-064 | job | should | done | A new scaffold release reaches the website without manual steps |
 | REQ-065 | job | should | done | Getting started documents both ways to get Xaden: zip download and clone |
-| REQ-075 | job | could | draft | Deployment artifacts can leave out the Xaden files |
+| REQ-075 | job | could | approved | Deployment artifacts can leave out the Xaden files |
 
 ## Requirements (`requirements`)
 
@@ -107,4 +107,4 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-040 | job | should | done | Local semgrep rules catch more insecure patterns |
 | REQ-052 | job | should | done | Dependencies are checked for existence and reputation before they are added |
 | REQ-057 | job | should | done | Expired security exceptions fail the checks |
-| REQ-072 | job | must | draft | Xaden downloads nothing without the person's explicit confirmation |
+| REQ-072 | job | must | approved | Xaden downloads nothing without the person's explicit confirmation |

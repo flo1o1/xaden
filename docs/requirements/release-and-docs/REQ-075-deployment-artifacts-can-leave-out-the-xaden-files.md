@@ -3,7 +3,7 @@ id: REQ-075
 type: job
 epic: release-and-docs
 priority: could
-status: draft
+status: approved
 updated: 2026-10-14
 ---
 

@@ -3,7 +3,7 @@ id: REQ-068
 type: job
 epic: quality-gates
 priority: must
-status: draft
+status: approved
 updated: 2026-10-14
 ---
 
