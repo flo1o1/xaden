@@ -4,6 +4,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+### Fixed
+- `scripts/new-project.sh` no longer configures hooks on another repository when `PROJECT_ROOT` is set in your environment; the new project gets its own hooks.
+
 ## [0.2.3] - 2026-10-13
 
 ### Added
