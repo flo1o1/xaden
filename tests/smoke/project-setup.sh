@@ -174,8 +174,18 @@ test_settings_update() {
   git -C "$PROJECT" reset -q --hard HEAD~1 && git -C "$PROJECT" clean -qfdx
 }
 
+# REQ-001 generation ignores a PROJECT_ROOT that the caller's environment already carries
+test_generation_ignores_project_root() {
+  local other="$WORKDIR/foreign-repo" target="$WORKDIR/root-env/app"
+  git init -q -b main "$other"
+  assert "generate while PROJECT_ROOT names another repository" env PROJECT_ROOT="$other" "$SCAFFOLD_ROOT/scripts/new-project.sh" root-app "$target"
+  assert "new project has its hooks path" test "$(git -C "$target" config core.hooksPath)" = "scripts/hooks"
+  assert "other repository's configuration untouched" test -z "$(git -C "$other" config --get core.hooksPath || true)"
+}
+
 test_license
 test_generation_safety
+test_generation_ignores_project_root
 test_inbox
 test_setup_and_commit_checks
 test_scaffold_update
