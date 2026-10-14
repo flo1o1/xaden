@@ -6,6 +6,9 @@
 # REQ-009: .github/workflows/scaffold-ci.yml runs this file on ubuntu-latest and macos-latest.
 set -euo pipefail
 
+# A PROJECT_ROOT in the caller's environment would point the project scripts at another repository.
+unset PROJECT_ROOT
+
 SMOKE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/smoke"
 # shellcheck source=SCRIPTDIR/smoke/lib.sh
 source "$SMOKE_DIR/lib.sh"
