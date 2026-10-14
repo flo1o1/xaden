@@ -5,6 +5,10 @@
 #   target-dir:   defaults to ../<project-name>; must not exist yet
 set -euo pipefail
 
+# The project's own tooling runs below (setup, first commit hooks); it must act on the new
+# project, never on a repository the caller's environment names.
+unset PROJECT_ROOT
+
 SCAFFOLD_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TEMPLATE="$SCAFFOLD_ROOT/template"
 # shellcheck source=SCRIPTDIR/../template/scripts/lib.sh
@@ -42,7 +46,7 @@ fill_placeholders() {
 init_repository() {
   local dir=$1
   git -C "$dir" init -q -b main
-  PROJECT_ROOT="$dir" "$dir/scripts/setup.sh" >/dev/null
+  "$dir/scripts/setup.sh" >/dev/null
   git -C "$dir" add -A
   # The first commit has no branch to come from (REQ-060).
   ALLOW_MAIN_COMMIT=1 git -C "$dir" commit -q -m "chore: initialize project from the Xaden scaffold"
