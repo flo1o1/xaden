@@ -7,6 +7,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 ### Fixed
 - `scripts/new-project.sh` no longer configures hooks on another repository when `PROJECT_ROOT` is set in your environment; the new project gets its own hooks.
 
+### Changed
+- `xaden new` is now `xaden create`, matching the other verbs. `xaden new` still works and tells you the new name.
+
 ## [0.2.3] - 2026-10-13
 
 ### Added

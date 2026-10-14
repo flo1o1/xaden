@@ -37,7 +37,7 @@ is: the link points into it.
 
 | Command | Does |
 |---------|------|
-| `xaden new my-app [dir]` | `scripts/new-project.sh`, creating `./my-app` (or `dir`) |
+| `xaden create my-app [dir]` | `scripts/new-project.sh`, creating `./my-app` (or `dir`); the former name `xaden new` still works |
 | `xaden update [--apply]` | `scripts/update-scaffold.sh` for the project you are in |
 | `xaden setup`, `check`, `req`, `pack`, `release` | the project's own `scripts/setup.sh`, `check.sh`, `req.sh`, `pack-context.sh`, `release.sh`, from anywhere inside it |
 | `xaden version`, `xaden help` | scaffold version, command list |
@@ -109,7 +109,7 @@ scripts/new-project.sh my-app ~/code/x   # or at a location of your choice
 cd ../my-app
 ```
 
-With the `xaden` command: `cd ~/code && xaden new my-app` creates `~/code/my-app`.
+With the `xaden` command: `cd ~/code && xaden create my-app` creates `~/code/my-app`.
 
 Only files tracked by git in `template/` are copied (including uncommitted edits to them);
 untracked or ignored files such as `.env`, `node_modules/` or `inbox/` content never are.

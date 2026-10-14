@@ -26,7 +26,7 @@ usage() {
 Usage: xaden <command> [args...]
 
 Scaffold commands (any directory):
-  new <name> [dir]   create a project in ./<name>, or in <dir>
+  create <name> [dir] create a project in ./<name>, or in <dir>   (new: former name)
   update [--apply]   bring the current project to this scaffold version (dry run without --apply)
   version            print the scaffold version
   help               show this list
@@ -61,8 +61,9 @@ main() {
   local command=${1:-help} root
   [ "$#" -gt 0 ] && shift
   case "$command" in
-    new)
-      [ -n "${1:-}" ] || die "usage: xaden new <name> [dir]"
+    new | create)
+      [ "$command" = new ] && warn "xaden new is now called xaden create; the old name still works"
+      [ -n "${1:-}" ] || die "usage: xaden create <name> [dir]"
       exec "$SCAFFOLD_ROOT/scripts/new-project.sh" "$1" "${2:-$PWD/$1}"
       ;;
     update)

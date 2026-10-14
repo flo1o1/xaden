@@ -109,7 +109,7 @@ test_install_ways() {
   assert "guide explains the clone update" grep -q 'git pull' "$guide"
   assert "guide explains picking a release tag" grep -q 'git checkout v' "$guide"
 
-  # The zip way: an archive has no .git; install.sh and xaden new must still work from it.
+  # The zip way: an archive has no .git; install.sh and xaden create must still work from it.
   version="$(tr -d '[:space:]' <"$SCAFFOLD_ROOT/VERSION")"
   mkdir -p "$extracted"
   git -C "$SCAFFOLD_ROOT" archive HEAD | tar -x -C "$extracted"
