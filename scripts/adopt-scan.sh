@@ -176,7 +176,7 @@ scan_ci() {
 # Conventional Commits (and there are at least 5); with no history at all, conventional.
 scan_convention() {
   local total matching
-  total="$(git -C "$1" log -n 30 --format=%s 2>/dev/null | wc -l | tr -d ' ')"
+  total="$( (git -C "$1" log -n 30 --format=%s 2>/dev/null || true) | wc -l | tr -d ' ')"
   if [ "$total" -eq 0 ]; then SCAN_CONVENTION=conventional; return 0; fi
   matching="$(git -C "$1" log -n 30 --format=%s 2>/dev/null | grep -Ec "$CONVENTIONAL_PATTERN" || true)"
   if [ "$total" -ge 5 ] && [ $((matching * 100)) -ge $((total * 60)) ]; then SCAN_CONVENTION=conventional; else SCAN_CONVENTION=other; fi

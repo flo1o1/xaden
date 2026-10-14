@@ -21,7 +21,13 @@ stack_check() {
   collect_files "$1" "$WORKFLOW_PATTERN"
   if [ ${#TARGETS[@]} -gt 0 ]; then
     if has_command actionlint; then run_workflow_check actionlint actionlint "${TARGETS[@]}"; fi
-    if has_command zizmor; then run_workflow_check zizmor zizmor --offline "${TARGETS[@]}"; fi
+    if has_command zizmor; then
+      if [ "${LAYOUT:-classic}" = "adopted" ]; then # annotations name file and line, so the gate can judge them
+        run_workflow_check zizmor zizmor --offline --format github "${TARGETS[@]}"
+      else
+        run_workflow_check zizmor zizmor --offline "${TARGETS[@]}"
+      fi
+    fi
   fi
   [ "$1" = "full" ] || return 0
   if [ -f .jscpd.json ]; then

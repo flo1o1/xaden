@@ -6,7 +6,8 @@
 #   strict         fails for violations in any file
 # Violations that existed at adoption are recorded in xaden/baselines/<check>.txt and never fail
 # a check. The baseline only shrinks: fixed violations are removed from it, new ones never added.
-# A violation is a line of tool output that names a file and a line ("path:12:3: message"); it is
+# A violation is a line of tool output that names a file and a line ("path:12:3: message", or a
+# GitHub annotation "::warning file=path,line=12::message"); it is
 # recorded without the numbers, so moving code does not make it new. A failure without such lines
 # cannot be baselined (a failing test, for example): advisory warns, the other modes fail.
 
@@ -15,7 +16,8 @@ BASELINE_DIR_NAME="baselines"
 # violation_keys: filter; "path: message" for each violation line of tool output on stdin.
 violation_keys() {
   sed -n -E -e "s#^$PWD/##" -e 's#^\./##' \
-    -e 's#^([^[:space:]:]+):[0-9]+(:[0-9]+)?:?[[:space:]]*(.+)$#\1: \3#p' | LC_ALL=C sort
+    -e 's#^([^[:space:]:]+):[0-9]+(:[0-9]+)?:?[[:space:]]*(.+)$#\1: \3#p' \
+    -e 's#^::(warning|error|notice) file=([^,]+),line=[0-9]+[^:]*::([A-Za-z0-9._-]+\.ya?ml:[0-9]+: )?(.*)$#\2: \4#p' | LC_ALL=C sort
 }
 
 # changed_files: files the change touches, one per line. Pre-commit: the staged files. Otherwise:

@@ -3,7 +3,7 @@ id: REQ-066
 type: job
 epic: project-setup
 priority: must
-status: approved
+status: in-progress
 updated: 2026-10-14
 ---
 

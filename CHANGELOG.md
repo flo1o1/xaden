@@ -4,6 +4,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+### Added
+- `xaden adopt` puts Xaden beneath an existing repository without changing its build, on its own branch and worktree: `--scan` reports what the repository has, `--plan` prints the exact diff, applying creates the folder `xaden/`, a marked block in `AGENTS.md` and, for Claude Code users, `CLAUDE.md` with one line. Your tests and linters are run through `xaden/xaden.conf`, existing hooks and workflows are chained or left alone, and gaps can be filled with Xaden's Python or Node preset as a separate commit. `xaden remove` undoes it (REQ-066, REQ-067, REQ-069, REQ-070, REQ-073).
+- Check modes `advisory`, `changed-files` and `strict` and baselines in `xaden/baselines/` that only shrink, so legacy findings never block a team that adopts Xaden (REQ-068).
+- The tooling stays in the installed Xaden and is selected by the version and checksum pinned in `xaden/xaden.conf`. `xaden doctor`, `xaden fetch` and `xaden upgrade` keep a team on one version; nothing downloads without a typed yes, and a download is installed only if its checksum matches (REQ-071, REQ-072).
+- `xaden new --autopilot --stack python|node` sets up a new project with the recommended checks, hooks and CI after one confirmation (REQ-076).
+- `xaden ignore-list` prints the paths Xaden owns for `.dockerignore` and archive excludes (REQ-075).
+- Every message is one of four kinds with a fixed sign (🐉 question, ⚠️ warning, 🔥 error, ✅ success) and a plain-text form (`[?]`, `WARNING:`, `ERROR:`, `OK:`) when output is not a terminal, in CI, with `XADEN_PLAIN=1` or without a UTF-8 locale (REQ-074).
+- `xaden prompt`, `doc`, `rules`, `context` and `persona` for repositories that adopted Xaden.
+
+### Changed
+- Warnings print `WARNING:` instead of `WARN:` in plain output, and a run that passed prints `OK: all checks passed`.
+- A project created by `xaden new` can move to the adopted layout with `xaden adopt`.
+
 ## [0.2.3] - 2026-10-13
 
 ### Added

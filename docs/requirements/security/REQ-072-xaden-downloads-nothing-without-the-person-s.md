@@ -3,7 +3,7 @@ id: REQ-072
 type: job
 epic: security
 priority: must
-status: approved
+status: done
 updated: 2026-10-14
 ---
 

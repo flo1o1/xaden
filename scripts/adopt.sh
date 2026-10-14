@@ -32,6 +32,7 @@ TOOLS_DIR="$SCAFFOLD_ROOT/template"
 ADOPT_REPO=""
 STOP_AFTER=""          # scan or plan
 ASSUME_YES=0
+CLASSIC=0              # a project created by `xaden new`, with a copy of the tooling
 PRESET_CHOICE=ask      # ask, yes, no
 EXIT_UNSUPPORTED=4     # an unsupported hook manager or CI system (a manual step is printed)
 
@@ -140,6 +141,10 @@ choose_preset() {
 # run_steps <dir> <record>: the steps, one commit each. record=1 also records the baselines.
 run_steps() {
   local dir=$1 record=$2
+  if [ "$CLASSIC" = 1 ]; then
+    apply_migration "$dir"
+    commit_step "$dir" "chore: move the team content into xaden/ and drop the copied tooling"
+  fi
   apply_core "$dir"
   if [ "$record" = 1 ]; then record_baselines "$dir"; fi
   commit_step "$dir" "chore: adopt Xaden $(running_version)"
@@ -210,6 +215,10 @@ print_plan() {
   else
     echo "  Show the exact diff with: xaden adopt --plan"
   fi
+  if [ "$CLASSIC" = 1 ]; then
+    echo "  This project keeps a copy of the tooling (.scaffold/). The plan moves its requirements, personas and"
+    echo "  reviews into xaden/ and removes the copied files you did not edit; files you edited stay and are listed."
+  fi
   echo "  Besides the files:"
   echo "    - the violations that exist today are recorded in xaden/baselines/ when the plan is applied (it runs your check commands)"
   if [ "$SCAN_HOOKS" != husky ] && [ "$ADOPT_HOOKS" = 1 ]; then
@@ -234,6 +243,9 @@ apply_plan() {
     git -C "$ADOPT_REPO" checkout -q -b "$ADOPT_BRANCH"
   fi
   run_steps "$worktree" 1
+  if [ "$CLASSIC" = 1 ] && [ "$(git -C "$ADOPT_REPO" config --get core.hooksPath || true)" = "scripts/hooks" ]; then
+    git -C "$ADOPT_REPO" config --unset core.hooksPath # the copied hooks are gone after the migration
+  fi
   if [ "$SCAN_HOOKS" != husky ] && [ "$ADOPT_HOOKS" = 1 ]; then install_local_hooks "$ADOPT_REPO"; fi
   exclude_context_pack
   ok "Xaden $(running_version) is on branch $ADOPT_BRANCH in $worktree"
@@ -266,15 +278,25 @@ adopt_main() {
   has_command git || die "git is required"
   ADOPT_REPO="$(git rev-parse --show-toplevel 2>/dev/null)" || die "this is not a git repository; run 'git init' first"
   [ ! -f "$ADOPT_REPO/xaden/xaden.conf" ] || die "Xaden is adopted here already (xaden/xaden.conf). Update it with: xaden upgrade"
-  [ ! -d "$ADOPT_REPO/.scaffold" ] ||
-    die "this project was created by 'xaden new' and keeps a copy of the tooling (.scaffold/). Update it with: xaden update"
+  if [ -d "$ADOPT_REPO/.scaffold" ]; then
+    CLASSIC=1
+    ADOPT_MODE=strict # that project was strict already
+  fi
   ADOPT_DEFAULT_BRANCH="$(default_branch)"
   scan_repository "$ADOPT_REPO"
+  if [ "$CLASSIC" = 1 ]; then
+    [ "$SCAN_HOOKS" != "unsupported: core.hooksPath = scripts/hooks" ] || SCAN_HOOKS=plain # the copied hooks go with the copy
+    if [ -d "$ADOPT_REPO/.claude" ] || [ -f "$ADOPT_REPO/CLAUDE.md" ]; then SCAN_CLAUDE=1; fi
+  fi
   print_scan "$ADOPT_REPO"
   [ "$STOP_AFTER" != scan ] || return 0
   check_supported
   choose_assistants
   choose_preset
+  if [ -n "$SCAN_UNRECOGNISED$SCAN_FOUND_TOOLS" ] && [ "$ASSUME_YES" != 1 ] && has_terminal; then
+    ask "Some tools were not recognised (listed above) and get no check. Continue anyway? Name their commands with --check <kind>=<command>." ||
+      { echo "Nothing was changed."; return 0; }
+  fi
   print_plan "$([ "$STOP_AFTER" = plan ] && echo 1 || echo 0)"
   [ "$STOP_AFTER" != plan ] || return 0
   if [ "$ASSUME_YES" != 1 ]; then

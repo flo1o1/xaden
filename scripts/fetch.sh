@@ -48,9 +48,30 @@ confirm_download() {
   ask "Download and install Xaden $version now?"
 }
 
-# download_release <version> <dir>: the one download. Extracts the release archive into <dir>.
+# MAX_RELEASE_BYTES: a release archive larger than this is refused (the real one is about 1 MB).
+MAX_RELEASE_BYTES=52428800
+
+# safe_archive <archive>: dies unless every member is a plain file or folder inside the archive's
+# top folder: no absolute path, no "..", no link. The archive comes from the network; extracting
+# one with such a member could write outside the target folder.
+safe_archive() {
+  # no -q: grep must read all input, or tar dies of SIGPIPE and pipefail hides the match
+  if tar -tzf "$1" | grep -E '^/|(^|/)\.\.(/|$)' >/dev/null; then die "the archive has a path that leaves its folder; refusing to extract it"; fi
+  if tar -tvzf "$1" | grep -E '^[lh]' >/dev/null; then die "the archive contains a link; refusing to extract it"; fi
+}
+
+# download_release <version> <dir>: the one download. Fetches the release archive, checks that
+# it is safe to extract, and extracts it into <dir>.
 download_release() {
-  curl -fsSL "$(release_url "$1")" | tar -xz -C "$2" --strip-components=1
+  local archive
+  archive="$(mktemp)"
+  if ! curl -fsSL --max-filesize "$MAX_RELEASE_BYTES" -o "$archive" "$(release_url "$1")"; then
+    rm -f "$archive"
+    return 1
+  fi
+  if ! (safe_archive "$archive"); then rm -f "$archive"; return 1; fi
+  tar -xz -C "$2" --strip-components=1 -f "$archive"
+  rm -f "$archive"
 }
 
 # install_release <version> <expected-checksum|"">: downloads, verifies and installs one version

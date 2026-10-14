@@ -16,7 +16,7 @@ test_scaffold_release_failures() {
   local copy="$WORKDIR/scaffold-release" head
   mkdir -p "$copy/scripts" "$copy/template/scripts"
   cp "$SCAFFOLD_ROOT/scripts/release-scaffold.sh" "$copy/scripts/"
-  cp "$SCAFFOLD_ROOT/template/scripts/lib.sh" "$SCAFFOLD_ROOT/template/scripts/layout.sh" "$copy/template/scripts/"
+  cp "$SCAFFOLD_ROOT/template/scripts/lib.sh" "$SCAFFOLD_ROOT/template/scripts/layout.sh" "$SCAFFOLD_ROOT/template/scripts/gate.sh" "$copy/template/scripts/"
   printf '#!/bin/sh\nexit 0\n' >"$copy/scripts/check-scaffold.sh" && chmod +x "$copy/scripts/check-scaffold.sh"
   printf '0.1.0\n' >"$copy/VERSION"
   printf '# Changelog\n\n## [Unreleased]\n\n- change\n' >"$copy/CHANGELOG.md"
@@ -139,7 +139,7 @@ test_site_pages() {
   local copy="$WORKDIR/site-pages" check="$SCAFFOLD_ROOT/scripts/check-site-pages.sh"
   assert "every listed site page exists" "$check" "$SCAFFOLD_ROOT"
   mkdir -p "$copy/docs" "$copy/template/scripts" "$copy/.github/workflows"
-  cp "$SCAFFOLD_ROOT/template/scripts/lib.sh" "$SCAFFOLD_ROOT/template/scripts/layout.sh" "$copy/template/scripts/"
+  cp "$SCAFFOLD_ROOT/template/scripts/lib.sh" "$SCAFFOLD_ROOT/template/scripts/layout.sh" "$SCAFFOLD_ROOT/template/scripts/gate.sh" "$copy/template/scripts/"
   printf 'README.md\n' >"$copy/docs/site-pages.txt"
   assert_fails "a missing site page fails the check" "$check" "$copy"
   : >"$copy/README.md"
