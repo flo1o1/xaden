@@ -14,7 +14,8 @@ ROOT="${PROJECT_ROOT:-$(cd "$SCRIPTS/.." && pwd)}"
 source "$SCRIPTS/lib.sh"
 # shellcheck source=SCRIPTDIR/requirements-lib.sh
 source "$SCRIPTS/requirements-lib.sh"
-DIR="$ROOT/docs/requirements"
+layout_init "$ROOT"
+DIR="$REQ_DIR"
 # Text the new file starts with; check-requirements.sh warns until it is replaced.
 TODO_JOB="TODO: When <situation>, I want to <motivation>, so I can <expected outcome>."
 TODO_QUALITY="TODO: <measurable quality goal, e.g. \"95 % of searches answer within 1 s\">."
@@ -55,11 +56,11 @@ write_index() {
   render_index "$DIR" >"$DIR/$INDEX_FILE"
 }
 
-[ -d "$DIR" ] || die "docs/requirements not found (old table format? run scripts/migrate-requirements.sh)"
+[ -d "$DIR" ] || die "${DIR#"$ROOT"/} not found (old table format? run scripts/migrate-requirements.sh)"
 case "${1:-}" in
   list) list_requirements ;;
   show) show_requirement "${2:-}" ;;
   new) new_requirement "${2:-}" "${3:-}" "${4:-}" ;;
-  index) write_index && info "wrote docs/requirements/$INDEX_FILE" ;;
+  index) write_index && info "wrote ${DIR#"$ROOT"/}/$INDEX_FILE" ;;
   *) die "usage: scripts/req.sh list | show REQ-nnn | new <epic> <job|quality> \"<title>\" | index" ;;
 esac

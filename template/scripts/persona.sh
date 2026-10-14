@@ -11,8 +11,11 @@ ROOT="${PROJECT_ROOT:-$(cd "$SCRIPTS/.." && pwd)}"
 source "$SCRIPTS/lib.sh"
 # shellcheck source=SCRIPTDIR/requirements-lib.sh
 source "$SCRIPTS/requirements-lib.sh"
-DIR="$ROOT/docs/personas"
+layout_init "$ROOT"
+DIR="$PERSONAS_DIR"
+# An adopted project has no copy of the template: the installed Xaden provides it.
 TEMPLATE="$DIR/0000-template.md"
+[ -f "$TEMPLATE" ] || TEMPLATE="$TOOLS_DIR/docs/personas/0000-template.md"
 # More personas dilute the checks; fewer miss whole user groups.
 RECOMMENDED_MAXIMUM=5
 NAME_LENGTH=60
@@ -33,7 +36,8 @@ new_persona() {
   fi
   slug="$(slugify "$name")"
   [ -n "$slug" ] || die "name gives an empty file name: $name"
-  [ -f "$TEMPLATE" ] || die "docs/personas/0000-template.md not found (update the scaffold)"
+  [ -f "$TEMPLATE" ] || die "persona template not found (update the scaffold)"
+  mkdir -p "$DIR"
   path="$DIR/$slug.md"
   # -L too: -e follows a dangling link, and writing through it would leave the project.
   if [ -e "$path" ] || [ -L "$path" ]; then die "persona exists already: ${path#"$ROOT"/}"; fi

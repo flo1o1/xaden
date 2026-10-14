@@ -18,13 +18,14 @@ ROOT="${PROJECT_ROOT:-$(cd "$SCRIPTS/.." && pwd)}"
 source "$SCRIPTS/lib.sh"
 # shellcheck source=SCRIPTDIR/requirements-lib.sh
 source "$SCRIPTS/requirements-lib.sh"
+layout_init "$ROOT"
 
 RELEASE_MODE=0
 if [ "${1:-}" = "--release" ]; then
   RELEASE_MODE=1
   shift
 fi
-DIR="${1:-$ROOT/docs/requirements}"
+DIR="${1:-$REQ_DIR}"
 # The date placeholder, assembled from two parts so project generation (which fills every
 # literal occurrence in the template) does not rewrite it here.
 DATE_PLACEHOLDER="{{""DATE}}"

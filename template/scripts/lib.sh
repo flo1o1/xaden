@@ -2,6 +2,9 @@
 # Shared helpers for scripts in this repo. Source it; do not execute it.
 # Portable on Linux and macOS (bash >= 3.2, POSIX sed/awk/tar only).
 
+# shellcheck source=SCRIPTDIR/layout.sh
+source "$(dirname "${BASH_SOURCE[0]}")/layout.sh"
+
 # Check results (REQ-019): every check is passed, failed or skipped; finish_checks reports them.
 FAILURES=0
 CHECKS_PASSED=0

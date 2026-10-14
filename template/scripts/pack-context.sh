@@ -18,10 +18,11 @@ ROOT="${PROJECT_ROOT:-$(cd "$SCRIPTS/.." && pwd)}"
 source "$SCRIPTS/lib.sh"
 # shellcheck source=SCRIPTDIR/requirements-lib.sh
 source "$SCRIPTS/requirements-lib.sh"
+layout_init "$ROOT"
 OUT="$ROOT/context-pack.md"
 # Project documents added in later scaffold versions (REQ-028 threat model, REQ-042
 # architecture); older projects may lack them, so the header names missing ones.
-PROJECT_DOCS="docs/threat-model.md docs/architecture.md"
+PROJECT_DOCS="${THREAT_MODEL_FILE#"$ROOT"/} ${TEAM_DIR#"$ROOT"/}/architecture.md"
 
 # Assembled in a temporary file and moved into place only when complete (REQ-023).
 PACK=""
@@ -42,6 +43,7 @@ strip_frontmatter() {
 
 # unreleased_changes: the "Unreleased" section of CHANGELOG.md (what changed since the last release).
 unreleased_changes() {
+  [ -f "$ROOT/CHANGELOG.md" ] || return 0 # an adopted project may keep no changelog
   awk '/^## \[Unreleased\]/ { inside = 1; next } inside && /^## \[/ { exit } inside' "$ROOT/CHANGELOG.md"
 }
 
@@ -75,7 +77,7 @@ append_project_docs() {
 # append_personas: every user persona the project defines (REQ-061), without the template.
 append_personas() {
   local file
-  for file in "$ROOT"/docs/personas/*.md; do
+  for file in "$PERSONAS_DIR"/*.md; do
     case "$file" in */0000-template.md) continue ;; esac
     if [ -f "$file" ]; then append_section "USER PERSONA (${file#"$ROOT"/})" "$file"; fi
   done
@@ -83,8 +85,8 @@ append_personas() {
 
 # append_requirements: the index, then every epic with its requirement files (REQ-047).
 append_requirements() {
-  local requirements="$ROOT/docs/requirements" epic file
-  append_section "REQUIREMENTS INDEX (docs/requirements/$INDEX_FILE)" "$requirements/$INDEX_FILE"
+  local requirements="$REQ_DIR" epic file
+  append_section "REQUIREMENTS INDEX (${requirements#"$ROOT"/}/$INDEX_FILE)" "$requirements/$INDEX_FILE"
   while IFS= read -r epic; do
     for file in "$epic/$EPIC_FILE" "$epic"/REQ-*.md; do
       if [ -f "$file" ]; then append_section "REQUIREMENTS (${file#"$ROOT"/})" "$file"; fi
@@ -97,7 +99,11 @@ validate_prompt_names() {
   local name
   for name in "$@"; do
     printf '%s' "$name" | grep -Eq '^[a-z0-9-]+$' || die "invalid prompt name: $name"
-    [ -f "$ROOT/prompts/$name.md" ] || die "no such prompt: prompts/$name.md"
+    if [ "$LAYOUT" = "adopted" ]; then
+      rm -f "$(resolve_prompt "$name")" # dies for an unknown name; a temporary rewrite is not needed yet
+    else
+      [ -f "$ROOT/prompts/$name.md" ] || die "no such prompt: prompts/$name.md"
+    fi
   done
 }
 
@@ -117,7 +123,7 @@ parse_arguments() {
   fi
   validate_prompt_names ${PROMPTS[@]+"${PROMPTS[@]}"}
   for arg in ${ids[@]+"${ids[@]}"}; do
-    path="$(requirement_path "$ROOT/docs/requirements" "$arg")"
+    path="$(requirement_path "$REQ_DIR" "$arg")"
     REQUIREMENT_PATHS+=("$path")
   done
 }
@@ -125,7 +131,7 @@ parse_arguments() {
 # append_chosen_requirements: the index, then only the requirement files named for a brief pack.
 append_chosen_requirements() {
   local file
-  append_section "REQUIREMENTS INDEX (docs/requirements/$INDEX_FILE)" "$ROOT/docs/requirements/$INDEX_FILE"
+  append_section "REQUIREMENTS INDEX (${REQ_DIR#"$ROOT"/}/$INDEX_FILE)" "$REQ_DIR/$INDEX_FILE"
   for file in ${REQUIREMENT_PATHS[@]+"${REQUIREMENT_PATHS[@]}"}; do
     append_section "REQUIREMENTS (${file#"$ROOT"/})" "$file"
   done
@@ -186,21 +192,27 @@ copy_to_clipboard() {
 }
 
 main() {
-  local name
+  local name prompt_path
   parse_arguments "$@"
   PACK="$(mktemp)"
   trap 'rm -f "$PACK"' EXIT
   write_header ${PROMPTS[@]+"${PROMPTS[@]}"}
-  append_section "PROJECT RULES (AGENTS.md)" "$ROOT/AGENTS.md"
-  [ "$BRIEF" = "1" ] || append_section "CLEAN CODE DETAILS (docs/clean-code.md)" "$ROOT/docs/clean-code.md"
-  append_section "SECURITY CHECKLIST (docs/security.md)" "$ROOT/docs/security.md"
+  append_section "PROJECT RULES (${RULES_FILE#"$ROOT"/})" "$RULES_FILE"
+  [ "$BRIEF" = "1" ] || append_section "CLEAN CODE DETAILS" "$CLEAN_CODE_FILE"
+  append_section "SECURITY CHECKLIST" "$SECURITY_GUIDE_FILE"
   [ "$BRIEF" = "1" ] || append_project_docs
   append_personas
   if [ "$BRIEF" = "1" ]; then append_chosen_requirements; else append_requirements; fi
   printf '\n# UNRELEASED CHANGES (CHANGELOG.md)\n\n' >>"$PACK"
   unreleased_changes >>"$PACK"
   for name in ${PROMPTS[@]+"${PROMPTS[@]}"}; do
-    append_section "TASK PROMPT ($name)" "$ROOT/prompts/$name.md"
+    if [ "$LAYOUT" = "adopted" ]; then
+      prompt_path="$(resolve_prompt "$name")"
+      append_section "TASK PROMPT ($name)" "$prompt_path"
+      case "$prompt_path" in "$TEAM_DIR"/*) ;; *) rm -f "$prompt_path" ;; esac
+    else
+      append_section "TASK PROMPT ($name)" "$ROOT/prompts/$name.md"
+    fi
   done
   mv "$PACK" "$OUT"
   report_size

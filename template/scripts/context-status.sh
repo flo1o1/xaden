@@ -10,14 +10,16 @@ set -euo pipefail
 # another repository (e.g. the scaffold itself) reuse these scripts.
 SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="${PROJECT_ROOT:-$(cd "$SCRIPTS/.." && pwd)}"
-# Where the CC-nn rules are defined; docs/clean-code.md lives next to it.
-RULES_FILE="${RULES_FILE:-$ROOT/AGENTS.md}"
+# shellcheck source=SCRIPTDIR/lib.sh
+source "$SCRIPTS/lib.sh"
+# Where the CC-nn rules are defined (RULES_FILE) and the clean-code guide (CLEAN_CODE_FILE).
+layout_init "$ROOT"
 
-# rule_and_requirement_files: the rule files plus every Markdown file under docs/requirements,
+# rule_and_requirement_files: the rule files plus every Markdown file of the requirements,
 # in a fixed order so the fingerprint is the same on every machine.
 rule_and_requirement_files() {
-  printf '%s\n' "$RULES_FILE" "$(dirname "$RULES_FILE")/docs/clean-code.md"
-  find "$ROOT/docs/requirements" -type f -name '*.md' | LC_ALL=C sort
+  printf '%s\n' "$RULES_FILE" "$CLEAN_CODE_FILE"
+  find "$REQ_DIR" -type f -name '*.md' | LC_ALL=C sort
 }
 
 # fingerprint: CRC of all rule and requirement files (POSIX cksum, same on Linux and macOS).

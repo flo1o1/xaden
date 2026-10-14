@@ -1,4 +1,5 @@
 # shellcheck shell=bash
+# shellcheck disable=SC2016 # bash -c programs are single-quoted on purpose
 # Smoke test area "adoption" (REQ-066 to REQ-076: adopting Xaden in existing repositories).
 # Sourced by tests/smoke.sh, which defines the helpers and creates the demo project first.
 

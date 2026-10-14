@@ -42,6 +42,13 @@ check_filled() {
   fi
 }
 
+layout_init "$ROOT"
+# An adopted project keeps its own documentation; Xaden requires no guides there (REQ-070).
+if [ "$LAYOUT" = "adopted" ]; then
+  echo "docs OK (an adopted project has no guides to check)"
+  exit 0
+fi
+
 check_headings "$ROOT/docs/user-guide.md" "$USER_HEADINGS"
 check_headings "$ROOT/docs/admin-guide.md" "$ADMIN_HEADINGS"
 
