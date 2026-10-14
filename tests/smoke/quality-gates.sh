@@ -24,8 +24,8 @@ test_quiet_output() {
   assert "passed assertions print nothing by default" test -z "$(SMOKE_VERBOSE=0 pass probe)"
   assert "SMOKE_VERBOSE=1 prints passed assertions" test "$(SMOKE_VERBOSE=1 pass probe)" = "ok   probe"
   # one area can run alone: tests/smoke.sh <area>
-  assert "smoke test lists its areas, one per epic" test "$("$SCAFFOLD_ROOT/tests/smoke.sh" --list | tr '\n' ' ')" = \
-    "assistant-guidance project-setup quality-gates requirements security release-and-docs "
+  assert "smoke test lists its areas" test "$("$SCAFFOLD_ROOT/tests/smoke.sh" --list | tr '\n' ' ')" = \
+    "adoption assistant-guidance project-setup quality-gates requirements security release-and-docs "
   assert_fails_with "smoke test rejects an unknown area" 'unknown area' "$SCAFFOLD_ROOT/tests/smoke.sh" no-such-area
 }
 
