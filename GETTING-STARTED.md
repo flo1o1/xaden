@@ -119,117 +119,12 @@ Only files tracked by git in `template/` are copied (including uncommitted edits
 untracked or ignored files such as `.env`, `node_modules/` or `inbox/` content never are.
 A failed run removes the half-created project.
 
+Two shortcuts: "Autopilot for a new project" (below) sets up the recommended checks after one confirmation, and
+"Adding Xaden to an existing repository" (below) is the way in for a repository you already have.
+
 Prefer GitHub's "Use this template" button? Then clone your copy and run
 `scripts/new-project.sh my-app` from it the same way. Never develop your project inside the
 scaffold: everything a project gets comes from `template/`.
-
-## Adding Xaden to an existing repository
-
-Your repository keeps its build, its tests, its documentation and its CI. Xaden goes beneath it in
-one pull request that your team reviews. Run these in a clone of the repository:
-
-```bash
-xaden adopt --scan     # read-only report of what the repository has
-xaden adopt --plan     # the exact diff and file list; changes nothing
-xaden adopt            # asks once, then works on a branch in its own folder
-```
-
-`xaden adopt` reports the stack, test runner, linters, type checker, CI system, hook manager,
-commit convention and any existing `AGENTS.md`, `CLAUDE.md` and `.claude/`. It lists rules in an
-existing `AGENTS.md` or `CLAUDE.md` that contradict `xaden/RULES.md` with file and line, and leaves
-the decision to you. What it cannot recognise it says so; it never guesses a command (name one with
-`--check test="make verify"`). Without a terminal it stops after the plan and prints the command that
-applies it, `xaden adopt --yes`.
-
-It creates the branch `chore/adopt-xaden` in a folder next to the repository
-(`<repo>-adopt-xaden`) and commits there. Nothing lands on the default branch. The commits add only:
-
-- `xaden/`: `xaden.conf` (the pinned Xaden version and checksum, the mode of the checks, the commands
-  Xaden runs), `RULES.md` (generated from the pinned version, do not edit), `requirements/`, `personas/`,
-  `security-reviews/`, `baselines/`, optional `prompts/`, and `footprint.txt`. Plain Markdown, no
-  editor-specific files, and none of Xaden's scripts.
-- a short marked block in `AGENTS.md`. Text outside the block is never changed.
-- for Claude Code users (`--assistants claude`, pre-selected when the scan finds `CLAUDE.md` or
-  `.claude/`, and confirmed by you): `CLAUDE.md` with the one line `@AGENTS.md`, or that line added to
-  an existing file that lacks it.
-- a separate workflow `.github/workflows/xaden.yml` (its own commit; `--skip-ci` leaves it out). Existing
-  workflows are not edited. It installs the pinned Xaden version and verifies its checksum.
-- Xaden's hooks, chained into the hook manager you have: husky (a tracked change, its own commit),
-  or plain git hooks, pre-commit and lefthook (inside `.git`, each teammate runs `xaden setup`).
-  Existing hooks keep their content, and `core.hooksPath` is never set over a manager.
-
-Your own commands are reused: the scan maps `npm test`, `make lint`, `pytest`, `ruff check .` and
-similar to `check.test`, `check.lint` and `check.typecheck` in `xaden.conf`, and `xaden check` runs
-them. Violations that exist today are recorded in `xaden/baselines/` while the plan is applied (this runs your
-check commands once). The baseline only shrinks: fixing a violation removes it, a new one fails the check.
-
-The mode in `xaden/xaden.conf` decides how strict the checks are:
-
-| Mode | A new violation |
-|------|-----------------|
-| `advisory` | warns and passes |
-| `changed-files` (default for existing repositories) | fails if it is in a file the change touches |
-| `strict` | fails in any file |
-
-Changing the mode, or letting a baseline grow, is an approval point. With another commit convention
-than Conventional Commits, the `Refs:` checks only advise until the team opts in with
-`commit-convention = conventional`.
-
-If the repository lacks tests, linters or a type checker for its stack, the scan lists each gap. The
-plan can offer Xaden's preset for Python or Node as a separate commit (`--preset`, or the question when a
-terminal is attached): its configuration goes to the repository root where the tools expect it, and you
-install the tools yourself, the command is printed. Files you already have are never overwritten; the
-difference is shown. Without the preset, `xaden check` reports the gap: a warning in `advisory` and
-`changed-files`, an error in `strict`.
-
-An unsupported hook manager or CI system stops the run (exit code 4) with a manual step; adopt without it
-using `--skip-hooks` or `--skip-ci`. When you applied the plan, push the branch and open the pull request.
-
-`xaden remove` deletes `xaden/` and undoes exactly the paths in `xaden/footprint.txt`; review the result
-with `git status`. `xaden ignore-list` prints `xaden/`, `AGENTS.md` and `CLAUDE.md` (when present), one per
-line, for `.dockerignore`, `.npmignore` and archive excludes.
-
-A project created by `xaden new` (it has `.scaffold/`) can move to this layout with the same command: its
-requirements, personas and reviews move into `xaden/`, the copied tooling you did not edit is removed, and
-what you edited stays and is listed.
-
-In an adopted repository assistants have no slash commands. They run `xaden prompt kickoff`, `xaden prompt
-feature` and so on; a prompt of the same name in `xaden/prompts/` replaces the default.
-
-## One Xaden version per project
-
-An adopted repository pins the Xaden version it uses, with a checksum, in `xaden/xaden.conf`. A newer
-Xaden on one machine changes nothing in the repository.
-
-```bash
-xaden doctor          # installed X, project pinned Y; reads two files, no network
-xaden fetch 0.3.0     # installs the pinned version when it is missing
-xaden upgrade 0.3.0   # a branch that bumps version and checksum and regenerates xaden/RULES.md
-xaden upgrade --check # asks, then looks for a newer release
-```
-
-Xaden never downloads anything without your yes. When the pinned version is not installed, the question
-shows the version, the source and the checksum, ends the output with `Download and install Xaden <version>
-now? [y/N]`, and anything but yes means no. A download is installed only if its checksum equals the one in
-`xaden.conf`; the yes is not remembered. Without a terminal (an IDE git client, a script, an assistant) nothing
-downloads: the command exits with code 3 and prints the `xaden fetch <version>` to run yourself. Assistants
-show the question to you and never answer it. Other installed versions live in `~/.local/share/xaden/versions`
-(`XADEN_HOME` changes the place). If `xaden/RULES.md` does not match the pinned version, the check fails
-and names `xaden rules`. `xaden upgrade` shows the diff and the changelog entries between the versions;
-your team reviews it as one pull request.
-
-## Autopilot for a new project
-
-```bash
-xaden new --autopilot --stack python my-app    # or --stack node
-```
-
-It prints one plan and asks once. A yes creates the folder, `git init` on `main`, the `xaden/` layout, the
-stack's preset, mode `strict`, hooks, the CI workflow and a first commit. It prints the exact install commands
-for the development tools (pinned versions) and never runs them, never pushes and never downloads. It ends with
-the checks: tools that are not installed yet are reported as skipped, and a run with skipped checks ends with a
-warning, never a success sign. A folder that already has code, a build file or history stops with a pointer to
-`xaden adopt`.
 
 ## 4. Kickoff
 
@@ -258,6 +153,183 @@ Also available: `/bugfix`, `/refactor`, `/review`, `/security`, `/docs`.
 `/release` proposes a SemVer bump; you confirm; `scripts/release.sh` checks everything, refuses
 while the guides are incomplete, stamps versions, and tags locally. Push when you want:
 `git push --follow-tags`.
+
+## Adding Xaden to an existing repository
+
+Your repository keeps its build, its tests, its documentation and its CI. Xaden goes beneath it in
+one pull request that your team reviews.
+
+### The short path
+
+```bash
+cd ~/code/shop
+xaden adopt
+```
+
+`xaden adopt` reads the repository and reports its stack, test runner, linters, CI system and git
+hooks. Then it prints exactly which files it would create or touch and asks once. On a yes it works
+on a new branch, `chore/adopt-xaden`, in its own folder next to the repository (`shop-adopt-xaden`),
+so nothing lands on your default branch. When it is done, push the branch and open the pull request.
+
+### Look first, change nothing
+
+```bash
+xaden adopt --scan
+xaden adopt --plan
+```
+
+- `xaden adopt --scan`: reports what the repository has and changes no file. It also lists rules in an existing `AGENTS.md` or `CLAUDE.md` that contradict `xaden/RULES.md`, with file and line; you decide what to do about them.
+- `xaden adopt --plan`: prints the exact diff and the list of files that would be created or changed, and writes nothing.
+
+What Xaden cannot recognise it says so; it never guesses a command. Name one yourself with
+`--check test="make verify"`. Without a terminal (a script, a CI job) `xaden adopt` stops after the plan and
+prints the command that applies it: `xaden adopt --yes`.
+
+### What it adds, and nothing else
+
+- A visible folder `xaden/`. It holds `xaden.conf` (the pinned Xaden version and checksum, the mode of the
+  checks and the commands Xaden runs), `RULES.md` (the rules for assistants, generated from the pinned
+  version: do not edit), `requirements/`, `personas/`, `security-reviews/`, `baselines/`, an optional
+  `prompts/` and `footprint.txt`. It is plain Markdown plus one settings file, no editor-specific files, and
+  none of Xaden's scripts.
+- A short marked block in `AGENTS.md`. Text you wrote there stays untouched.
+- For Claude Code users, `CLAUDE.md` with the single line `@AGENTS.md`, or that line added to an existing
+  `CLAUDE.md` that lacks it. Use `--assistants claude` to choose; by default Xaden pre-selects Claude when
+  it finds `CLAUDE.md` or `.claude/`, and asks you to confirm.
+- A separate workflow, `.github/workflows/xaden.yml`, in its own commit (`--skip-ci` leaves it out). It
+  installs the pinned Xaden version and verifies its checksum. Your existing workflows are not edited.
+- Xaden's checks in your git hooks, chained into the manager you have (see "Hooks and CI that do not fit").
+
+Your `README.md`, `docs/`, `scripts/`, `CHANGELOG.md` and build files are never changed.
+
+### Your own tools keep running
+
+The scan maps the commands it finds (`npm test`, `make lint`, `pytest`, `ruff check .` and similar) to
+`check.test`, `check.lint` and `check.typecheck` in `xaden.conf`, and `xaden check` runs them. Xaden's own
+language presets stay unused.
+
+### How strict the checks are
+
+Existing findings never block a team. When the plan is applied, Xaden runs your check commands once and
+records what they report in `xaden/baselines/`. A baseline only shrinks: fixing a violation removes it from
+the list, a new violation is never added to it. The mode in `xaden.conf` decides what a new violation does:
+
+| Mode | A new violation |
+|------|-----------------|
+| `advisory` | warns and passes |
+| `changed-files` (default for existing repositories) | fails if it is in a file the change touches |
+| `strict` | fails in any file |
+
+Changing the mode, or letting a baseline grow, is an approval point. If your repository does not use
+Conventional Commits, the `Refs:` checks only advise until you set `commit-convention = conventional`.
+
+### No tests or linters yet
+
+If the repository lacks tests, linters or a type checker for its stack, the scan lists each gap. The plan can
+offer Xaden's preset for Python or Node as a separate step and a separate commit (`--preset`, or a question
+when a terminal is attached). The preset's configuration goes to the repository root where its tools expect
+it; you install the tools yourself, the command is printed. A file you already have is never overwritten: the
+difference is shown. Without the preset no configuration file is added, and `xaden check` reports the gap: a
+warning in `advisory` and `changed-files`, an error in `strict`.
+
+### Hooks and CI that do not fit
+
+Xaden chains into husky, plain git hooks, pre-commit and lefthook, and keeps what your hooks already do.
+It never sets `core.hooksPath` over a manager. husky hooks are files in the repository, so that step is its
+own commit; the others live inside `.git`, so each teammate runs `xaden setup` once. A hook manager or CI
+system outside this list stops the run with exit code 4 and a manual step. Adopt without it with
+`--skip-hooks` or `--skip-ci`.
+
+### Finish, or take it out again
+
+Push the branch and open the pull request your team reviews. To undo the adoption in a working tree:
+
+```bash
+xaden remove
+```
+
+- `xaden remove`: deletes `xaden/` and undoes exactly the paths listed in `xaden/footprint.txt`. Review the result with `git status`, then commit.
+
+`xaden ignore-list` prints `xaden/`, `AGENTS.md` and, when present, `CLAUDE.md`, one per line, for
+`.dockerignore`, `.npmignore` and archive excludes.
+
+### A project created with `xaden new`
+
+A project that keeps its own copy of the tooling (it has a `.scaffold/` folder) moves to this layout with the
+same command. Its requirements, personas and reviews move into `xaden/`, the copied files you did not edit
+are removed, and the ones you edited stay and are listed.
+
+### Working with assistants in an adopted repository
+
+There are no slash commands. Assistants run `xaden prompt kickoff`, `xaden prompt feature` and so on to print
+the task prompt. A prompt of the same name in `xaden/prompts/` replaces the default.
+
+## One Xaden version per project
+
+An adopted repository pins the Xaden version it uses, with a checksum, in `xaden/xaden.conf`. A newer Xaden
+installed on one machine changes nothing in the repository, and the rules for assistants never change
+underneath anyone.
+
+### See which version a project uses
+
+```bash
+xaden doctor
+```
+
+- `xaden doctor`: prints `installed X, project pinned Y` and checks the checksum. It reads two files and uses no network.
+
+If `xaden/RULES.md` does not match the pinned version, `xaden check` fails and names the fix, `xaden rules`.
+
+### Install a pinned version that is missing
+
+```bash
+xaden fetch 0.3.0
+```
+
+- `xaden fetch 0.3.0`: shows the version, the source and the checksum, then asks `Download and install Xaden 0.3.0 now? [y/N]`. Only a yes downloads. It installs the download only if its checksum equals the one in `xaden.conf`.
+
+Xaden never downloads anything without that yes, and the yes is not remembered. Without a terminal (an IDE git
+client, a script, an assistant) nothing downloads: the command exits with code 3 and prints the
+`xaden fetch <version>` to run yourself. Assistants show the question to you and never answer it. In CI, the
+workflow step names the version and the checksum and changes only by pull request. Other installed versions live in
+`~/.local/share/xaden/versions`; set `XADEN_HOME` to move them.
+
+### Move the team to a newer version
+
+```bash
+xaden upgrade --check
+xaden upgrade 0.3.0
+```
+
+- `xaden upgrade --check`: asks, then looks for a newer release. It is the only way Xaden looks.
+- `xaden upgrade 0.3.0`: works on a branch for a pull request. It bumps the version and checksum in `xaden.conf`, regenerates `xaden/RULES.md`, shows the diff and the changelog entries between the two versions, and updates the workflow.
+
+Your team reviews the pull request, so everyone moves at once.
+
+## Autopilot for a new project
+
+When you start a plain new project and do not want to choose every tool, let Xaden set it up.
+
+### Run it
+
+```bash
+xaden new --autopilot --stack python my-app
+```
+
+- `xaden new --autopilot --stack python my-app`: prints one plan and asks once. Use `--stack node` for a Node project.
+
+### What the plan covers
+
+The `xaden/` layout, the stack's preset, mode `strict`, hooks in the clone, a CI workflow pinned to the
+installed Xaden version, `git init` on `main` and a first commit. It prints the exact install commands for the
+development tools, with pinned versions. You run them; Xaden does not.
+
+### What it never does
+
+It never pushes, publishes or downloads, and a later package needs its own approval. A folder that already
+holds code, a build file or history stops with a pointer to `xaden adopt`. It ends with a summary of the
+checks: tools that are not installed yet are reported as skipped, and a run with skipped checks ends with a
+warning, never a success sign.
 
 ## Getting scaffold improvements into your project
 
