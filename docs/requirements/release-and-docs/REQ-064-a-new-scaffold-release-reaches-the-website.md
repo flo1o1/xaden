@@ -3,8 +3,8 @@ id: REQ-064
 type: job
 epic: release-and-docs
 priority: should
-status: in-progress
-updated: 2026-10-13
+status: done
+updated: 2026-10-14
 ---
 
 # A new scaffold release reaches the website without manual steps
