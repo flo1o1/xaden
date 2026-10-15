@@ -44,7 +44,6 @@ x_in() {
   shift
   XRC=0
   (cd "$dir" && "$XADEN" "$@") >"$XOUT" 2>&1 || XRC=$?
-  if [ "$XRC" != 0 ]; then echo "DEBUG-CI x_in $dir $* rc=$XRC" >&2; sed 's/^/DEBUG-CI | /' "$XOUT" >&2; fi # TEMP
 }
 
 # x_answers <answer> <dir> <args...>: like x_in, with a test answer for every question.
