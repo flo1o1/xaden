@@ -91,7 +91,7 @@ print_plan() {
   cat <<PLAN
   1. git init (branch main) and a first commit with the layout below
   2. xaden/: requirements, personas, security reviews, baselines, xaden.conf (Xaden $(running_version) pinned with its checksum), RULES.md
-  3. AGENTS.md with the Xaden block${ADOPT_ASSISTANTS:+, CLAUDE.md for: $ADOPT_ASSISTANTS}
+  3. AGENTS.md with the Xaden block${ADOPT_ASSISTANTS:+, CLAUDE.md and .claude/commands/ for: $ADOPT_ASSISTANTS}
   4. README.md, SECURITY.md, .gitignore, VERSION and CHANGELOG.md of the new project
   5. the $STACK preset: $(preset_files "$STACK" | tr '\n' ' ')
   6. checks mapped in xaden.conf: $(preset_commands "$STACK" | sed 's/^/check./;s/=/ = /' | tr '\n' ';')
@@ -118,11 +118,11 @@ write_project_files() {
   printf '# Changelog\n\nFormat: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: [SemVer](https://semver.org/).\n\n## [Unreleased]\n' >"$dir/CHANGELOG.md"
 }
 
-# choose_assistants: Claude Code users get CLAUDE.md. Asked only in a plain run with a terminal.
+# choose_assistants: Claude Code users get CLAUDE.md and the slash commands. Asked only in a plain run with a terminal.
 choose_assistants() {
   [ -z "$ADOPT_ASSISTANTS" ] || return 0
   if [ "$AUTOPILOT" = 1 ] || ! has_terminal; then return 0; fi
-  if ask "Does your team use Claude Code? Xaden then adds CLAUDE.md with the line @AGENTS.md." y; then ADOPT_ASSISTANTS=claude; fi
+  if ask "Does your team use Claude Code? Xaden then adds CLAUDE.md with the line @AGENTS.md and the slash commands (/feature, /bugfix, ...)." y; then ADOPT_ASSISTANTS=claude; fi
 }
 
 # apply_new: creates the project, in the adopted layout; with a stack, the stack's preset too.

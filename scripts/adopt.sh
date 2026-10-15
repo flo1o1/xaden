@@ -11,7 +11,8 @@
 #   --mode        advisory | changed-files | strict   default: changed-files
 #   --check       name a command the scan could not find, for example --check test="make verify"
 # The repository's own build, tests, docs and workflows are never changed: Xaden adds the folder
-# xaden/, a marked block in AGENTS.md, and for Claude Code users the line @AGENTS.md in CLAUDE.md.
+# xaden/, a marked block in AGENTS.md, and for Claude Code users the line @AGENTS.md in CLAUDE.md
+# and one slash command file in .claude/commands/ for each prompt (existing files stay).
 set -euo pipefail
 
 SCAFFOLD_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -119,8 +120,8 @@ choose_assistants() {
     return 0
   fi
   if [ "$detected" = 1 ]; then
-    if ask "Claude Code is used here. Add CLAUDE.md with the line @AGENTS.md?" y; then ADOPT_ASSISTANTS=claude; fi
-  elif ask "Does your team use Claude Code? Xaden then adds CLAUDE.md with the line @AGENTS.md."; then
+    if ask "Claude Code is used here. Add CLAUDE.md with the line @AGENTS.md and the slash commands (/feature, /bugfix, ...)?" y; then ADOPT_ASSISTANTS=claude; fi
+  elif ask "Does your team use Claude Code? Xaden then adds CLAUDE.md with the line @AGENTS.md and the slash commands (/feature, /bugfix, ...)."; then
     ADOPT_ASSISTANTS=claude
   fi
 }

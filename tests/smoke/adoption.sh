@@ -148,8 +148,8 @@ test_adopt_and_remove() {
   assert "adopt works on its own branch and worktree" test "$(git -C "$worktree" branch --show-current)" = "chore/adopt-xaden"
   assert "the default branch is untouched" test "$(git -C "$repo" rev-parse main)" = "$(git -C "$repo" rev-parse HEAD)"
   assert "the first commit message names Xaden" git -C "$worktree" log -1 --format=%s main..HEAD
-  changed="$(git -C "$worktree" diff --name-only main HEAD | grep -Ev '^(xaden/|AGENTS\.md$|CLAUDE\.md$|\.github/workflows/xaden\.yml$)' || true)"
-  assert "only xaden/, AGENTS.md, CLAUDE.md and the documented workflow change (REQ-073)" test -z "$changed"
+  changed="$(git -C "$worktree" diff --name-only main HEAD | grep -Ev '^(xaden/|AGENTS\.md$|CLAUDE\.md$|\.claude/commands/[a-z-]+\.md$|\.github/workflows/xaden\.yml$)' || true)"
+  assert "only xaden/, AGENTS.md, CLAUDE.md, the command files and the documented workflow change (REQ-073)" test -z "$changed"
   assert "README, docs, scripts and CHANGELOG are untouched (REQ-066)" test -z "$(git -C "$worktree" diff --name-only main HEAD -- README.md docs scripts CHANGELOG.md package.json Makefile .github/workflows/ci.yml)"
   assert "the existing workflow is untouched" cmp -s "$repo/.github/workflows/ci.yml" "$worktree/.github/workflows/ci.yml"
   assert "CLAUDE.md is one line for Claude users" test "$(cat "$worktree/CLAUDE.md")" = "@AGENTS.md"
@@ -176,7 +176,7 @@ test_adopt_and_remove() {
   assert "remove deletes the workflow and CLAUDE.md" test ! -e "$worktree/.github/workflows/xaden.yml" -a ! -e "$worktree/CLAUDE.md"
   assert "remove keeps the team's text in AGENTS.md" grep -q 'text added by the team' "$worktree/AGENTS.md"
   assert "remove takes the block out" bash -c '! grep -q xaden "$1"' _ "$worktree/AGENTS.md"
-  assert "remove leaves nothing but the adoption's own paths in git status" test -z "$(git -C "$worktree" status --porcelain | grep -Ev ' (xaden/|AGENTS\.md|CLAUDE\.md|\.github/workflows/xaden\.yml)' || true)"
+  assert "remove leaves nothing but the adoption's own paths in git status" test -z "$(git -C "$worktree" status --porcelain | grep -Ev ' (xaden/|AGENTS\.md|CLAUDE\.md|\.claude/commands/[a-z-]+\.md|\.github/workflows/xaden\.yml)' || true)"
   assert "remove unchains the git hooks" bash -c '! test -e "$1/.git/hooks/pre-commit"' _ "$repo"
 
   local no_ci="$WORKDIR/repos/no-ci" plain
@@ -206,6 +206,49 @@ test_adopt_and_remove() {
   x_in "$empty" adopt --yes --skip-ci
   assert "an empty repository gets the same layout" test -f "$empty/xaden/xaden.conf" -a -f "$empty/xaden/RULES.md" -a -f "$empty/AGENTS.md"
   assert "an empty repository gets a commit on the adoption branch" test "$(git -C "$empty" branch --show-current)" = "chore/adopt-xaden"
+}
+
+# REQ-080 Claude Code users get one slash command for each default prompt, and nobody else does
+test_claude_commands() {
+  local repo="$WORKDIR/repos/commands" wt="$WORKDIR/repos/commands-adopt-xaden" name prompt file
+  make_repo "$repo" shop
+  mkdir -p "$repo/.claude/commands"
+  printf 'my own feature command\n' >"$repo/.claude/commands/feature.md"
+  git -C "$repo" add -A && git -C "$repo" commit -q -m "docs: own feature command"
+
+  x_in "$repo" adopt --plan
+  assert "the plan lists a command file" grep -Eq 'A[[:space:]]+\.claude/commands/bugfix\.md' "$XOUT"
+  assert "the plan names the file it skips" grep -q 'skipped .claude/commands/feature.md' "$XOUT"
+  assert "the plan writes nothing" test ! -e "$wt"
+
+  x_in "$repo" adopt --yes --assistants claude
+  assert "adopt succeeds" test "$XRC" -eq 0
+  for name in kickoff feature bugfix refactor review security requirements docs persona release; do
+    assert "command $name exists" test -f "$wt/.claude/commands/$name.md"
+  done
+  # feature is the team's own file here, so it has no command of Xaden's
+  for prompt in "$SCAFFOLD_ROOT"/template/prompts/*.md; do
+    name="$(basename "$prompt" .md)"
+    [ "$name" = 00-index -o "$name" = feature ] || assert "prompt $name is reachable by a command" grep -rlq "xaden prompt $name\`" "$wt/.claude/commands"
+  done
+  file="$wt/.claude/commands/review.md"
+  assert "a command asks the assistant to run xaden prompt" grep -Fq 'Run `xaden prompt code-review` and follow it. Task input: $ARGUMENTS' "$file"
+  assert "a command has a description" grep -q '^description: .' "$file"
+  assert "a command never holds the prompt text" test "$(wc -l <"$file")" -le 6
+  assert "an existing command file is not overwritten" test "$(cat "$wt/.claude/commands/feature.md")" = "my own feature command"
+  assert "a skipped file is not in the footprint" bash -c '! grep -q "commands/feature.md" "$1"' _ "$wt/xaden/footprint.txt"
+  assert "the footprint lists a created file" grep -qx 'file .claude/commands/bugfix.md' "$wt/xaden/footprint.txt"
+  assert "adopt creates exactly the new command files" test "$(git -C "$wt" diff --name-only main HEAD | grep -c '^\.claude/commands/')" -eq 9
+
+  x_in "$wt" remove --yes
+  assert "remove deletes the files Xaden created" test ! -e "$wt/.claude/commands/bugfix.md" -a ! -e "$wt/.claude/commands/release.md"
+  assert "remove keeps the team's own command" test "$(cat "$wt/.claude/commands/feature.md")" = "my own feature command"
+  assert "remove leaves no stray file" test -z "$(git -C "$wt" status --porcelain | grep -Ev ' (xaden/|AGENTS\.md|CLAUDE\.md|\.claude/commands/[a-z-]+\.md|\.github/workflows/xaden\.yml)' || true)"
+
+  local plain="$WORKDIR/repos/commands-plain"
+  make_repo "$plain" shop
+  x_in "$plain" adopt --yes --skip-ci
+  assert "without Claude there are no command files" test ! -e "$plain-adopt-xaden/.claude"
 }
 
 # REQ-069 existing hooks, CI and tools are chained, reused and never replaced
@@ -294,6 +337,9 @@ fake_release() {
   local dir=$1 version=$2 tree="$1/build/xaden-$2"
   rm -rf "$dir" && mkdir -p "$tree"
   git -C "$SCAFFOLD_ROOT" ls-files -z | (cd "$SCAFFOLD_ROOT" && xargs -0 tar cf - 2>/dev/null) | tar xf - -C "$tree"
+  # REQ-080 this version has a prompt more and a prompt less than the one under test
+  rm -f "$tree/template/prompts/release.md"
+  printf -- '---\ntitle: A new prompt\n---\n' >"$tree/template/prompts/newthing.md"
   printf '%s\n' "$version" >"$tree/VERSION"
   printf '## [%s] - 2099-01-01\n\n### Added\n- Something new in %s.\n\n' "$version" "$version" >"$WORKDIR/entry.md"
   { sed -n '1,/^## \[Unreleased\]/p' "$tree/CHANGELOG.md"; printf '\n'; cat "$WORKDIR/entry.md"; sed '1,/^## \[Unreleased\]/d' "$tree/CHANGELOG.md"; } >"$tree/CHANGELOG.md.new"
@@ -333,6 +379,9 @@ test_versions_and_downloads() {
   assert "upgrade regenerates RULES.md for the new version" grep -q 'Generated from Xaden 9.9.9' "$upgraded/xaden/RULES.md"
   assert "upgrade shows the changelog entries" grep -q 'Something new in 9.9.9' "$XOUT"
   assert "upgrade shows the diff" grep -q 'xaden/xaden.conf' "$XOUT"
+  assert "upgrade adds a command for a new prompt (REQ-080)" grep -q 'xaden prompt newthing' "$upgraded/.claude/commands/newthing.md"
+  assert "upgrade removes the command of a dropped prompt (REQ-080)" test ! -e "$upgraded/.claude/commands/release.md"
+  assert "upgrade drops that file from the footprint (REQ-080)" bash -c '! grep -q "commands/release.md" "$1"' _ "$upgraded/xaden/footprint.txt"
   assert "upgrade updates the pinned workflow" grep -q 'XADEN_VERSION: "9.9.9"' "$upgraded/.github/workflows/xaden.yml"
   assert "the project on the old branch is unchanged" grep -q '^version = 0.2.3$' "$worktree/xaden/xaden.conf"
   assert "the downloaded version is installed once" test -x "$home/versions/9.9.9/scripts/xaden.sh"
@@ -652,6 +701,7 @@ test_new_project_layout() {
 test_messages
 test_scan_and_plan
 test_adopt_and_remove
+test_claude_commands
 test_reuse_of_existing_tooling
 test_versions_and_downloads
 test_modes_and_baselines

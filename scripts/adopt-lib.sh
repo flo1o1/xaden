@@ -13,7 +13,6 @@ BLOCK_BEGIN='<!-- xaden:begin -->'
 BLOCK_END='<!-- xaden:end -->'
 HOOK_BEGIN='# >>> xaden >>>'
 HOOK_END='# <<< xaden <<<'
-FOOTPRINT_FILE="xaden/footprint.txt"
 ADOPT_BRANCH="chore/adopt-xaden"
 
 # Choices, set by adopt.sh from the command line, the scan and the answers.
@@ -84,12 +83,6 @@ remove_block() {
 }
 
 # --- the footprint: everything a step puts outside xaden/ (REQ-073) -------------------
-
-# note_footprint <dir> <kind> <path>: records a path outside xaden/ so `xaden remove` can undo it.
-note_footprint() {
-  mkdir -p "$1/xaden"
-  grep -qxF "$2 $3" "$1/$FOOTPRINT_FILE" 2>/dev/null || printf '%s %s\n' "$2" "$3" >>"$1/$FOOTPRINT_FILE"
-}
 
 # --- migration: a project created by `xaden create` keeps a copy of the tooling (REQ-071) ---
 
@@ -218,7 +211,8 @@ apply_core() {
       if ! grep -qx '@AGENTS.md' "$dir/CLAUDE.md" 2>/dev/null; then
         { [ ! -s "$dir/CLAUDE.md" ] || { cat "$dir/CLAUDE.md"; [ -z "$(tail -c 1 "$dir/CLAUDE.md")" ] || printf '\n'; }
           printf '@AGENTS.md\n'; } >"$dir/CLAUDE.md.new" && mv "$dir/CLAUDE.md.new" "$dir/CLAUDE.md"
-      fi ;;
+      fi
+      sync_commands "$dir" "$TOOLS_DIR" ;;
   esac
 }
 
