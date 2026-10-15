@@ -229,7 +229,7 @@ test_claude_commands() {
   # feature is the team's own file here, so it has no command of Xaden's
   for prompt in "$SCAFFOLD_ROOT"/template/prompts/*.md; do
     name="$(basename "$prompt" .md)"
-    [ "$name" = 00-index -o "$name" = feature ] || assert "prompt $name is reachable by a command" grep -rlq "xaden prompt $name\`" "$wt/.claude/commands"
+    [ "$name" = 00-index ] || [ "$name" = feature ] || assert "prompt $name is reachable by a command" grep -rlq "xaden prompt $name\`" "$wt/.claude/commands"
   done
   file="$wt/.claude/commands/review.md"
   assert "a command asks the assistant to run xaden prompt" grep -Fq 'Run `xaden prompt code-review` and follow it. Task input: $ARGUMENTS' "$file"

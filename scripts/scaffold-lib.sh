@@ -191,6 +191,7 @@ sync_commands() {
       continue
     fi
     mkdir -p "$dir/.claude/commands"
+    # shellcheck disable=SC2016 # $ARGUMENTS is text for the assistant, not for this shell
     printf -- '---\ndescription: %s\n---\n\nRun `xaden prompt %s` and follow it. Task input: $ARGUMENTS\n' \
       "$(sed -n 's/^title: //p' "$tools/prompts/$prompt.md" | head -n 1)" "$prompt" >"$dir/$file"
     note_footprint "$dir" file "$file"
