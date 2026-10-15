@@ -43,7 +43,7 @@ test_job_stories() {
 
 # REQ-047 one file per requirement, epic folders, global IDs, generated index
 test_requirement_files() {
-  local check="$PROJECT/scripts/check-requirements.sh" variant pack
+  local check="$PROJECT/scripts/check-requirements.sh" variant
   assert_fails_with "epic must match the folder" 'does not match folder' \
     "$check" "$(requirements_variant wrong-epic 's/^epic: .*/epic: other/')"
   assert_fails_with "id must match the file name" 'file name must start with' \
@@ -66,9 +66,6 @@ test_requirement_files() {
   assert "req.sh new adds the epic and updates the index" bash -c "test -f '$WORKDIR/variants/stale-index/docs/requirements/billing/EPIC.md' \
     && grep -q '| REQ-002 | job | should | draft | Export invoices |' '$WORKDIR/variants/stale-index/docs/requirements/INDEX.md'"
   assert "req.sh show prints the requirement file" bash -c "'$PROJECT/scripts/req.sh' show REQ-001 | grep -q '^## Acceptance criteria'"
-  pack="$(full_pack)"
-  assert "pack includes the index and requirement files" bash -c "grep -q '^# REQUIREMENTS INDEX' '$pack' \
-    && grep -q '^# REQUIREMENTS (docs/requirements/first-epic/REQ-001-' '$pack'"
   assert "CLAUDE.md imports the requirements index" grep -qx '@docs/requirements/INDEX.md' "$PROJECT/CLAUDE.md"
   # REQ-003: the CC summary loads every session; the details are read when code is written or reviewed
   assert_fails "CLAUDE.md does not import the clean-code details" grep -qx '@docs/clean-code.md' "$PROJECT/CLAUDE.md"

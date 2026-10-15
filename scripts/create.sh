@@ -110,7 +110,7 @@ PLAN
 write_project_files() {
   local dir=$1
   printf '# %s\n\nBuilt with [Xaden](https://xaden.dev). Start with `xaden prompt kickoff`; run the checks with `xaden check`.\n' "$NAME" >"$dir/README.md"
-  printf '.env\n.env.*\n!.env.example\ncontext-pack.md\nnode_modules/\n.venv/\n__pycache__/\n.DS_Store\n' >"$dir/.gitignore"
+  printf '.env\n.env.*\n!.env.example\nnode_modules/\n.venv/\n__pycache__/\n.DS_Store\n' >"$dir/.gitignore"
   # The security policy and the threat model start from Xaden's templates, with TODO markers that block a release.
   sed "s/{{PROJECT_NAME}}/$NAME/g" "$SCAFFOLD_ROOT/template/SECURITY.md" >"$dir/SECURITY.md"
   sed "s/{{PROJECT_NAME}}/$NAME/g" "$SCAFFOLD_ROOT/template/docs/threat-model.md" >"$dir/xaden/threat-model.md"

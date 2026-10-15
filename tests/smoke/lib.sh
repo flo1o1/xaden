@@ -105,12 +105,6 @@ set_status() {
   "$PROJECT/scripts/req.sh" index >/dev/null
 }
 
-# full_pack: builds the demo project's full context pack (no task prompt); prints its path.
-# Areas that read the pack build it themselves, so each area runs alone.
-full_pack() {
-  "$PROJECT/scripts/pack-context.sh" >/dev/null 2>&1
-  printf '%s' "$PROJECT/context-pack.md"
-}
 
 # requirements_variant <name> <sed-expression>: a copy of the demo project's requirements with
 # REQ-001 edited and the index regenerated; prints the requirements directory.

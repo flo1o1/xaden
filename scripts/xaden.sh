@@ -64,8 +64,6 @@ Project commands (anywhere inside a project):
   setup              activate git hooks, report missing tools
   check [...]        static analysis (--staged, --strict)
   req [...]          requirements: list, show, new, index
-  pack [--brief] [REQ-nnn...] [prompt...]
-                     context pack for chat tools
   context            rule IDs, requirement counts and the CONTEXT CHECK fingerprint
   persona new <name> create a user persona
   release <part>     cut a release: major, minor or patch (projects created by `create`)
@@ -187,7 +185,6 @@ adopted_project_command() {
     setup) setup_main "$root" ;;
     check) run_tool_script "$root" check.sh "$@" ;;
     req) run_tool_script "$root" req.sh "$@" ;;
-    pack) run_tool_script "$root" pack-context.sh "$@" ;;
     context) run_tool_script "$root" context-status.sh "$@" ;;
     persona) run_tool_script "$root" persona.sh "$@" ;;
     release) run_tool_script "$root" release.sh "$@" ;;
@@ -232,7 +229,6 @@ classic_project_command() {
     setup) script=setup.sh ;;
     check) script=check.sh ;;
     req) script=req.sh ;;
-    pack) script=pack-context.sh ;;
     release) script=release.sh ;;
     context) script=context-status.sh ;;
     persona) script=persona.sh ;;
@@ -268,7 +264,7 @@ main() {
     doctor) doctor_main ;;
     fetch) exec "$SCAFFOLD_ROOT/scripts/fetch.sh" fetch "$@" ;;
     upgrade) exec "$SCAFFOLD_ROOT/scripts/fetch.sh" upgrade "$@" ;;
-    setup | check | req | pack | context | persona | release | hook | prompt | doc | rules | ignore-list | preset)
+    setup | check | req | context | persona | release | hook | prompt | doc | rules | ignore-list | preset)
       root="$(project_root)"
       if is_adopted "$root"; then
         adopted_project_command "$command" "$root" "$@"

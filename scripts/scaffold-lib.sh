@@ -66,7 +66,7 @@ export_template() {
     [ -z "$(cd "$source" && find . -type l | head -n 1)" ] || die "template contains symbolic links; refusing to export"
     (cd "$source" && find . \( -name .git -o -name node_modules -o -name .venv -o -name __pycache__ \) -prune -o \
       -type f ! -name .DS_Store ! -name .env ! \( -name '.env.*' ! -name .env.example \) \
-      ! -name '*.scaffold-new' ! -name context-pack.md ! \( -path './inbox/*' ! -name README.md \) -print |
+      ! -name '*.scaffold-new' ! \( -path './inbox/*' ! -name README.md \) -print |
       tar cf - -T -) | (cd "$destination" && tar xf -)
   fi
 }

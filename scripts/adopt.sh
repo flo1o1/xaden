@@ -248,20 +248,10 @@ apply_plan() {
     git -C "$ADOPT_REPO" config --unset core.hooksPath # the copied hooks are gone after the migration
   fi
   if [ "$SCAN_HOOKS" != husky ] && [ "$ADOPT_HOOKS" = 1 ]; then install_local_hooks "$ADOPT_REPO"; fi
-  exclude_context_pack
   ok "Xaden $(running_version) is on branch $ADOPT_BRANCH in $worktree"
   echo "Next: review the commits, then push the branch and open a pull request your team reviews:"
   echo "  git -C \"$worktree\" push -u origin $ADOPT_BRANCH"
   offer_pull_request "$worktree"
-}
-
-# exclude_context_pack: keeps the context pack (xaden pack) out of git status without a tracked file.
-exclude_context_pack() {
-  local exclude
-  exclude="$(git -C "$ADOPT_REPO" rev-parse --git-path info/exclude)"
-  case "$exclude" in /*) ;; *) exclude="$ADOPT_REPO/$exclude" ;; esac
-  mkdir -p "$(dirname "$exclude")"
-  grep -qxF 'context-pack.md' "$exclude" 2>/dev/null || printf 'context-pack.md\n' >>"$exclude"
 }
 
 # offer_pull_request <worktree>: pushing sends code out, so it is a question, never a default.

@@ -103,7 +103,6 @@ adopted_text() {
     -e 's#scripts/check-docs\.sh#xaden check#g' \
     -e 's#scripts/context-status\.sh#xaden context#g' \
     -e 's#scripts/apply-preset\.sh#xaden preset#g' \
-    -e 's#scripts/pack-context\.sh#xaden pack#g' \
     -e 's#scripts/persona\.sh#xaden persona#g' \
     -e 's#scripts/release\.sh#xaden release#g' \
     -e 's#scripts/req\.sh#xaden req#g' \
