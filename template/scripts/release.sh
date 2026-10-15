@@ -37,8 +37,9 @@ main() {
   local release_files=(VERSION CHANGELOG.md docs/user-guide.md docs/admin-guide.md)
   if [ "$LAYOUT" = "adopted" ]; then
     release_files=(VERSION CHANGELOG.md)
-    [ -f VERSION ] && [ -f CHANGELOG.md ] ||
+    if [ ! -f VERSION ] || [ ! -f CHANGELOG.md ]; then
       die "xaden release stamps VERSION and CHANGELOG.md; this repository has no such pair. Create them (VERSION: 0.0.0, CHANGELOG.md with a '## [Unreleased]' section) or release with your own process"
+    fi
   fi
   [ -n "$part" ] || die "usage: scripts/release.sh <major|minor|patch>"
   git rev-parse --git-dir >/dev/null 2>&1 || die "not a git repository"
