@@ -35,6 +35,7 @@ To create the project somewhere else, add the folder: `xaden new my-app ~/code/x
 | Requirements, personas, security reviews and the rules for your assistant | the folder `xaden/` |
 | The pointer from your assistant's rule file to those rules | a marked block in `AGENTS.md` |
 | A README, `VERSION` and `CHANGELOG.md` | the project root |
+| A security policy and a threat model to fill in during the kickoff | `SECURITY.md` and `xaden/threat-model.md` |
 | Git hooks that run the checks before each commit | `.git/hooks` of this clone |
 | A CI workflow that runs the same checks | `.github/workflows/xaden.yml` |
 | The pinned Xaden version and the mode of the checks (`strict`) | `xaden/xaden.conf` |

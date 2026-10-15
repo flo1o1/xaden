@@ -92,7 +92,7 @@ print_plan() {
   1. git init (branch main) and a first commit with the layout below
   2. xaden/: requirements, personas, security reviews, baselines, xaden.conf (Xaden $(running_version) pinned with its checksum), RULES.md
   3. AGENTS.md with the Xaden block${ADOPT_ASSISTANTS:+, CLAUDE.md for: $ADOPT_ASSISTANTS}
-  4. README.md, .gitignore, VERSION and CHANGELOG.md of the new project
+  4. README.md, SECURITY.md, .gitignore, VERSION and CHANGELOG.md of the new project
   5. the $STACK preset: $(preset_files "$STACK" | tr '\n' ' ')
   6. checks mapped in xaden.conf: $(preset_commands "$STACK" | sed 's/^/check./;s/=/ = /' | tr '\n' ';')
   7. mode strict: every violation fails; no baseline is needed in a new project
@@ -111,6 +111,9 @@ write_project_files() {
   local dir=$1
   printf '# %s\n\nBuilt with [Xaden](https://xaden.dev). Start with `xaden prompt kickoff`; run the checks with `xaden check`.\n' "$NAME" >"$dir/README.md"
   printf '.env\n.env.*\n!.env.example\ncontext-pack.md\nnode_modules/\n.venv/\n__pycache__/\n.DS_Store\n' >"$dir/.gitignore"
+  # The security policy and the threat model start from Xaden's templates, with TODO markers that block a release.
+  sed "s/{{PROJECT_NAME}}/$NAME/g" "$SCAFFOLD_ROOT/template/SECURITY.md" >"$dir/SECURITY.md"
+  sed "s/{{PROJECT_NAME}}/$NAME/g" "$SCAFFOLD_ROOT/template/docs/threat-model.md" >"$dir/xaden/threat-model.md"
   printf '0.0.0\n' >"$dir/VERSION"
   printf '# Changelog\n\nFormat: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: [SemVer](https://semver.org/).\n\n## [Unreleased]\n' >"$dir/CHANGELOG.md"
 }

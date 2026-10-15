@@ -15,7 +15,7 @@ xaden release minor
 
 - `xaden release minor`: checks everything in strict mode, stamps `VERSION` and the changelog section, commits and tags locally. Use `major` for a breaking change, `minor` for a backwards-compatible feature and `patch` for a bug fix.
 
-It refuses to continue while a check fails, a required tool is missing, or a requirement still contains an unfilled `TODO` marker. A failed step restores the files, so a failed release leaves nothing half-done.
+It refuses to continue while a check fails, a required tool is missing, or a requirement, `SECURITY.md` or `xaden/threat-model.md` still contains an unfilled `TODO` marker. A failed step restores the files, so a failed release leaves nothing half-done.
 
 Push when you want:
 

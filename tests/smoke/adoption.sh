@@ -599,7 +599,7 @@ test_new_project_layout() {
   project="$base/demo"
   assert "xaden new succeeds" test "$XRC" -eq 0
   assert "the layout is the xaden folder, as adopt writes it" test -f "$project/xaden/xaden.conf" -a -f "$project/xaden/RULES.md" -a -f "$project/AGENTS.md" -a -d "$project/xaden/baselines"
-  assert "the project's own files exist" test -f "$project/README.md" -a -f "$project/.gitignore" -a -f "$project/VERSION" -a -f "$project/CHANGELOG.md"
+  assert "the project's own files exist" test -f "$project/README.md" -a -f "$project/.gitignore" -a -f "$project/VERSION" -a -f "$project/CHANGELOG.md" -a -f "$project/SECURITY.md" -a -f "$project/xaden/threat-model.md"
   assert "no copy of the tooling" test ! -e "$project/scripts" -a ! -e "$project/prompts" -a ! -e "$project/.scaffold"
   assert "mode strict, workflow and first commit on main" bash -c 'grep -q "^mode = strict$" "$1/xaden/xaden.conf" && test -f "$1/.github/workflows/xaden.yml" && test "$(git -C "$1" branch --show-current)" = main' _ "$project"
   assert "hooks are chained" grep -q 'xaden hook pre-commit' "$project/.git/hooks/pre-commit"
@@ -637,6 +637,11 @@ test_new_project_layout() {
   if need_tool gitleaks "release in an adopted project"; then
     local rel="$base/rel"
     x_in "$base" new rel
+    x_in "$rel" release minor
+    assert "a release is blocked while the security documents have TODO markers" test "$XRC" -ne 0
+    assert "the unfilled documents are named" grep -q 'unfilled TODO marker' "$XOUT"
+    sed -i.bak 's/<!-- TODO/<!-- done/' "$rel/SECURITY.md" "$rel/xaden/threat-model.md" && rm -f "$rel/SECURITY.md.bak" "$rel/xaden/threat-model.md.bak"
+    git -C "$rel" add -A && git -C "$rel" -c core.hooksPath=/dev/null commit -q -m "docs: fill the security documents"
     x_in "$rel" release minor
     assert "xaden release succeeds in an adopted project" test "$XRC" -eq 0
     assert "release bumps VERSION and tags" bash -c 'test "$(cat "$1/VERSION")" = 0.1.0 && git -C "$1" tag | grep -qx v0.1.0' _ "$rel"

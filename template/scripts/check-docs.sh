@@ -45,6 +45,12 @@ check_filled() {
 layout_init "$ROOT"
 # An adopted project keeps its own documentation; Xaden requires no guides there (REQ-070).
 if [ "$LAYOUT" = "adopted" ]; then
+  # No guides to check, but a release is still blocked by unfilled security documents.
+  if [ "$RELEASE_MODE" = "1" ]; then
+    check_filled "$ROOT/SECURITY.md"
+    check_filled "$THREAT_MODEL_FILE"
+    [ "$FAILURES" -eq 0 ] || exit 1
+  fi
   echo "docs OK (an adopted project has no guides to check)"
   exit 0
 fi

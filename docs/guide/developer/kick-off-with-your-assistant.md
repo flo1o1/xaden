@@ -29,7 +29,7 @@ rules were read or followed, so review its work.
 1. **The users.** The assistant drafts three to five personas from your answers. Every later solution is checked against them.
 2. **The requirements.** One file per requirement, grouped in epics. Each says what the user wants to do and how to tell it works.
    You set the ones you approve to `approved`; nothing is built for a requirement that is still a draft.
-3. **The threat model.** What you protect, who could attack it, where untrusted input enters, and which security level you aim for.
+3. **The threat model.** What you protect, who could attack it, where untrusted input enters, and which security level you aim for. It goes into `xaden/threat-model.md`; the assistant also fills the `TODO` markers of `SECURITY.md` with facts you give it.
 4. **The stack.** The assistant records the decision, builds a minimal skeleton that runs, and adds Xaden's preset for the stack
    (`xaden preset python` or `xaden preset node`), which also maps the checks. You install the tools it lists.
 
