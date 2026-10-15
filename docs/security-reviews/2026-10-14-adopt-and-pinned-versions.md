@@ -34,8 +34,10 @@ Out of scope: the website; GitHub-side settings; the behaviour of the repository
 
 ## Limitations
 
-- The checksum protects against a different build of the same version, not against a malicious maintainer:
-  Xaden publishes no signatures, and `upgrade <version>` pins the checksum of the first download it sees.
+- The checksum protects against a different build of the same version. Signatures (REQ-077) add that the checksum
+  comes from the maintainer, but only once the maintainer's public key is in `release-signers`; until then, and for
+  older releases, `upgrade <version>` pins the checksum of the first download it sees. A stolen key or a
+  maintainer who signs something malicious is not covered.
 - `check.*` commands in `xaden/xaden.conf` run as the person who runs `xaden check`; reviewing changes to that
   file is the control. The scan reads files and never runs the repository's code; applying a plan does run the
   check commands once, to record the baselines, and says so in the plan.
@@ -49,6 +51,7 @@ Out of scope: the website; GitHub-side settings; the behaviour of the repository
 | # | Severity | Location | Issue (what an attacker does) | Status |
 |---|----------|----------|-------------------------------|--------|
 | 1 | medium | `scripts/fetch.sh` `safe_archive` | A first draft piped `tar -t` into `grep -q`; `grep` closing the pipe made `tar` die of SIGPIPE and `pipefail` hid the match, so an archive with `..` members would have passed. Found in code review before the first test run; the crafted-archive tests now cover it | fixed, tests in `test_versions_and_downloads` |
+| 3 | medium | `scripts/fetch.sh` `tools_for` | `exit` inside `$(install_release ...)` only left the subshell, so a bad signature or a checksum mismatch on `upgrade` did not stop the script: it went on with an empty checksum and no installed copy. Found by the signature tests | fixed (`|| exit $?`), covered by the exit-code assertions |
 | 2 | low | `scripts/adopt-lib.sh` `remove_block` | The first version left a blank line behind, so `xaden remove` did not restore the file exactly | fixed, covered by `test_adopt_and_remove` |
 
 ## Remediation summary

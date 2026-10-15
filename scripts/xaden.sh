@@ -35,9 +35,11 @@ usage() {
 Usage: xaden <command> [args...]
 
 Start and keep (any directory):
-  new <name> [dir]   create a project in ./<name>, or in <dir>
-  new --autopilot [--stack python|node] <name>
-                     create a project with the recommended setup after one confirmation
+  new <name> [dir]   create a project in ./<name>, or in <dir>, with the xaden/ layout
+  new --autopilot --stack python|node <name>
+                     create it with the recommended setup after one confirmation
+  new --classic <name> [dir]
+                     create a project that keeps its own copy of the tooling (update it with `xaden update`)
   adopt [--scan|--plan]
                      add Xaden to the repository you are in, on a branch (scan and plan change nothing)
   remove             take Xaden out of the repository you are in
@@ -51,6 +53,8 @@ Inside a project that adopted Xaden:
   upgrade [--check] [version]
                      move the project to a newer Xaden on a branch for a pull request
   rules              regenerate xaden/RULES.md from the pinned version
+  preset <python|node>
+                     add Xaden's preset for a stack and map its checks
   prompt <name>      print a task prompt (kickoff, feature, bugfix, ...)
   doc <name>         print a guide (clean-code, security, optional-tools, local-llm)
   ignore-list        print the paths Xaden owns, for .dockerignore and archive excludes
@@ -185,7 +189,7 @@ adopted_project_command() {
     pack) run_tool_script "$root" pack-context.sh "$@" ;;
     context) run_tool_script "$root" context-status.sh "$@" ;;
     persona) run_tool_script "$root" persona.sh "$@" ;;
-    release) die "a release is cut with your own process; Xaden's release script stamps the guides and VERSION of projects created by 'xaden new'" ;;
+    release) run_tool_script "$root" release.sh "$@" ;;
     hook) hook_main "$root" "${1:-}" "${@:2}" ;;
     prompt)
       name="${1:-}"
@@ -200,7 +204,23 @@ adopted_project_command() {
       render_rules >"$root/xaden/RULES.md"
       ok "xaden/RULES.md regenerated from Xaden $(running_version); review the diff and commit it" ;;
     ignore-list) ignore_list_main "$root" ;;
+    preset) preset_main "$root" "${1:-}" ;;
   esac
+}
+
+# preset_main <root> <stack>: Xaden's preset for a stack in an adopted project: the configuration
+# files at the root (never overwriting yours) and the check commands in xaden/xaden.conf.
+preset_main() {
+  local root=$1 stack=$2
+  case "$stack" in python | node) ;; *) die "usage: xaden preset <python|node>" ;; esac
+  # shellcheck source=SCRIPTDIR/adopt-scan.sh
+  source "$SCAFFOLD_ROOT/scripts/adopt-scan.sh"
+  # shellcheck source=SCRIPTDIR/adopt-lib.sh
+  source "$SCAFFOLD_ROOT/scripts/adopt-lib.sh"
+  SCAN_GAPS="test lint typecheck"
+  apply_preset "$root" "$stack"
+  ok "the $stack preset is in place; review it with git diff, then install its tools yourself:"
+  echo "  $(preset_install_command "$stack")"
 }
 
 # classic_project_command <command> <root> <args...>: the project's own scripts (projects created by `new`).
@@ -227,11 +247,12 @@ main() {
   [ "$#" -gt 0 ] && shift
   case "$command" in
     new)
-      if [ "${1:-}" = "--autopilot" ] || printf '%s ' "$@" | grep -q -- '--autopilot'; then
-        exec "$SCAFFOLD_ROOT/scripts/autopilot.sh" "$@"
+      if [ "${1:-}" = "--classic" ]; then
+        shift
+        [ -n "${1:-}" ] || die "usage: xaden new --classic <name> [dir]"
+        exec "$SCAFFOLD_ROOT/scripts/new-project.sh" "$1" "${2:-$PWD/$1}"
       fi
-      [ -n "${1:-}" ] || die "usage: xaden new <name> [dir]"
-      exec "$SCAFFOLD_ROOT/scripts/new-project.sh" "$1" "${2:-$PWD/$1}"
+      exec "$SCAFFOLD_ROOT/scripts/create.sh" "$@"
       ;;
     adopt) exec "$SCAFFOLD_ROOT/scripts/adopt.sh" "$@" ;;
     remove) exec "$SCAFFOLD_ROOT/scripts/adopt.sh" __remove "$@" ;;
@@ -245,7 +266,7 @@ main() {
     doctor) doctor_main ;;
     fetch) exec "$SCAFFOLD_ROOT/scripts/fetch.sh" fetch "$@" ;;
     upgrade) exec "$SCAFFOLD_ROOT/scripts/fetch.sh" upgrade "$@" ;;
-    setup | check | req | pack | context | persona | release | hook | prompt | doc | rules | ignore-list)
+    setup | check | req | pack | context | persona | release | hook | prompt | doc | rules | ignore-list | preset)
       root="$(project_root)"
       if is_adopted "$root"; then
         adopted_project_command "$command" "$root" "$@"

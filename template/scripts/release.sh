@@ -12,6 +12,7 @@ ROOT="${PROJECT_ROOT:-$(cd "$SCRIPTS/.." && pwd)}"
 # shellcheck source=SCRIPTDIR/lib.sh
 source "$SCRIPTS/lib.sh"
 cd "$ROOT"
+layout_init "$ROOT"
 
 # stamp_docs <version>: sets "Applies to version" in the user and admin guides.
 stamp_docs() {
@@ -24,12 +25,21 @@ stamp_docs() {
 
 # stamp_release <version>: writes the version into the changelog, both guides and VERSION.
 stamp_release() {
-  stamp_changelog CHANGELOG.md "$1" && stamp_docs "$1" && printf '%s\n' "$1" >VERSION
+  if [ "$LAYOUT" = "adopted" ]; then # no guides to stamp (REQ-066)
+    stamp_changelog CHANGELOG.md "$1" && printf '%s\n' "$1" >VERSION
+  else
+    stamp_changelog CHANGELOG.md "$1" && stamp_docs "$1" && printf '%s\n' "$1" >VERSION
+  fi
 }
 
 main() {
   local part=${1:-} current next
   local release_files=(VERSION CHANGELOG.md docs/user-guide.md docs/admin-guide.md)
+  if [ "$LAYOUT" = "adopted" ]; then
+    release_files=(VERSION CHANGELOG.md)
+    [ -f VERSION ] && [ -f CHANGELOG.md ] ||
+      die "xaden release stamps VERSION and CHANGELOG.md; this repository has no such pair. Create them (VERSION: 0.0.0, CHANGELOG.md with a '## [Unreleased]' section) or release with your own process"
+  fi
   [ -n "$part" ] || die "usage: scripts/release.sh <major|minor|patch>"
   git rev-parse --git-dir >/dev/null 2>&1 || die "not a git repository"
   [ -z "$(git status --porcelain)" ] || die "working tree not clean; commit or stash first"

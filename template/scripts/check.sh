@@ -48,12 +48,19 @@ check_rules_current() {
   fi
 }
 
+# detected_kinds: the kinds of checks the project's stack calls for, from the files it has.
+detected_kinds() {
+  if [ -f pyproject.toml ] || [ -f setup.py ] || ls requirements*.txt >/dev/null 2>&1; then printf 'test lint typecheck'
+  elif [ -f package.json ]; then printf 'test lint'
+  fi
+}
+
 # check_mapped_commands: the commands the team mapped in xaden.conf ("check.<name> = <command>",
 # REQ-069) run under the project's mode and baseline. Pre-commit runs only the kinds named in
 # "hook-checks" (default: lint); the full run runs all. Expected kinds without a command are gaps:
 # a warning, an error in strict mode.
 check_mapped_commands() {
-  local conf="$TEAM_DIR/$CONF_NAME" key name kind hooked mode command_line binary
+  local conf="$TEAM_DIR/$CONF_NAME" key name kind hooked mode command_line binary expected
   hooked="$(conf_get "$conf" hook-checks lint)"
   mode="$(project_mode "$ROOT")"
   while IFS= read -r key; do
@@ -66,7 +73,10 @@ check_mapped_commands() {
     gate_run "$name" "check: $name" bash -c "$command_line"
   done < <(conf_keys "$conf" "check.")
   [ "$MODE" = "full" ] || return 0
-  for kind in $(conf_get "$conf" expect | tr ',' ' '); do
+  expected="$(conf_get "$conf" expect)"
+  # No "expect" line (a project that began empty): the stack that appeared decides.
+  if [ -z "$expected" ] && ! grep -q '^expect' "$conf"; then expected="$(detected_kinds | tr ' ' ',')"; fi
+  for kind in $(printf '%s' "$expected" | tr ',' ' '); do
     [ -z "$(conf_get "$conf" "check.$kind")" ] || continue
     if [ "$mode" = "strict" ]; then
       warn "gap: no '$kind' check is configured (check.$kind in xaden/xaden.conf)"

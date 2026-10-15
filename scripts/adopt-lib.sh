@@ -8,7 +8,7 @@
 # does. Effects outside the working tree (git hooks, .git/info/exclude) are not part of a step
 # and happen only when the plan is applied.
 
-# shellcheck disable=SC2034 # the settings below are read by adopt.sh and autopilot.sh
+# shellcheck disable=SC2034 # the settings below are read by adopt.sh and create.sh
 BLOCK_BEGIN='<!-- xaden:begin -->'
 BLOCK_END='<!-- xaden:end -->'
 HOOK_BEGIN='# >>> xaden >>>'
@@ -160,7 +160,8 @@ assistants = ${ADOPT_ASSISTANTS:-none}
 # Checks that run in the pre-commit hook; the full run (xaden check, CI) runs all of them.
 hook-checks = lint
 # Kinds of checks this repository should have. One without a check.<kind> command is reported as a gap.
-expect = $(printf '%s' "$1" | tr ' ' ',')
+# Without this line Xaden looks at the project (package.json, pyproject.toml) when it checks.
+${1:+expect = $(printf '%s' "$1" | tr ' ' ',')}
 EOF
   [ -z "$SCAN_TEST" ] || printf 'check.test = %s\n' "$SCAN_TEST"
   [ -z "$SCAN_LINT" ] || printf 'check.lint = %s\n' "$SCAN_LINT"

@@ -37,7 +37,7 @@ is: the link points into it.
 
 | Command | Does |
 |---------|------|
-| `xaden new my-app [dir]` | `scripts/new-project.sh`, creating `./my-app` (or `dir`) |
+| `xaden new my-app [dir]` | `scripts/create.sh`, creating `./my-app` (or `dir`) with the `xaden/` layout; `--classic` keeps the old copied layout (`scripts/new-project.sh`) |
 | `xaden new --autopilot --stack python my-app` | a new project with the recommended setup after one confirmation (see "Autopilot for a new project") |
 | `xaden adopt`, `xaden remove` | add Xaden to the repository you are in, or take it out again (see "Adding Xaden to an existing repository") |
 | `xaden update [--apply]` | `scripts/update-scaffold.sh` for a project created by `xaden new` |
@@ -60,7 +60,7 @@ this guide in. Both need git, because new projects get their own git repository.
    (`<version>` as in `CHANGELOG.md`, for example `0.2.2`).
 2. Extract it somewhere permanent, for example `unzip xaden-<version>.zip -d ~/tools`. The optional
    `xaden` command links into this folder, so do not move it afterwards.
-3. `cd ~/tools/xaden-<version>`, then continue with section 3 (`scripts/new-project.sh my-app`) or install the
+3. `cd ~/tools/xaden-<version>`, then continue with section 3 (`scripts/create.sh my-app`) or install the
    `xaden` command (`scripts/install.sh`, below).
 
 Verify: Xaden publishes no checksums or signatures. Download only from the repository address over
@@ -108,51 +108,60 @@ Native PowerShell is not supported, because the scripts are bash.
 ## 3. Create your project
 
 ```bash
-scripts/new-project.sh my-app        # creates ../my-app with its own git repo and hooks
-scripts/new-project.sh my-app ~/code/x   # or at a location of your choice
-cd ../my-app
+xaden new my-app
+xaden new my-app ~/code/x
+cd my-app
 ```
 
-With the `xaden` command: `cd ~/code && xaden new my-app` creates `~/code/my-app`.
+- `xaden new my-app`: creates `./my-app` with its own git repository, the folder `xaden/` (requirements, personas, security reviews, the pinned Xaden version and the rules), the marked block in `AGENTS.md`, a README, `VERSION` and `CHANGELOG.md`, a CI workflow and git hooks that run the checks. The first commit is on `main`, and the mode of the checks is `strict`. A failed run removes the half-created folder.
+- `xaden new my-app ~/code/x`: creates the project at a location of your choice.
 
-Only files tracked by git in `template/` are copied (including uncommitted edits to them);
-untracked or ignored files such as `.env`, `node_modules/` or `inbox/` content never are.
-A failed run removes the half-created project.
+This is the same layout `xaden adopt` gives an existing repository, so a new project and an adopted one work
+the same way. Without the `xaden` command, run `scripts/create.sh my-app` from the Xaden folder. Nothing is
+copied from the Xaden folder into the project: the tooling stays in the installed Xaden, and the project
+pins its version (see "One Xaden version per project" below). Claude Code users get `CLAUDE.md` with the
+line `@AGENTS.md`; `--assistants claude` chooses it without a question.
 
 Two shortcuts: "Autopilot for a new project" (below) sets up the recommended checks after one confirmation, and
 "Adding Xaden to an existing repository" (below) is the way in for a repository you already have.
 
-Prefer GitHub's "Use this template" button? Then clone your copy and run
-`scripts/new-project.sh my-app` from it the same way. Never develop your project inside the
-scaffold: everything a project gets comes from `template/`.
+Need a project that keeps its own copy of the scripts, prompts and guides, with Claude Code slash commands?
+`xaden new --classic my-app` creates it (see "Getting scaffold improvements into your project"). Never
+develop your project inside the Xaden folder.
 
 ## 4. Kickoff
 
-- Claude Code: start `claude` in `my-app`, run `/kickoff <your idea>`.
-- Other tools: open the folder; ask the tool to follow `prompts/kickoff.md`.
-- Chat without file access: `scripts/pack-context.sh kickoff`, paste `context-pack.md`.
+- Start your assistant in `my-app` and tell it: run `xaden prompt kickoff` and follow it. Add your idea.
+- Chat without file access: `xaden pack kickoff`, paste `context-pack.md`.
+- A classic project: `/kickoff <your idea>` in Claude Code, or `prompts/kickoff.md` in other tools.
 
 The assistant's first reply must start with `CONTEXT CHECK <number>`. Compare it with your own
-`scripts/context-status.sh`: a mismatch means it started from stale or missing files. A match
+`xaden context`: a mismatch means it started from stale or missing files. A match
 is a consistency aid only; it does not prove the rules were read or followed, so still review its work.
 
 You answer its questions, approve the requirements, and choose the stack. It then builds a
-minimal runnable skeleton and fills installation details in the guides.
+minimal runnable skeleton, adds Xaden's preset for the stack (`xaden preset python` or `node`, which also maps
+the checks) and writes the threat model in `xaden/`.
 
 ## 5. Build features (repeat)
 
-`/feature <what users can do afterwards>` (or `prompts/feature.md`). The assistant links the work
-to a requirement, plans, works test-first, runs `scripts/check.sh`, runs a security review when
-input/auth/data/network are touched, updates guides and changelog, and commits with
-`Refs: REQ-nnn`. Changed your mind? Say it, or run `/requirements`.
+Tell the assistant to run `xaden prompt feature` and give it what users can do afterwards. The assistant links
+the work to a requirement, plans, works test-first, runs `xaden check`, runs a security review when
+input/auth/data/network are touched, updates your documentation and changelog, and commits with
+`Refs: REQ-nnn`. Changed your mind? Say it, or use `xaden prompt requirements-update`.
 
-Also available: `/bugfix`, `/refactor`, `/review`, `/security`, `/docs`.
+Also available: `xaden prompt bugfix`, `refactor`, `code-review`, `security-review`, `documentation`.
+A classic project has the same prompts as slash commands: `/feature`, `/bugfix`, `/refactor`, `/review`, `/security`, `/docs`.
 
 ## 6. Release
 
-`/release` proposes a SemVer bump; you confirm; `scripts/release.sh` checks everything, refuses
-while the guides are incomplete, stamps versions, and tags locally. Push when you want:
-`git push --follow-tags`.
+```bash
+xaden release minor
+```
+
+- `xaden release minor`: checks everything in strict mode, stamps `VERSION` and the `CHANGELOG.md` section, commits and tags locally (`major`, `minor` or `patch`). It needs a `VERSION` and a `CHANGELOG.md` with an `Unreleased` section; new projects have both.
+
+Push when you want: `git push --follow-tags`. `xaden prompt release` prints the checklist an assistant follows.
 
 ## Adding Xaden to an existing repository
 
@@ -306,6 +315,15 @@ xaden upgrade 0.3.0
 
 Your team reviews the pull request, so everyone moves at once.
 
+### Signed releases
+
+The maintainer signs the checksum of every release (`release-signers` in the Xaden folder holds the public
+key). `xaden fetch` and `xaden upgrade` download the signed checksum next to the release and verify it, so the
+checksum your team pins comes from the maintainer and not from the download. A signature that does not verify
+stops the command with exit code 6 and installs nothing. For a release without a signature, Xaden says that the
+checksum is taken from the download itself and asks before it goes on. A signature does not protect against a
+stolen key or a maintainer who signs something malicious.
+
 ## Autopilot for a new project
 
 When you start a plain new project and do not want to choose every tool, let Xaden set it up.
@@ -333,6 +351,10 @@ warning, never a success sign.
 
 ## Getting scaffold improvements into your project
 
+This is for projects created with `xaden new --classic`, which keep a copy of the tooling. A project
+with the `xaden/` folder pins its version instead: see "One Xaden version per project". To move a classic project
+to that layout, run `xaden adopt` in it.
+
 Pull the newest scaffold, then from the scaffold directory:
 
 ```bash
@@ -356,7 +378,7 @@ file (job stories left as TODO to rewrite) and the checks then accept the new fo
 
 ```bash
 git clone <project-url> && cd <project>
-scripts/setup.sh     # git hooks are not cloned; this turns them on
+xaden setup     # git hooks are not cloned; this turns them on
 ```
 
 CI re-runs the static analysis and commit-message checks, so skipped hooks are caught there.

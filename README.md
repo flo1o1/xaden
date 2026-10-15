@@ -25,6 +25,7 @@ relative to it.
 | Git | New projects get their own repo with hooks installed |
 | An existing repository | `xaden adopt` adds Xaden beneath it on a branch: a visible `xaden/` folder, a marked block in `AGENTS.md`, your own tests, linters, hooks and CI reused, existing findings baselined; `xaden remove` takes it out again |
 | One Xaden version per team | `xaden/xaden.conf` pins the version and a checksum; `xaden doctor`, `xaden fetch` and `xaden upgrade` keep the team on one reviewed version; nothing downloads without your yes |
+| A new project | `xaden new` creates the same `xaden/` layout `xaden adopt` gives an existing repository; `xaden new --classic` keeps the old copied layout |
 | A new project in one step | `xaden new --autopilot` sets up the recommended checks, hooks and CI for Python or Node after one confirmation |
 | Obsidian | Open the folder as a vault; prompts have frontmatter, wikilinks, a template folder |
 | Chat UIs / small models | `scripts/pack-context.sh` builds one pasteable file |

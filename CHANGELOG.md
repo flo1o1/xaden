@@ -11,9 +11,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - `xaden new --autopilot --stack python|node` sets up a new project with the recommended checks, hooks and CI after one confirmation (REQ-076).
 - `xaden ignore-list` prints the paths Xaden owns for `.dockerignore` and archive excludes (REQ-075).
 - Every message is one of four kinds with a fixed sign (🐉 question, ⚠️ warning, 🔥 error, ✅ success) and a plain-text form (`[?]`, `WARNING:`, `ERROR:`, `OK:`) when output is not a terminal, in CI, with `XADEN_PLAIN=1` or without a UTF-8 locale (REQ-074).
-- `xaden prompt`, `doc`, `rules`, `context` and `persona` for repositories that adopted Xaden.
+- `xaden prompt`, `doc`, `rules`, `context`, `persona`, `preset` and `release` for repositories that adopted Xaden.
+- Signed releases: `scripts/sign-release.sh` signs the tree checksum of a tagged release with an SSH key, `xaden fetch` and `xaden upgrade` verify it against `release-signers` and pin the signed checksum; a bad signature stops with exit code 6 (REQ-077, `docs/release-signing.md`). The maintainer still has to add the public key to `release-signers`.
 
 ### Changed
+- `xaden new` creates the `xaden/` layout, the same one `xaden adopt` gives an empty repository: no copied scripts, prompts or guides, the Xaden version pinned in `xaden/xaden.conf`, a README, `VERSION` and `CHANGELOG.md`, mode `strict`, hooks and a CI workflow. The old layout is `xaden new --classic` and keeps `xaden update` (REQ-066).
 - Warnings print `WARNING:` instead of `WARN:` in plain output, and a run that passed prints `OK: all checks passed`.
 - A project created by `xaden new` can move to the adopted layout with `xaden adopt`.
 

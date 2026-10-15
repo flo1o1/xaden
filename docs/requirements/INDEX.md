@@ -42,7 +42,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-045 | job | must | done | The scaffold depends on no personal tools, skills or accounts |
 | REQ-056 | job | should | done | Run Xaden as one command from anywhere |
 | REQ-059 | job | should | done | Existing projects receive assistant permission updates without losing their edits |
-| REQ-066 | job | must | in-progress | A team adds Xaden to an existing repository without changing its build |
+| REQ-066 | job | must | done | A team adds Xaden to an existing repository without changing its build |
 | REQ-067 | job | should | done | Adopting Xaden shows exactly what it would change before it changes anything |
 | REQ-069 | job | should | done | Xaden reuses the repository's tests, linters, hooks and CI instead of replacing them |
 | REQ-070 | job | must | done | Team content lives visibly in the repository, tooling stays pinned outside it |
@@ -108,3 +108,4 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-052 | job | should | done | Dependencies are checked for existence and reputation before they are added |
 | REQ-057 | job | should | done | Expired security exceptions fail the checks |
 | REQ-072 | job | must | done | Xaden downloads nothing without the person's explicit confirmation |
+| REQ-077 | job | should | done | Releases are signed so a pinned checksum comes from the maintainer |

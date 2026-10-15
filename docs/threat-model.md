@@ -114,6 +114,7 @@ Verification standard: OWASP ASVS (what to build), OWASP WSTG (how to test it).
 | Tampered gitleaks download in CI | CI runner | pinned version, SHA-256 verified | REQ-019 |
 | A downloaded release is not what the project pinned, or is a different build | users' machines | the download is installed only when its SHA-256 tree checksum equals the one in `xaden/xaden.conf`; the question shows version, source and checksum and defaults to no; no terminal means no download (exit 3); a test greps the scripts for other network calls | REQ-072, smoke `test_versions_and_downloads` |
 | Release archive with `..`, absolute paths or links writes outside the versions folder | users' machines | `safe_archive` rejects such members before extraction; size limit on the download | REQ-072, smoke `test_versions_and_downloads` |
+| A substituted release comes with a matching checksum | users' machines | the checksum is signed with the maintainer's SSH key and verified against `release-signers`; a bad signature exits with code 6 and installs nothing; `XADEN_SIGNERS_FILE` works only in test mode | REQ-077, smoke `test_versions_and_downloads` |
 | An assistant, script or IDE answers the download question | users' machines | the answer is read from the terminal only; `XADEN_TEST_ANSWER` works only with `XADEN_TEST_MODE=1`; AGENTS.md §10 tells assistants never to answer | REQ-072, smoke `test_messages` |
 | `xaden remove` or a hook edit deletes a team's own text | project integrity | only marked blocks and the files listed in `xaden/footprint.txt` are touched; paths with `..` or leading `/` are refused; text outside the markers is never changed | REQ-066, REQ-073, smoke `test_adopt_and_remove` |
 | A new Xaden on one machine changes the rules for everyone | trust in the gates | tooling is selected by the pinned version; `RULES.md` that differs from the pinned version fails the check; `upgrade` is a reviewed pull request | REQ-070, REQ-071, smoke `test_versions_and_downloads` |
@@ -125,8 +126,9 @@ Verification standard: OWASP ASVS (what to build), OWASP WSTG (how to test it).
 - `xaden check` and the hooks run the commands in `check.*` of `xaden/xaden.conf`, the same trust as running the
   repository's own test and lint scripts. A pull request that changes `xaden.conf` therefore needs the same
   review as one that changes a build script. The adoption pull request and every `xaden upgrade` show it.
-- `xaden upgrade <version>` pins the checksum of the archive it just downloaded (trust on first use); the
-  person sees the checksum and the team reviews it in the pull request. Xaden publishes no signatures.
+- A release without a signature (or while `release-signers` holds no key) is pinned by the checksum of the
+  archive just downloaded (trust on first use); the person sees the checksum and the team reviews it in the
+  pull request. A stolen signing key or a maintainer who signs something malicious is not covered.
 
 - `xaden setup|check|req|pack|release` run the current repository's own `scripts/*.sh`, the
   same trust as running them by hand; use them only in projects you trust (review

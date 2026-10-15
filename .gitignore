@@ -38,3 +38,4 @@ context-pack.md
 # inbox/: local drop zone, contents never committed (see inbox/README.md)
 /inbox/*
 !/inbox/README.md
+dist/

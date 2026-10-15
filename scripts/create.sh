@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
-# Sets up a plain new project in the recommended way after one confirmation (REQ-076).
-# Usage: xaden new --autopilot [--stack python|node] [--assistants <list>] <name> [dir]
-# It prints one plan with everything it will do and asks once. A yes applies the plan; anything
-# else changes nothing. It never pushes, never publishes, and downloads nothing: the commands that
-# install the development tools are printed for you to run. A folder that already holds code, a
-# build file or history is a job for `xaden adopt`: autopilot stops there and changes nothing.
+# Creates a new project in the adopted layout (REQ-066: one code path for new and existing projects),
+# or, with --autopilot, in the recommended setup for a stack after one confirmation (REQ-076).
+# Usage: xaden new [--autopilot [--stack python|node]] [--assistants <list>] <name> [dir]
+# Plain: the xaden/ folder, the marked AGENTS.md block, hooks, a CI workflow, mode strict, a first
+# commit on main. Autopilot adds the stack's preset and prints one plan with everything it will do;
+# it asks once. A yes applies the plan; anything else changes nothing. Neither pushes, publishes or
+# downloads: the commands that install the development tools are printed for you to run. A folder
+# that already holds code, a build file or history is a job for `xaden adopt`: both stop there and
+# change nothing.
 # shellcheck disable=SC2034 # TOOLS_DIR is read by layout.sh, ADOPT_PRESET by the steps in adopt-lib.sh
 set -euo pipefail
 
@@ -22,14 +25,26 @@ source "$SCAFFOLD_ROOT/scripts/adopt-lib.sh"
 
 TOOLS_DIR="$SCAFFOLD_ROOT/template"
 STACK=""
+CREATED_FOLDER=0
+COMPLETED=0
+AUTOPILOT=0
 ADOPT_PRESET=""
 NAME=""
 TARGET=""
 
+# cleanup_on_failure: removes the folder this run created when the run did not finish.
+cleanup_on_failure() {
+  if [ "$CREATED_FOLDER" = 1 ] && [ "$COMPLETED" != 1 ] && [ -n "$TARGET" ]; then
+    rm -rf "${TARGET:?}"
+    warn "creating the project failed; removed the partial folder $TARGET"
+  fi
+}
+trap cleanup_on_failure EXIT
+
 parse_arguments() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --autopilot) ;;
+      --autopilot) AUTOPILOT=1 ;;
       --stack)
         shift
         case "${1:-}" in python | node) STACK=$1 ;; *) die "--stack must be python or node" ;; esac ;;
@@ -42,7 +57,8 @@ parse_arguments() {
     esac
     shift
   done
-  [ -n "$NAME" ] || die "usage: xaden new --autopilot [--stack python|node] <name> [dir]"
+  [ -n "$NAME" ] || die "usage: xaden new [--autopilot [--stack python|node]] <name> [dir]"
+  [ "$AUTOPILOT" = 1 ] || [ -z "$STACK" ] || die "--stack belongs to --autopilot"
   is_project_name "$NAME" || die "invalid project name '$NAME' (use lowercase letters, digits, hyphens)"
   TARGET="${TARGET:-$PWD/$NAME}"
 }
@@ -54,7 +70,7 @@ refuse_existing_work() {
   if [ -n "$(find "$TARGET" -mindepth 1 -maxdepth 1 ! -name .git | head -n 1)" ] ||
     git -C "$TARGET" rev-parse -q --verify HEAD >/dev/null 2>&1; then
     warn "$TARGET already contains code, a build file or history. Nothing was changed."
-    echo "Use 'cd $TARGET && xaden adopt' to add Xaden to it." >&2
+    echo "Use 'cd $TARGET && xaden adopt' to add Xaden to it, or choose another name." >&2
     exit 2
   fi
 }
@@ -69,27 +85,47 @@ choose_stack() {
   fi
 }
 
-# print_plan: everything the run will do.
+# print_plan: everything the autopilot run will do.
 print_plan() {
   info "autopilot plan for $NAME ($STACK) in $TARGET"
-  cat <<EOF
+  cat <<PLAN
   1. git init (branch main) and a first commit with the layout below
   2. xaden/: requirements, personas, security reviews, baselines, xaden.conf (Xaden $(running_version) pinned with its checksum), RULES.md
   3. AGENTS.md with the Xaden block${ADOPT_ASSISTANTS:+, CLAUDE.md for: $ADOPT_ASSISTANTS}
-  4. the $STACK preset: $(preset_files "$STACK" | tr '\n' ' ')
-  5. checks mapped in xaden.conf: $(preset_commands "$STACK" | sed 's/^/check./;s/=/ = /' | tr '\n' ';')
-  6. mode strict: every violation fails; no baseline is needed in a new project
-  7. git hooks of this clone (pre-commit, commit-msg) that run the checks
-  8. a CI workflow, .github/workflows/xaden.yml, pinned to Xaden $(running_version) and its checksum
+  4. README.md, .gitignore, VERSION and CHANGELOG.md of the new project
+  5. the $STACK preset: $(preset_files "$STACK" | tr '\n' ' ')
+  6. checks mapped in xaden.conf: $(preset_commands "$STACK" | sed 's/^/check./;s/=/ = /' | tr '\n' ';')
+  7. mode strict: every violation fails; no baseline is needed in a new project
+  8. git hooks of this clone (pre-commit, commit-msg) that run the checks
+  9. a CI workflow, .github/workflows/xaden.yml, pinned to Xaden $(running_version) and its checksum
   Install commands (printed at the end; you run them, Xaden does not):
     $(preset_install_command "$STACK")
   Packages and versions: only those above; a package added later needs its own approval.
   Nothing is pushed, published or downloaded.
-EOF
+PLAN
 }
 
-# apply_autopilot: the plan, in the new folder.
-apply_autopilot() {
+# shellcheck disable=SC2016 # backticks are Markdown, not command substitution
+# write_project_files: the few files every project needs and that are the project's own, not Xaden's.
+write_project_files() {
+  local dir=$1
+  printf '# %s\n\nBuilt with [Xaden](https://xaden.dev). Start with `xaden prompt kickoff`; run the checks with `xaden check`.\n' "$NAME" >"$dir/README.md"
+  printf '.env\n.env.*\n!.env.example\ncontext-pack.md\nnode_modules/\n.venv/\n__pycache__/\n.DS_Store\n' >"$dir/.gitignore"
+  printf '0.0.0\n' >"$dir/VERSION"
+  printf '# Changelog\n\nFormat: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: [SemVer](https://semver.org/).\n\n## [Unreleased]\n' >"$dir/CHANGELOG.md"
+}
+
+# choose_assistants: Claude Code users get CLAUDE.md. Asked only in a plain run with a terminal.
+choose_assistants() {
+  [ -z "$ADOPT_ASSISTANTS" ] || return 0
+  if [ "$AUTOPILOT" = 1 ] || ! has_terminal; then return 0; fi
+  if ask "Does your team use Claude Code? Xaden then adds CLAUDE.md with the line @AGENTS.md." y; then ADOPT_ASSISTANTS=claude; fi
+}
+
+# apply_new: creates the project, in the adopted layout; with a stack, the stack's preset too.
+apply_new() {
+  # A failed run leaves nothing behind: the folder is removed when this run created it.
+  if [ ! -d "$TARGET" ]; then CREATED_FOLDER=1; fi
   mkdir -p "$TARGET"
   TARGET="$(cd "$TARGET" && pwd)"
   git -C "$TARGET" init -q -b main
@@ -100,19 +136,27 @@ apply_autopilot() {
   SCAN_GAPS="$(expected_kinds)"
   ADOPT_PRESET=$STACK
   apply_core "$TARGET"
+  write_project_files "$TARGET"
   commit_step "$TARGET" "chore: initialize project with Xaden $(running_version)"
   apply_ci "$TARGET"
   commit_step "$TARGET" "ci: run Xaden's checks in a workflow"
-  apply_preset "$TARGET" "$STACK"
-  commit_step "$TARGET" "chore: add Xaden's $STACK preset"
+  if [ -n "$STACK" ]; then
+    apply_preset "$TARGET" "$STACK"
+    commit_step "$TARGET" "chore: add Xaden's $STACK preset"
+  fi
   install_local_hooks "$TARGET"
+  COMPLETED=1
 }
 
-# summary: what exists, and an honest result of the checks (REQ-074: skipped checks end with a warning).
+# summary: what exists, and an honest result of the checks (skipped checks end with a warning).
 summary() {
   local result
   info "created in $TARGET"
   git -C "$TARGET" ls-files | sed 's/^/  /'
+  if [ -z "$STACK" ]; then
+    ok "$NAME is ready. Next: open $TARGET in your assistant and run: xaden prompt kickoff"
+    return 0
+  fi
   info "install the development tools (run this yourself):"
   echo "  cd $TARGET && $(preset_install_command "$STACK")"
   info "checks now"
@@ -129,14 +173,17 @@ main() {
   parse_arguments "$@"
   has_command git || die "git is required"
   refuse_existing_work
-  choose_stack
-  print_plan
-  if ! has_terminal; then
-    echo "No terminal, so nothing was changed. Run it in a terminal to confirm the plan."
-    return 0
+  if [ "$AUTOPILOT" = 1 ]; then
+    choose_stack
+    print_plan
+    if ! has_terminal; then
+      echo "No terminal, so nothing was changed. Run it in a terminal to confirm the plan."
+      return 0
+    fi
+    ask "Create $NAME with this setup?" || { echo "Nothing was changed."; return 0; }
   fi
-  ask "Create $NAME with this setup?" || { echo "Nothing was changed."; return 0; }
-  apply_autopilot
+  choose_assistants
+  apply_new
   summary
 }
 

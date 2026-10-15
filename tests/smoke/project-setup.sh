@@ -136,7 +136,7 @@ test_xaden_command() {
   assert_fails_with "project command outside a project fails" "inside a project" \
     bash -c "cd '$elsewhere' && '$xaden' check"
 
-  assert "xaden new creates the project in the current directory" bash -c "cd '$elsewhere' && '$xaden' new xaden-app"
+  assert "xaden new --classic creates the project in the current directory" bash -c "cd '$elsewhere' && '$xaden' new --classic xaden-app"
   assert "new project has its first commit" git -C "$elsewhere/xaden-app" log -1 --format=%s
   assert "project command runs from a subdirectory" \
     bash -c "cd '$elsewhere/xaden-app/docs' && '$xaden' req list | grep -q '^REQ-001 '"

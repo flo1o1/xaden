@@ -17,7 +17,14 @@ source "$SCAFFOLD_ROOT/scripts/scaffold-lib.sh"
 
 EXIT_NO_TERMINAL=3     # nothing was downloaded because nobody could be asked
 EXIT_CHECKSUM=5        # the download does not match the pinned checksum
+EXIT_SIGNATURE=6       # the signature of a release is wrong
 RELEASES_URL="${XADEN_RELEASES_URL:-https://github.com/flo1o1/xaden/archive/refs/tags}"
+ASSETS_URL="${XADEN_ASSETS_URL:-https://github.com/flo1o1/xaden/releases/download}"
+SIGNERS_FILE="$SCAFFOLD_ROOT/release-signers"
+# Tests may point to their own key; no other caller can change which keys are trusted.
+if [ "${XADEN_TEST_MODE:-0}" = "1" ]; then SIGNERS_FILE="${XADEN_SIGNERS_FILE:-$SIGNERS_FILE}"; fi
+SIGNATURE_NAMESPACE="xaden-release"
+SIGNER_PRINCIPAL="release@xaden.dev"
 LATEST_URL="${XADEN_LATEST_URL:-https://api.github.com/repos/flo1o1/xaden/releases/latest}"
 
 # release_url <version>: where a release archive comes from.
@@ -74,15 +81,58 @@ download_release() {
   rm -f "$archive"
 }
 
+# signing_keys_exist: true when release-signers holds at least one key.
+signing_keys_exist() { [ -f "$SIGNERS_FILE" ] && grep -Ev '^[[:space:]]*(#|$)' "$SIGNERS_FILE" >/dev/null; }
+
+# signed_checksum <version>: prints the checksum of a release that the maintainer signed. Returns 0
+# when the signature is valid, 10 when there is nothing to verify (no key in release-signers, no
+# ssh-keygen, no signature published for the release) and EXIT_SIGNATURE when a signature exists and
+# is wrong.
+signed_checksum() {
+  local version=$1 dir status=0 line
+  signing_keys_exist && has_command ssh-keygen || return 10
+  dir="$(mktemp -d)"
+  if ! curl -fsSL --max-filesize 4096 -o "$dir/checksum" "$ASSETS_URL/v$version/xaden-$version.checksum" ||
+    ! curl -fsSL --max-filesize 4096 -o "$dir/checksum.sig" "$ASSETS_URL/v$version/xaden-$version.checksum.sig"; then
+    rm -rf "${dir:?}"
+    return 10
+  fi
+  ssh-keygen -Y verify -f "$SIGNERS_FILE" -I "$SIGNER_PRINCIPAL" -n "$SIGNATURE_NAMESPACE" -s "$dir/checksum.sig" <"$dir/checksum" >/dev/null 2>&1 || status=$?
+  line="$(awk 'NR == 1 { print $1 }' "$dir/checksum")"
+  rm -rf "${dir:?}"
+  if [ "$status" -ne 0 ]; then
+    return "$EXIT_SIGNATURE"
+  fi
+  printf '%s' "$line"
+}
+
 # install_release <version> <expected-checksum|"">: downloads, verifies and installs one version
 # into the versions folder. Prints the checksum of what was installed.
 install_release() {
-  local version=$1 expected=$2 staging actual target
+  local version=$1 expected=$2 staging actual target signed status
   staging="$(mktemp -d)"
   download_release "$version" "$staging" || { rm -rf "${staging:?}"; die "download failed for Xaden $version"; }
   [ -f "$staging/VERSION" ] && [ "$(tr -d '[:space:]' <"$staging/VERSION")" = "$version" ] ||
     { rm -rf "${staging:?}"; die "the download is not Xaden $version; nothing was installed"; }
   actual="$(tree_checksum "$staging")"
+  signed=""
+  status=0
+  signed="$(signed_checksum "$version")" || status=$?
+  if [ "$status" -eq "$EXIT_SIGNATURE" ]; then
+    rm -rf "${staging:?}"
+    warn "The signature of Xaden $version does not verify against the keys in release-signers. Nothing was installed."
+    exit "$EXIT_SIGNATURE"
+  elif [ "$status" -eq 0 ]; then
+    if [ -n "$expected" ] && [ "$expected" != "$signed" ]; then
+      rm -rf "${staging:?}"
+      warn "The checksum pinned in xaden/xaden.conf is not the one the maintainer signed for Xaden $version. Nothing was installed."
+      exit "$EXIT_CHECKSUM"
+    fi
+    expected=$signed
+    info "signature verified: the checksum of Xaden $version comes from the maintainer" >&2
+  elif [ -z "$expected" ]; then
+    warn "No verifiable signature for Xaden $version: the checksum is taken from the download itself (trust on first use)." >&2
+  fi
   if [ -n "$expected" ] && [ "$actual" != "$expected" ]; then
     rm -rf "${staging:?}"
     warn "expected checksum $expected"
@@ -134,7 +184,7 @@ tools_for() {
   if [ "$(tr -d '[:space:]' <"$SCAFFOLD_ROOT/VERSION")" = "$version" ]; then printf '%s' "$SCAFFOLD_ROOT"; return 0; fi
   if [ -x "$(versions_dir)/$version/scripts/xaden.sh" ]; then printf '%s' "$(versions_dir)/$version"; return 0; fi
   confirm_download "$version" "" >&2 || { echo "Nothing was downloaded." >&2; exit 1; }
-  checksum="$(install_release "$version" "")"
+  checksum="$(install_release "$version" "")" || exit $? # the subshell cannot stop this script by itself
   info "checksum of Xaden $version: $checksum (it goes into xaden/xaden.conf; your team reviews it in the pull request)" >&2
   printf '%s' "$(versions_dir)/$version"
 }
