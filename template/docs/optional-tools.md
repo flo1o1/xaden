@@ -1,13 +1,13 @@
-# Optional tools
+# Optional tools and assistant plugins
 
-Extra checks that make code more robust where they fit. None is required. `scripts/check.sh`
+Extra checks that make code more robust where they fit. None is required. `xaden check`
 (full run) prints a `TIP:` line for each one that fits this project and is not adopted yet; tips
 never change the result. Once adopted, the check runs it and its findings fail the run like any
-other check. Ask the user before installing anything (AGENTS.md §10).
+other check. Ask the user before installing anything (the rules in AGENTS.md require it).
 
-## Quality checks
+## Extra quality checks
 
-| Tool | Fits when | Catches | Adopt | `scripts/check.sh` then |
+| Tool | Fits when | Catches | Adopt | `xaden check` then |
 |------|-----------|---------|-------|-------------------------|
 | [actionlint](https://github.com/rhysd/actionlint) | `.github/workflows/` exists | Workflow syntax and expression errors before CI runs them | Install the binary | Lints workflow files (also before each commit) |
 | [zizmor](https://github.com/zizmorcore/zizmor) | `.github/workflows/` exists | Workflow security problems: template injection, leaked credentials, cache poisoning | Install the binary | Audits workflow files offline (also before each commit) |

@@ -72,7 +72,7 @@ test_assistant_trust_rules() {
 
 # REQ-050 optional add-on rule sets: documented, never installed, never above AGENTS.md
 test_add_on_rule_sets() {
-  local guide="$SCAFFOLD_ROOT/GETTING-STARTED.md" tools="$PROJECT/docs/optional-tools.md" add_on
+  local guide="$SCAFFOLD_ROOT/docs/guide/admin/requirements-and-platforms.md" tools="$PROJECT/docs/optional-tools.md" add_on
   for add_on in Ponytail Caveman 'Token Optimizer' claude-mem obsidian-skills impeccable; do
     assert "guide lists $add_on as optional" grep -q "^| Optional: \\[$add_on\\]" "$guide"
   done

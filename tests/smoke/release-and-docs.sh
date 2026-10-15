@@ -94,20 +94,23 @@ test_release_failures() {
   git -C "$PROJECT" reset -q --hard "$head"
 }
 
-# REQ-065: Getting Started documents both ways to get Xaden, and both ways work as written.
+# REQ-065: the guide documents both ways to get Xaden, and both ways work as written.
 test_install_ways() {
-  local guide="$SCAFFOLD_ROOT/GETTING-STARTED.md" extracted="$WORKDIR/extracted-zip" clone="$WORKDIR/cloned-xaden"
-  local heading version
-  for heading in '## 2\. Get Xaden' '### Download the release \(zip\)' '### Clone the repository' \
-    '### When to choose which' '### Linux' '### macOS' '### Windows'; do
-    assert "guide has the heading $heading" grep -qE "^$heading\$" "$guide"
+  local install="$SCAFFOLD_ROOT/docs/guide/admin/install-xaden.md" platforms="$SCAFFOLD_ROOT/docs/guide/admin/requirements-and-platforms.md"
+  local update="$SCAFFOLD_ROOT/docs/guide/admin/update-xaden.md"
+  local extracted="$WORKDIR/extracted-zip" clone="$WORKDIR/cloned-xaden" heading version
+  for heading in '## Install with git \(recommended\)' '## Install from a zip archive' '## When to choose which' '## Verify what you downloaded'; do
+    assert "install guide has the heading $heading" grep -qE "^$heading\$" "$install"
   done
-  assert "guide states the Windows support level" grep -q 'untested' "$guide"
-  assert "guide says native PowerShell is not supported" grep -qi 'native PowerShell is not supported' "$guide"
-  assert "guide says Xaden publishes no checksums" grep -q 'publishes no checksums or signatures' "$guide"
-  assert "guide explains the zip update" grep -q 'download the new release' "$guide"
-  assert "guide explains the clone update" grep -q 'git pull' "$guide"
-  assert "guide explains picking a release tag" grep -q 'git checkout v' "$guide"
+  for heading in '## Linux' '## macOS' '## Windows'; do
+    assert "platform guide has the heading $heading" grep -qE "^$heading\$" "$platforms"
+  done
+  assert "guide states the Windows support level" grep -q 'untested' "$platforms"
+  assert "guide says native PowerShell is not supported" grep -qi 'native PowerShell is not supported' "$platforms"
+  assert "guide says the maintainer signs the checksum of every release" grep -q 'signs the checksum of every release' "$install"
+  assert "guide explains the zip update" grep -q 'Download the new release' "$update"
+  assert "guide explains the clone update" grep -q 'git -C ~/.xaden pull' "$update"
+  assert "guide explains picking a release tag" grep -q 'git -C ~/.xaden checkout v' "$update"
 
   # The zip way: an archive has no .git; install.sh and xaden new must still work from it.
   version="$(tr -d '[:space:]' <"$SCAFFOLD_ROOT/VERSION")"
@@ -156,7 +159,21 @@ test_site_pages() {
   assert_fails "a missing last line without newline fails the check" "$check" "$copy"
 }
 
+# The guides link to each other with relative paths (the website turns them into page links): every target exists.
+test_guide_links() {
+  local file link target broken=""
+  while IFS= read -r file; do
+    while IFS= read -r link; do
+      target="${link%%#*}"
+      [ -n "$target" ] || continue
+      [ -e "$(dirname "$file")/$target" ] || broken="$broken ${file#"$SCAFFOLD_ROOT"/}->$link"
+    done < <(grep -oE '\]\([^)#][^)]*\.md(#[^)]*)?\)' "$file" | sed -e 's/^](//' -e 's/)$//')
+  done < <(find "$SCAFFOLD_ROOT/docs/guide" -name '*.md'; printf '%s\n' "$SCAFFOLD_ROOT/GETTING-STARTED.md")
+  assert "every relative link in the guides resolves" test -z "$broken"
+}
+
 test_bump_version
+test_guide_links
 test_site_pages
 test_scaffold_release_failures
 test_release
