@@ -20,5 +20,4 @@ When I develop software with an assistant, I want 3 to 5 user personas in the pr
 - Given 5 personas already exist, when I create another one, then the file is created and a warning recommends 3 to 5 personas.
 - Given Claude Code, when I run `/persona <short description>`, then the assistant creates the file with the script and drafts its content from the description and the project's requirements, marking facts it lacks as assumptions to verify.
 - Given AGENTS.md, the kickoff, feature and code-review prompts, when an assistant proposes or reviews a solution, then it checks it against every persona in `docs/personas/` and names the persona a solution fails.
-- Given a project with personas, when I build a context pack, then the pack includes them.
 - Given an existing project, when it updates the scaffold, then it receives the persona template, script and prompt, and its own persona files stay untouched.

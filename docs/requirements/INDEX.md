@@ -11,7 +11,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-003 | job | must | done | Apply clean-code rules when generating code |
 | REQ-008 | job | must | done | Review prompts in Obsidian |
 | REQ-011 | job | must | done | Prevent models from inventing rules or requirements |
-| REQ-023 | job | must | done | Context pack contains all mandatory guidance and is written safely |
+| REQ-023 | job | must | dropped | Context pack contains all mandatory guidance and is written safely |
 | REQ-027 | job | should | done | Clean-code rules are proportional and language-appropriate |
 | REQ-033 | job | must | done | Assistants distinguish trusted instructions from untrusted content and ask before risky actions |
 | REQ-034 | job | should | done | Claude Code permission rules are accurate and documented with their limits |

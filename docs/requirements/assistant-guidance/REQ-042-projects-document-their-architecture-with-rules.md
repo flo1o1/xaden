@@ -18,4 +18,3 @@ When an assistant adds code, I want the architecture and the rules for new code 
 - Template docs/architecture.md (goals, layers and dependency direction, composition root, interaction, naming, rules for new code, persisted data)
 - kickoff fills it after the stack decision
 - feature prompt follows it
-- context pack includes it

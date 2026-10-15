@@ -16,5 +16,4 @@ When I switch between Claude Code, ChatGPT, other agents or local models, I want
 ## Acceptance criteria
 
 - AGENTS.md plus pointer files for Claude, Aider, Cline, Continue, Copilot
-- pack-context for chat UIs
 - Given a tool that already loaded the requirements index (for example through `CLAUDE.md`), when a session starts, then `AGENTS.md` lets it skip reading the index again.
