@@ -29,13 +29,13 @@ may meet secrets in the working tree (`.env`, `inbox/`), which they must not cop
 ## Entry points
 
 - CLI arguments: project name and target directory (`new-project.sh`), project directory and
-  `--apply` (`update-scaffold.sh`), bump part (`release*.sh`), prompt names and, with `--brief`, requirement IDs (`pack-context.sh`),
+  `--apply` (`update-scaffold.sh`), bump part (`release*.sh`),
   requirement IDs, epics and titles (`req.sh`), persona names (`persona.sh`); command and arguments of `xaden`, target
   directory of `install.sh`; `adopt`, `remove`, `upgrade`, `fetch`, `hook`, `prompt`, `doc` and `new --autopilot`
   with their options (`--check <kind>=<command>`, `--assistants`, `--mode`, `--stack`, version numbers).
 - Files the scripts read: `template/` (exported to projects), requirement files, commit message
   files, the old requirements table `docs/requirements/REQUIREMENTS.md` (`migrate-requirements.sh`),
-  `docs/personas/*.md` (`pack-context.sh`, `persona.sh`), `CHANGELOG.md`, `VERSION`, `docs/security-exceptions.md`, `SECURITY.md`, a project's
+  `docs/personas/*.md` (`persona.sh`), `CHANGELOG.md`, `VERSION`, `docs/security-exceptions.md`, `SECURITY.md`, a project's
   `.scaffold/manifest` and `package.json` /
   `pyproject.toml` (which decide which tools run).
 - Files of an adopted repository: `xaden/xaden.conf` (version, checksum, mode and the commands `check.<name>`
@@ -95,7 +95,6 @@ Verification standard: OWASP ASVS (what to build), OWASP WSTG (how to test it).
 |--------|-------|------------|--------------------|
 | Project name with shell, `sed` or path characters | users' machines | `is_project_name` allows `[a-z][a-z0-9-]{1,50}` only | REQ-001, smoke "reject bad project name" |
 | Secrets, dependencies or symlinks copied into a project | secrets, project integrity | only tracked template files exported; symlinks refused; failed runs cleaned up | REQ-018, smoke `test_generation_safety` |
-| Committed symlink in `docs/personas/` (or another packed file) copies a local secret into a context pack | secrets | `pack-context.sh` refuses symbolic links (review 2026-10-12-pre-release-0.2.0 #1) | REQ-023, smoke `test_personas` |
 | Dangling symlink in `docs/personas/` makes `persona.sh` write outside the project | users' machines | a link counts as an existing persona (review 2026-10-12-pre-release-0.2.0 #2) | REQ-061, smoke `test_personas` |
 | Commit lands on `main` without passing CI | trust in the gates | pre-commit guard keeps work on branches (client-side; `--no-verify`, `ALLOW_MAIN_COMMIT=1`, detached HEAD skip it); GitHub ruleset on `main` rejects a push unless both CI checks passed on that commit, no bypass; no review required (single maintainer) | REQ-060, REQ-062, smoke `test_branch_rule`, `test_ci_credentials` |
 | Secret committed | secrets | gitleaks in pre-commit and CI; a missing scanner fails `--strict` | REQ-004, REQ-019, smoke `test_missing_tools`; no test plants a secret yet |
@@ -130,7 +129,7 @@ Verification standard: OWASP ASVS (what to build), OWASP WSTG (how to test it).
   archive just downloaded (trust on first use); the person sees the checksum and the team reviews it in the
   pull request. A stolen signing key or a maintainer who signs something malicious is not covered.
 
-- `xaden setup|check|req|pack|release` run the current repository's own `scripts/*.sh`, the
+- `xaden setup|check|req|release` run the current repository's own `scripts/*.sh`, the
   same trust as running them by hand; use them only in projects you trust (review
   2026-10-11-xaden-command #1).
 - `update-scaffold.sh` changes a project's Claude Code permissions (`.claude/settings.json`,
