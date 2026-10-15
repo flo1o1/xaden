@@ -10,6 +10,8 @@ This repository **is the scaffold**. Read this before changing it.
   `PROJECT_ROOT=. template/scripts/req.sh show REQ-nnn`, never from memory.
 - Commits: Conventional Commits; `feat` needs `Refs: REQ-nnn` from **this** repository's
   requirements; `CC-nn` IDs are resolved against `template/AGENTS.md`.
+- Branch names: prefix the slug with the ID of the related requirement, e.g. `feat/req-066-adopt`
+  (REQ-078). Not mandatory, but it shows at a glance what a branch is for.
 - Before "done": `scripts/check-scaffold.sh` (full run including `tests/smoke.sh`).
 - Template changes must work on Linux and macOS (bash 3.2, POSIX awk/sed/tar, no GNU-only flags).
 - Never put scaffold-maintenance content into `template/`, and never put project content at the root.

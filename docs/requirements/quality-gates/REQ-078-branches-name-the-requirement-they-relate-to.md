@@ -17,4 +17,4 @@ When I look at the list of branches or worktrees, I want each branch name to sta
 
 - Given a change that relates to a requirement, when an assistant creates its branch, then the slug starts with the lower-case requirement ID, for example `feat/req-066-adopt`
 - Given a change without a requirement, when an assistant creates its branch, then a plain `<type>/<slug>` is fine
-- Given `code/CLAUDE.md`, when a maintainer or assistant starts a change, then it states this convention and that it is not mandatory
+- Given the root `AGENTS.md`, when a maintainer or assistant starts a change, then it states this convention and that it is not mandatory
