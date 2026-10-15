@@ -50,7 +50,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-073 | quality | should | done | The tracked Xaden footprint in an adopting repository is small and predictable |
 | REQ-074 | quality | could | done | Xaden messages are recognisable at a glance and readable in plain logs |
 | REQ-076 | job | should | done | Xaden sets up a plain new project in the best possible way with one confirmation |
-| REQ-080 | job | should | approved | Claude Code users start Xaden workflows with slash commands in an adopted repository |
+| REQ-080 | job | should | in-progress | Claude Code users start Xaden workflows with slash commands in an adopted repository |
 
 ## Quality gates (`quality-gates`)
 
