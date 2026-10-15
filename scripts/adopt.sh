@@ -192,6 +192,9 @@ scratch_copy() {
     (cd "$ADOPT_REPO" && tar --exclude=./.git -cf - .) | tar -x -C "$dir"
   fi
   git -C "$dir" init -q -b scratch
+  # no background gc: it can still write into .git/objects when the plan deletes the copy (Linux)
+  git -C "$dir" config gc.auto 0
+  git -C "$dir" config maintenance.auto false
   git -C "$dir" add -A
   git -C "$dir" -c core.hooksPath=/dev/null commit -q -n --allow-empty -m "scratch: before adoption"
 }
