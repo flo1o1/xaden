@@ -360,8 +360,8 @@ test_ci_credentials() {
   assert "scaffold-ci.yml runs on every branch push" \
     grep -q "branches: \['\*\*'\]" "$SCAFFOLD_ROOT/.github/workflows/scaffold-ci.yml"
   # REQ-078: maintainer guidance asks for branch names prefixed with the requirement ID
-  assert "CLAUDE.md asks for requirement-prefixed branch names" \
-    grep -q 'prefix the slug with the ID of the related requirement' "$SCAFFOLD_ROOT/CLAUDE.md"
+  assert "AGENTS.md asks for requirement-prefixed branch names" \
+    grep -q 'prefix the slug with the ID of the related requirement' "$SCAFFOLD_ROOT/AGENTS.md"
 }
 
 test_quiet_output
