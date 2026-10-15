@@ -19,7 +19,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - `xaden create` creates the `xaden/` layout, the same one `xaden adopt` gives an empty repository: no copied scripts, prompts or guides, the Xaden version pinned in `xaden/xaden.conf`, a README, `VERSION` and `CHANGELOG.md`, mode `strict`, hooks and a CI workflow. The old layout is `xaden create --classic` and keeps `xaden update` (REQ-066).
 - Warnings print `WARNING:` instead of `WARN:` in plain output, and a run that passed prints `OK: all checks passed`.
 - A project created by `xaden create` can move to the adopted layout with `xaden adopt`.
+- `xaden new` is now `xaden create`, matching the other verbs. `xaden new` still works and tells you the new name.
 - **Breaking:** `xaden pack` and `scripts/pack-context.sh` are removed (REQ-079). Xaden supports only assistants with file access; a chat window without it is no longer covered. `xaden update` removes the old script from a project that still has it and leaves your own files, such as an ignored `context-pack.md`.
+
+### Fixed
+- `scripts/new-project.sh` no longer configures hooks on another repository when `PROJECT_ROOT` is set in your environment; the new project gets its own hooks.
 
 ## [0.2.3] - 2026-10-13
 

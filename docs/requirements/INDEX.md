@@ -68,6 +68,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-051 | job | should | done | Optional quality tools are suggested when the project would benefit and run once adopted |
 | REQ-062 | job | should | done | Maintainer changes reach main only after CI passed on the exact commit |
 | REQ-068 | job | must | done | Legacy code never blocks a team that adopts Xaden |
+| REQ-078 | job | could | done | Branches name the requirement they relate to |
 
 ## Releases and documentation (`release-and-docs`)
 

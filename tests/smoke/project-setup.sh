@@ -147,13 +147,15 @@ test_xaden_command() {
   assert "install links xaden to this checkout" test "$(readlink "$xaden")" = "$SCAFFOLD_ROOT/scripts/xaden.sh"
   assert "xaden version prints the scaffold version" \
     test "$("$xaden" version)" = "$(tr -d '[:space:]' <"$SCAFFOLD_ROOT/VERSION")"
-  assert "xaden help lists the commands" bash -c "'$xaden' help | grep -q 'new <name>'"
+  assert "xaden help lists the commands" bash -c "'$xaden' help | grep -q 'create <name>'"
   assert_fails "unknown xaden command fails" "$xaden" fly
   assert_fails_with "project command outside a project fails" "inside a project" \
     bash -c "cd '$elsewhere' && '$xaden' check"
 
   assert "xaden create --classic creates the project in the current directory" bash -c "cd '$elsewhere' && '$xaden' create --classic xaden-app"
   assert "new project has its first commit" git -C "$elsewhere/xaden-app" log -1 --format=%s
+  assert "xaden new still creates a project and names xaden create" \
+    bash -c "cd '$elsewhere' && out=\$('$xaden' new old-name-app 2>&1) && test -d old-name-app/.git && grep -q 'xaden create' <<<\"\$out\""
   assert "project command runs from a subdirectory" \
     bash -c "cd '$elsewhere/xaden-app/docs' && '$xaden' req list | grep -q '^REQ-001 '"
   assert "xaden update runs for the surrounding project" \
@@ -190,8 +192,18 @@ test_settings_update() {
   git -C "$PROJECT" reset -q --hard HEAD~1 && git -C "$PROJECT" clean -qfdx
 }
 
+# REQ-001 generation ignores a PROJECT_ROOT that the caller's environment already carries
+test_generation_ignores_project_root() {
+  local other="$WORKDIR/foreign-repo" target="$WORKDIR/root-env/app"
+  git init -q -b main "$other"
+  assert "generate while PROJECT_ROOT names another repository" env PROJECT_ROOT="$other" "$SCAFFOLD_ROOT/scripts/new-project.sh" root-app "$target"
+  assert "new project has its hooks path" test "$(git -C "$target" config core.hooksPath)" = "scripts/hooks"
+  assert "other repository's configuration untouched" test -z "$(git -C "$other" config --get core.hooksPath || true)"
+}
+
 test_license
 test_generation_safety
+test_generation_ignores_project_root
 test_inbox
 test_setup_and_commit_checks
 test_scaffold_update

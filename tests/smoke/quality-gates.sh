@@ -329,6 +329,9 @@ test_ci_credentials() {
   # REQ-062: every branch push runs CI, so a commit has checks before it is pushed to main
   assert "scaffold-ci.yml runs on every branch push" \
     grep -q "branches: \['\*\*'\]" "$SCAFFOLD_ROOT/.github/workflows/scaffold-ci.yml"
+  # REQ-078: maintainer guidance asks for branch names prefixed with the requirement ID
+  assert "AGENTS.md asks for requirement-prefixed branch names" \
+    grep -q 'prefix the slug with the ID of the related requirement' "$SCAFFOLD_ROOT/AGENTS.md"
 }
 
 test_quiet_output
