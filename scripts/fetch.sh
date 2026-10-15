@@ -112,8 +112,10 @@ install_release() {
   local version=$1 expected=$2 staging actual target signed status
   staging="$(mktemp -d)"
   download_release "$version" "$staging" || { rm -rf "${staging:?}"; die "download failed for Xaden $version"; }
-  [ -f "$staging/VERSION" ] && [ "$(tr -d '[:space:]' <"$staging/VERSION")" = "$version" ] ||
-    { rm -rf "${staging:?}"; die "the download is not Xaden $version; nothing was installed"; }
+  if [ ! -f "$staging/VERSION" ] || [ "$(tr -d '[:space:]' <"$staging/VERSION")" != "$version" ]; then
+    rm -rf "${staging:?}"
+    die "the download is not Xaden $version; nothing was installed"
+  fi
   actual="$(tree_checksum "$staging")"
   signed=""
   status=0

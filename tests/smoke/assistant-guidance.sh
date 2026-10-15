@@ -203,7 +203,7 @@ test_look_before_build() {
 # the requirements and the security reviews keep the history and are not searched.
 test_no_context_pack() {
   local hits
-  hits="$(cd "$SCAFFOLD_ROOT" && grep -rIlE 'pack[-]context|context[-]pack|xaden[ ]pack' scripts template tests docs/guide \
+  hits="$(cd "$SCAFFOLD_ROOT" || exit 1; grep -rIlE 'pack[-]context|context[-]pack|xaden[ ]pack' scripts template tests docs/guide \
     docs/threat-model.md README.md GETTING-STARTED.md .gitignore 2>/dev/null || true)"
   assert "no file mentions the context pack: ${hits:-none}" test -z "$hits"
   assert_fails "xaden has no pack command" "$SCAFFOLD_ROOT/scripts/xaden.sh" pack
