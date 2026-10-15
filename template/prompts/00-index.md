@@ -29,7 +29,6 @@ Related: [[prompt-template]] · rules in `AGENTS.md` · requirements in `docs/re
 - **Claude Code**: slash command above; it loads `AGENTS.md` through `CLAUDE.md`.
 - **Aider / Cline / Continue / Cursor / Codex**: they read `AGENTS.md` (Aider via `.aider.conf.yml`);
   paste or reference the prompt file.
-- **ChatGPT / web UIs / small local models**: `scripts/pack-context.sh <prompt-name>`, paste `context-pack.md`.
 
 ## Conventions
 

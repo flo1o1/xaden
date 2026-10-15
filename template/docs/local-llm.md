@@ -4,29 +4,14 @@ The rules live in plain Markdown (`AGENTS.md`), so any tool works. Tool-specific
 thin pointers: `CLAUDE.md`, `.github/copilot-instructions.md`, `.clinerules`,
 `.continue/rules/project.md`, `.aider.conf.yml`.
 
-## In a chat window without file access (ChatGPT and similar)
-
-```bash
-xaden pack feature   # rules, security, requirements, changes, prompt → context-pack.md
-```
-
-Paste it as the first message, then your task. Paste changed files back for review; apply
-code manually, then run `xaden check` yourself and paste failures back.
-Repeat the pack whenever requirements change.
+Xaden needs an assistant that can read and edit your files and run commands. A chat window
+without file access is not supported; a model on your own machine works through a tool that has
+that access (Aider, Cline, Continue).
 
 ## Run a model on your own machine
 
 Small models have small context windows: keep `AGENTS.md` short, use one prompt at a time,
-and edit few files per request. For a pasted pack, use the brief form with only the
-requirements the task touches:
-
-```bash
-xaden pack --brief REQ-003 feature   # rules, security, personas, index, REQ-003, prompt
-```
-
-It leaves out the clean-code guide, the architecture, the threat model and all other requirement
-files, and says so in its header. The script prints the pack's estimated size in tokens and warns
-above about 12,000.
+and edit few files per request.
 
 ### Ollama with Aider
 ```bash

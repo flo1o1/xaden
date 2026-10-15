@@ -6,7 +6,7 @@ writes things down and you approve them.
 ## Before you start
 
 - A project that has Xaden: [created](create-a-project.md) or [adopted](add-xaden-to-a-repository.md). You are in its folder.
-- Your assistant is installed and can run shell commands. If it cannot (a plain chat window), see the last section.
+- Your assistant is installed and can read your files and run shell commands. Xaden does not support chat windows without file access.
 
 ## Start the kickoff
 
@@ -35,16 +35,6 @@ rules were read or followed, so review its work.
 
 Check that it worked: `xaden check` runs the new checks and ends with a summary. A skipped check is named; install the tool and run it
 again.
-
-## Without shell access
-
-In a chat window that cannot read your files, build one pasteable file instead:
-
-```bash
-xaden pack kickoff
-```
-
-- `xaden pack kickoff`: writes `context-pack.md` with the rules, the security checklist, the requirements and the kickoff prompt. Paste it as your first message. See [Use Xaden with other assistants and local models](../../../template/docs/local-llm.md).
 
 ## Next
 

@@ -28,7 +28,6 @@ relative to it.
 | A new project | `xaden create` creates the same `xaden/` layout `xaden adopt` gives an existing repository; `xaden create --classic` keeps the old copied layout |
 | A new project in one step | `xaden create --autopilot` sets up the recommended checks, hooks and CI for Python or Node after one confirmation |
 | Obsidian | Open the folder as a vault; prompts have frontmatter, wikilinks, a template folder |
-| Chat UIs / small models | `scripts/pack-context.sh` builds one pasteable file |
 
 **Start here: [GETTING-STARTED.md](GETTING-STARTED.md)** — prerequisites, creating a project,
 kickoff, features, release, and updating existing projects.
@@ -40,7 +39,7 @@ template/             the product: copied 1:1 into every new project
   AGENTS.md CLAUDE.md .aider.conf.yml .clinerules .continue/ .github/ .claude/ .obsidian/
   prompts/            prompt library (open template/ or a project as Obsidian vault)
   docs/               user-guide, admin-guide, requirements, ADRs, clean-code, security, local-llm
-  scripts/            setup, check, release, hooks, pack-context, req, context-status, stacks/
+  scripts/            setup, check, release, hooks, req, context-status, stacks/
 scripts/              scaffold tools: xaden + install, new-project, update-scaffold, adopt (+ adopt-scan, adopt-lib), fetch (downloads,
                       upgrade), autopilot, setup, check-scaffold, release-scaffold
 docs/requirements/    requirements of the scaffold itself
