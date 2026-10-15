@@ -90,6 +90,22 @@ test_scaffold_update() {
   git -C "$PROJECT" reset -q --hard HEAD~1 && git -C "$PROJECT" clean -qfdx
 }
 
+# REQ-079: an update removes the managed pack script of an older scaffold and leaves the user's own files.
+test_pack_script_removed() {
+  local old="$WORKDIR/variants/legacy-pack" dash=- out script notes
+  script="scripts/pack${dash}context.sh" notes="context${dash}pack.md" # spelled in parts so the guard in assistant-guidance.sh passes
+  rm -rf "$old" && mkdir -p "$WORKDIR/variants" && cp -R "$PROJECT" "$old"
+  printf '#!/usr/bin/env bash\necho old\n' >"$old/$script" && chmod +x "$old/$script"
+  printf '%s\t%s\n' "$(content_sum <"$old/$script")" "$script" >>"$old/.scaffold/manifest"
+  printf 'my notes\n' >"$old/$notes"
+  printf '%s\n' "$notes" >>"$old/.git/info/exclude" # an older scaffold ignored it, so it does not block the update
+  git -C "$old" add "$script" .scaffold/manifest && git -C "$old" commit -q -m "chore: old pack script" --no-verify
+  out="$("$SCAFFOLD_ROOT/scripts/update-scaffold.sh" "$old" --apply)"
+  assert "the update reports the removed script" grep -q "^remove .*$script" <<<"$out"
+  assert_fails "the old script is gone" test -e "$old/$script"
+  assert "the user's own file stays" grep -qx 'my notes' "$old/$notes"
+}
+
 # REQ-017: an update stays inside the project and only touches managed files, whatever the
 # project's committed files say (security review 2026-10-11, findings 1 and 2).
 test_update_safety() {
@@ -179,6 +195,7 @@ test_generation_safety
 test_inbox
 test_setup_and_commit_checks
 test_scaffold_update
+test_pack_script_removed
 test_update_safety
 test_xaden_command
 test_settings_update

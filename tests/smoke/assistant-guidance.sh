@@ -198,6 +198,18 @@ test_look_before_build() {
   assert "feature prompt applies the rule" grep -q 'Look before you build (AGENTS.md' "$PROJECT/prompts/feature.md"
 }
 
+# REQ-079 Xaden supports only assistants with file access: no context pack is left anywhere.
+# The pattern is spelled with brackets so this file does not match itself; the changelog,
+# the requirements and the security reviews keep the history and are not searched.
+test_no_context_pack() {
+  local hits
+  hits="$(cd "$SCAFFOLD_ROOT" && grep -rIlE 'pack[-]context|context[-]pack|xaden[ ]pack' scripts template tests docs/guide \
+    docs/threat-model.md README.md GETTING-STARTED.md .gitignore 2>/dev/null || true)"
+  assert "no file mentions the context pack: ${hits:-none}" test -z "$hits"
+  assert_fails "xaden has no pack command" "$SCAFFOLD_ROOT/scripts/xaden.sh" pack
+  assert "AGENTS.md says Xaden needs file access" grep -q 'Xaden needs an assistant with file access' "$PROJECT/AGENTS.md"
+}
+
 # REQ-061 user personas that assistants check solutions against
 test_personas() {
   local copy="$WORKDIR/variants/personas" persona name
@@ -256,3 +268,4 @@ test_assistant_plugins
 test_look_before_build
 test_personas
 test_scaffold_commands
+test_no_context_pack
