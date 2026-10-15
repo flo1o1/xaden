@@ -11,11 +11,11 @@ You have a working project at the end of this page.
 ## Create the project
 
 ```bash
-xaden new my-app
+xaden create my-app
 cd my-app
 ```
 
-- `xaden new my-app`: creates the folder `my-app` in the current directory, starts a git repository in it and makes the first commit on `main`. If anything fails, it removes the half-created folder.
+- `xaden create my-app`: creates the folder `my-app` in the current directory, starts a git repository in it and makes the first commit on `main`. If anything fails, it removes the half-created folder.
 - `cd my-app`: moves your terminal into the new project.
 
 Check that it worked:
@@ -26,7 +26,7 @@ xaden check
 
 - `xaden check`: runs the project's checks and ends with a summary. A new project passes, because it has no code yet.
 
-To create the project somewhere else, add the folder: `xaden new my-app ~/code/x`.
+To create the project somewhere else, add the folder: `xaden create my-app ~/code/x`.
 
 ## What you got
 
@@ -43,7 +43,7 @@ To create the project somewhere else, add the folder: `xaden new my-app ~/code/x
 Nothing is copied from the Xaden folder into the project. The tooling stays in the installed Xaden, and the project
 pins the version it uses. See [Pin one Xaden version per project](../admin/pin-one-version-per-project.md).
 
-Claude Code users get `CLAUDE.md` with the single line `@AGENTS.md`. `xaden new` asks when a terminal is attached;
+Claude Code users get `CLAUDE.md` with the single line `@AGENTS.md`. `xaden create` asks when a terminal is attached;
 `--assistants claude` answers it in advance.
 
 ## Set up a stack in one step (autopilot)
@@ -51,10 +51,10 @@ Claude Code users get `CLAUDE.md` with the single line `@AGENTS.md`. `xaden new`
 If you already know the stack, let Xaden add the recommended checks, hooks and CI as well:
 
 ```bash
-xaden new --autopilot --stack python my-app
+xaden create --autopilot --stack python my-app
 ```
 
-- `xaden new --autopilot --stack python my-app`: prints one plan and asks once. Use `--stack node` for a Node project.
+- `xaden create --autopilot --stack python my-app`: prints one plan and asks once. Use `--stack node` for a Node project.
 
 The plan covers the layout above, the stack's preset (linter, type checker and test configuration), mode `strict`, hooks, the CI
 workflow and the first commit. It prints the exact install commands for the development tools, with pinned versions. You run
@@ -66,7 +66,7 @@ already holds code, a build file or history stops with a pointer to [Add Xaden t
 
 ## Keep the old layout
 
-`xaden new --classic my-app` creates a project that keeps its own copy of the scripts, prompts and guides, with Claude Code slash
+`xaden create --classic my-app` creates a project that keeps its own copy of the scripts, prompts and guides, with Claude Code slash
 commands. You update it with `xaden update` (see [Update a classic project](../admin/update-a-classic-project.md)). New work should
 use the default layout.
 

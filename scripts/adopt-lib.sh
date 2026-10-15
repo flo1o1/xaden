@@ -91,7 +91,7 @@ note_footprint() {
   grep -qxF "$2 $3" "$1/$FOOTPRINT_FILE" 2>/dev/null || printf '%s %s\n' "$2" "$3" >>"$1/$FOOTPRINT_FILE"
 }
 
-# --- migration: a project created by `xaden new` keeps a copy of the tooling (REQ-071) ---
+# --- migration: a project created by `xaden create` keeps a copy of the tooling (REQ-071) ---
 
 # move_team_content <dir> <from> <to> [except-name]: moves the files of a folder into the xaden
 # folder and leaves the scaffold's template file behind.

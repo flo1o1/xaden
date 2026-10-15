@@ -77,7 +77,7 @@ excludes.
 
 ## A project with its own copy of the tooling
 
-A project created with `xaden new --classic` (it has a `.scaffold/` folder) moves to this layout with the same command. Its
+A project created with `xaden create --classic` (it has a `.scaffold/` folder) moves to this layout with the same command. Its
 requirements, personas and reviews move into `xaden/`, the copied files you did not edit are removed, and the ones you edited stay and
 are listed.
 

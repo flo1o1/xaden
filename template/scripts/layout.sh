@@ -2,7 +2,7 @@
 # Where a project keeps its files (REQ-070). Sourced by lib.sh; do not execute it.
 # Two layouts, one set of scripts:
 #   classic  the scaffold copied scripts, prompts and guides into the project; requirements and
-#            reviews live in docs/. This is what `xaden new` creates.
+#            reviews live in docs/. This is what `xaden create` creates.
 #   adopted  the team content lives in the visible folder xaden/ (requirements, personas,
 #            security reviews, baselines, xaden.conf); the tooling stays in the installed Xaden
 #            and is selected by the version pinned in xaden/xaden.conf.

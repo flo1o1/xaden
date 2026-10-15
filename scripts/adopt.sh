@@ -32,7 +32,7 @@ TOOLS_DIR="$SCAFFOLD_ROOT/template"
 ADOPT_REPO=""
 STOP_AFTER=""          # scan or plan
 ASSUME_YES=0
-CLASSIC=0              # a project created by `xaden new`, with a copy of the tooling
+CLASSIC=0              # a project created by `xaden create`, with a copy of the tooling
 PRESET_CHOICE=ask      # ask, yes, no
 EXIT_UNSUPPORTED=4     # an unsupported hook manager or CI system (a manual step is printed)
 

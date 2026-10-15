@@ -39,5 +39,5 @@ rm -r ~/tools/xaden-<old>
 
 ## Read what changed
 
-`CHANGELOG.md` in the Xaden folder lists the changes of every version. Projects created with `xaden new --classic` are updated with
+`CHANGELOG.md` in the Xaden folder lists the changes of every version. Projects created with `xaden create --classic` are updated with
 `xaden update` ([Update a classic project](update-a-classic-project.md)).

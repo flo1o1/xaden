@@ -1,6 +1,6 @@
 # Update a classic project
 
-Bring a project created with `xaden new --classic` to a newer Xaden. Such a project keeps its own copy of the scripts, prompts and guides.
+Bring a project created with `xaden create --classic` to a newer Xaden. Such a project keeps its own copy of the scripts, prompts and guides.
 A project with an `xaden/` folder pins its version instead; see [Pin one Xaden version per project](pin-one-version-per-project.md). To move a
 classic project to that layout, run `xaden adopt` in it ([details](../developer/add-xaden-to-a-repository.md)).
 

@@ -539,19 +539,19 @@ test_prompts_and_ignore_list() {
 test_autopilot() {
   local base="$WORKDIR/autopilot" project
   rm -rf "$base" && mkdir -p "$base"
-  x_in "$base" new --autopilot --stack python demo
+  x_in "$base" create --autopilot --stack python demo
   assert "without a terminal autopilot prints the plan and changes nothing" test ! -e "$base/demo"
   assert "the plan names the install commands" grep -q 'pip install -r requirements-dev.txt' "$XOUT"
-  x_answers n "$base" new --autopilot --stack python demo
+  x_answers n "$base" create --autopilot --stack python demo
   assert "anything but yes changes nothing" test ! -e "$base/demo"
 
   mkdir -p "$base/existing" && printf 'print(1)\n' >"$base/existing/app.py"
-  x_answers y "$base" new --autopilot --stack python existing
+  x_answers y "$base" create --autopilot --stack python existing
   assert "a folder with code stops and points to adopt" test "$XRC" -eq 2
   assert "it points to xaden adopt" grep -q 'xaden adopt' "$XOUT"
   assert "it changes nothing" test "$(ls -A "$base/existing")" = "app.py"
 
-  PATH="$(path_without curl)" x_answers y "$base" new --autopilot --stack python demo
+  PATH="$(path_without curl)" x_answers y "$base" create --autopilot --stack python demo
   project="$base/demo"
   assert "autopilot succeeds without curl, so it downloads nothing" test "$XRC" -eq 0
   assert "the project is a git repository with the first commit on main" test "$(git -C "$project" branch --show-current)" = "main"
@@ -564,9 +564,9 @@ test_autopilot() {
   assert "nothing is pushed: no remote" test -z "$(git -C "$project" remote)"
   assert "skipped checks end with a warning, never a success sign" bash -c 'tail -n 3 "$1" | grep -q "^WARNING:" && ! grep -q "^OK: all checks passed" "$1"' _ "$XOUT"
 
-  x_answers y "$base" new --autopilot --stack node webapp
+  x_answers y "$base" create --autopilot --stack node webapp
   assert "the node stack prints exact package versions" grep -q 'npm install --save-dev --save-exact eslint@10.12.0' "$XOUT"
-  x_answers y "$base" new --autopilot --stack python demo
+  x_answers y "$base" create --autopilot --stack python demo
   assert "an existing project is not touched again" test "$XRC" -eq 2
 }
 
@@ -591,13 +591,13 @@ test_migration() {
   assert "the migrated project passes the checks" test "$XRC" -eq 0
 }
 
-# REQ-066 `xaden new` creates the same layout `xaden adopt` gives an empty repository
+# REQ-066 `xaden create` creates the same layout `xaden adopt` gives an empty repository
 test_new_project_layout() {
   local base="$WORKDIR/new-layout" project
   rm -rf "$base" && mkdir -p "$base"
-  x_in "$base" new demo
+  x_in "$base" create demo
   project="$base/demo"
-  assert "xaden new succeeds" test "$XRC" -eq 0
+  assert "xaden create succeeds" test "$XRC" -eq 0
   assert "the layout is the xaden folder, as adopt writes it" test -f "$project/xaden/xaden.conf" -a -f "$project/xaden/RULES.md" -a -f "$project/AGENTS.md" -a -d "$project/xaden/baselines"
   assert "the project's own files exist" test -f "$project/README.md" -a -f "$project/.gitignore" -a -f "$project/VERSION" -a -f "$project/CHANGELOG.md" -a -f "$project/SECURITY.md" -a -f "$project/xaden/threat-model.md"
   assert "no copy of the tooling" test ! -e "$project/scripts" -a ! -e "$project/prompts" -a ! -e "$project/.scaffold"
@@ -611,16 +611,16 @@ test_new_project_layout() {
   assert "requirements are created in xaden/requirements" test -f "$project/xaden/requirements/core/REQ-001-first-job.md"
   git -C "$project" checkout -q -- . && git -C "$project" clean -qfd
 
-  x_in "$base" new demo
+  x_in "$base" create demo
   assert "an existing project is not created again" test "$XRC" -eq 2
-  x_in "$base" new --assistants claude with-claude
+  x_in "$base" create --assistants claude with-claude
   assert "--assistants claude adds CLAUDE.md with one line" test "$(cat "$base/with-claude/CLAUDE.md")" = "@AGENTS.md"
-  x_in "$base" new "Bad Name"
+  x_in "$base" create "Bad Name"
   assert "a bad project name is refused" test "$XRC" -ne 0
-  GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=user.useConfigOnly GIT_CONFIG_VALUE_0=true x_in "$base" env -u GIT_AUTHOR_NAME -u GIT_AUTHOR_EMAIL -u GIT_COMMITTER_NAME -u GIT_COMMITTER_EMAIL "$XADEN" new fails
+  GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=user.useConfigOnly GIT_CONFIG_VALUE_0=true x_in "$base" env -u GIT_AUTHOR_NAME -u GIT_AUTHOR_EMAIL -u GIT_COMMITTER_NAME -u GIT_COMMITTER_EMAIL "$XADEN" create fails
   assert "a failed creation fails" test "$XRC" -ne 0
   assert "a failed creation leaves no partial folder" test ! -e "$base/fails"
-  x_in "$base" new --classic classic
+  x_in "$base" create --classic classic
   assert "--classic keeps the copied layout" test -f "$base/classic/scripts/check.sh" -a ! -e "$base/classic/xaden"
 
   # a stack that appears later is noticed, and the preset can be added
@@ -636,7 +636,7 @@ test_new_project_layout() {
   # release works without guides
   if need_tool gitleaks "release in an adopted project"; then
     local rel="$base/rel"
-    x_in "$base" new rel
+    x_in "$base" create rel
     x_in "$rel" release minor
     assert "a release is blocked while the security documents have TODO markers" test "$XRC" -ne 0
     assert "the unfilled documents are named" grep -q 'unfilled TODO marker' "$XOUT"

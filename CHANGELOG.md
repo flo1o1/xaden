@@ -8,16 +8,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - `xaden adopt` puts Xaden beneath an existing repository without changing its build, on its own branch and worktree: `--scan` reports what the repository has, `--plan` prints the exact diff, applying creates the folder `xaden/`, a marked block in `AGENTS.md` and, for Claude Code users, `CLAUDE.md` with one line. Your tests and linters are run through `xaden/xaden.conf`, existing hooks and workflows are chained or left alone, and gaps can be filled with Xaden's Python or Node preset as a separate commit. `xaden remove` undoes it (REQ-066, REQ-067, REQ-069, REQ-070, REQ-073).
 - Check modes `advisory`, `changed-files` and `strict` and baselines in `xaden/baselines/` that only shrink, so legacy findings never block a team that adopts Xaden (REQ-068).
 - The tooling stays in the installed Xaden and is selected by the version and checksum pinned in `xaden/xaden.conf`. `xaden doctor`, `xaden fetch` and `xaden upgrade` keep a team on one version; nothing downloads without a typed yes, and a download is installed only if its checksum matches (REQ-071, REQ-072).
-- `xaden new --autopilot --stack python|node` sets up a new project with the recommended checks, hooks and CI after one confirmation (REQ-076).
+- `xaden create --autopilot --stack python|node` sets up a new project with the recommended checks, hooks and CI after one confirmation (REQ-076).
 - `xaden ignore-list` prints the paths Xaden owns for `.dockerignore` and archive excludes (REQ-075).
 - Every message is one of four kinds with a fixed sign (🐉 question, ⚠️ warning, 🔥 error, ✅ success) and a plain-text form (`[?]`, `WARNING:`, `ERROR:`, `OK:`) when output is not a terminal, in CI, with `XADEN_PLAIN=1` or without a UTF-8 locale (REQ-074).
 - `xaden prompt`, `doc`, `rules`, `context`, `persona`, `preset` and `release` for repositories that adopted Xaden.
 - Signed releases: `scripts/sign-release.sh` signs the tree checksum of a tagged release with an SSH key, `xaden fetch` and `xaden upgrade` verify it against `release-signers` and pin the signed checksum; a bad signature stops with exit code 6 (REQ-077, `docs/release-signing.md`). The maintainer still has to add the public key to `release-signers`.
 
 ### Changed
-- `xaden new` creates the `xaden/` layout, the same one `xaden adopt` gives an empty repository: no copied scripts, prompts or guides, the Xaden version pinned in `xaden/xaden.conf`, a README, `VERSION` and `CHANGELOG.md`, mode `strict`, hooks and a CI workflow. The old layout is `xaden new --classic` and keeps `xaden update` (REQ-066).
+- `xaden create` creates the `xaden/` layout, the same one `xaden adopt` gives an empty repository: no copied scripts, prompts or guides, the Xaden version pinned in `xaden/xaden.conf`, a README, `VERSION` and `CHANGELOG.md`, mode `strict`, hooks and a CI workflow. The old layout is `xaden create --classic` and keeps `xaden update` (REQ-066).
 - Warnings print `WARNING:` instead of `WARN:` in plain output, and a run that passed prints `OK: all checks passed`.
-- A project created by `xaden new` can move to the adopted layout with `xaden adopt`.
+- A project created by `xaden create` can move to the adopted layout with `xaden adopt`.
 
 ## [0.2.3] - 2026-10-13
 

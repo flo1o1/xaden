@@ -112,14 +112,14 @@ test_install_ways() {
   assert "guide explains the clone update" grep -q 'git -C ~/.xaden pull' "$update"
   assert "guide explains picking a release tag" grep -q 'git -C ~/.xaden checkout v' "$update"
 
-  # The zip way: an archive has no .git; install.sh and xaden new must still work from it.
+  # The zip way: an archive has no .git; install.sh and xaden create must still work from it.
   version="$(tr -d '[:space:]' <"$SCAFFOLD_ROOT/VERSION")"
   mkdir -p "$extracted"
   git -C "$SCAFFOLD_ROOT" archive HEAD | tar -x -C "$extracted"
   assert "extracted archive has no git history" test ! -e "$extracted/.git"
   assert "extracted archive installs the xaden command" "$extracted/scripts/install.sh" "$WORKDIR/zip-bin"
   assert "xaden from the archive prints the version" test "$("$WORKDIR/zip-bin/xaden" version)" = "$version"
-  assert "xaden from the archive creates a project" bash -c "cd '$WORKDIR' && '$WORKDIR/zip-bin/xaden' new zip-app"
+  assert "xaden from the archive creates a project" bash -c "cd '$WORKDIR' && '$WORKDIR/zip-bin/xaden' create zip-app"
   # The documented zip update: a second extraction replaces the link only after the first is uninstalled.
   mkdir -p "$extracted-next"
   git -C "$SCAFFOLD_ROOT" archive HEAD | tar -x -C "$extracted-next"

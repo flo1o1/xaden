@@ -35,15 +35,16 @@ usage() {
 Usage: xaden <command> [args...]
 
 Start and keep (any directory):
-  new <name> [dir]   create a project in ./<name>, or in <dir>, with the xaden/ layout
-  new --autopilot --stack python|node <name>
+  create <name> [dir]
+                     create a project in ./<name>, or in <dir>, with the xaden/ layout
+  create --autopilot --stack python|node <name>
                      create it with the recommended setup after one confirmation
-  new --classic <name> [dir]
+  create --classic <name> [dir]
                      create a project that keeps its own copy of the tooling (update it with `xaden update`)
   adopt [--scan|--plan]
                      add Xaden to the repository you are in, on a branch (scan and plan change nothing)
   remove             take Xaden out of the repository you are in
-  update [--apply]   bring a project created by `new` to this Xaden version (dry run without --apply)
+  update [--apply]   bring a project created by `create` to this Xaden version (dry run without --apply)
   version            print the installed Xaden version
   help               show this list
 
@@ -67,7 +68,7 @@ Project commands (anywhere inside a project):
                      context pack for chat tools
   context            rule IDs, requirement counts and the CONTEXT CHECK fingerprint
   persona new <name> create a user persona
-  release <part>     cut a release: major, minor or patch (projects created by `new`)
+  release <part>     cut a release: major, minor or patch (projects created by `create`)
 EOF
 }
 
@@ -223,7 +224,7 @@ preset_main() {
   echo "  $(preset_install_command "$stack")"
 }
 
-# classic_project_command <command> <root> <args...>: the project's own scripts (projects created by `new`).
+# classic_project_command <command> <root> <args...>: the project's own scripts (projects created by `create`).
 classic_project_command() {
   local command=$1 root=$2 script
   shift 2
@@ -246,10 +247,11 @@ main() {
   local command=${1:-help} root
   [ "$#" -gt 0 ] && shift
   case "$command" in
-    new)
+    create | new)
+      [ "$command" = new ] && warn "xaden new is now called xaden create; the old name still works"
       if [ "${1:-}" = "--classic" ]; then
         shift
-        [ -n "${1:-}" ] || die "usage: xaden new --classic <name> [dir]"
+        [ -n "${1:-}" ] || die "usage: xaden create --classic <name> [dir]"
         exec "$SCAFFOLD_ROOT/scripts/new-project.sh" "$1" "${2:-$PWD/$1}"
       fi
       exec "$SCAFFOLD_ROOT/scripts/create.sh" "$@"
