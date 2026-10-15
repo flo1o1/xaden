@@ -3,7 +3,7 @@ id: REQ-079
 type: job
 epic: assistant-guidance
 priority: should
-status: in-progress
+status: done
 updated: 2026-10-15
 ---
 
