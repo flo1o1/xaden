@@ -9,6 +9,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - Check modes `advisory`, `changed-files` and `strict` and baselines in `xaden/baselines/` that only shrink, so legacy findings never block a team that adopts Xaden (REQ-068).
 - The tooling stays in the installed Xaden and is selected by the version and checksum pinned in `xaden/xaden.conf`. `xaden doctor`, `xaden fetch` and `xaden upgrade` keep a team on one version; nothing downloads without a typed yes, and a download is installed only if its checksum matches (REQ-071, REQ-072).
 - `xaden create --autopilot --stack python|node` sets up a new project with the recommended checks, hooks and CI after one confirmation (REQ-076).
+- Claude Code users get a slash command for each default prompt (`/feature`, `/bugfix`, ...) in an adopted or created project; each asks the assistant to run `xaden prompt <name>`, existing files are never overwritten, `xaden remove` deletes only the created ones and `xaden upgrade` follows the new prompt list (REQ-080).
 - `xaden ignore-list` prints the paths Xaden owns for `.dockerignore` and archive excludes (REQ-075).
 - Every message is one of four kinds with a fixed sign (🐉 question, ⚠️ warning, 🔥 error, ✅ success) and a plain-text form (`[?]`, `WARNING:`, `ERROR:`, `OK:`) when output is not a terminal, in CI, with `XADEN_PLAIN=1` or without a UTF-8 locale (REQ-074).
 - `xaden prompt`, `doc`, `rules`, `context`, `persona`, `preset` and `release` for repositories that adopted Xaden.

@@ -8,7 +8,13 @@ You finished the [kickoff](kick-off-with-your-assistant.md), so the project has 
 
 ## Build one feature
 
-Tell your assistant:
+In Claude Code, type:
+
+```text
+/feature <what users can do afterwards>
+```
+
+In any other assistant, tell it:
 
 ```text
 Run `xaden prompt feature` and follow it. Feature: <what users can do afterwards>
@@ -30,15 +36,17 @@ and so is a `feat` commit without a `Refs:` line. Loosening a linter setting or 
 
 ## Other tasks
 
-| You want to | Tell the assistant to run |
-|-------------|---------------------------|
-| Fix a bug (failing test first) | `xaden prompt bugfix` |
-| Refactor without changing behavior | `xaden prompt refactor` |
-| Review code | `xaden prompt code-review` |
-| Review security | `xaden prompt security-review` |
-| Change or add requirements | `xaden prompt requirements-update` |
-| Update documentation | `xaden prompt documentation` |
-| Create a user persona | `xaden prompt persona` |
+Claude Code has a slash command for each prompt; other assistants run the `xaden prompt` command.
+
+| You want to | Claude Code | Tell another assistant to run |
+|-------------|-------------|-------------------------------|
+| Fix a bug (failing test first) | `/bugfix` | `xaden prompt bugfix` |
+| Refactor without changing behavior | `/refactor` | `xaden prompt refactor` |
+| Review code | `/review` | `xaden prompt code-review` |
+| Review security | `/security` | `xaden prompt security-review` |
+| Change or add requirements | `/requirements` | `xaden prompt requirements-update` |
+| Update documentation | `/docs` | `xaden prompt documentation` |
+| Create a user persona | `/persona` | `xaden prompt persona` |
 
 Changed your mind during a feature? Say so; the assistant updates the requirement first and then the code.
 

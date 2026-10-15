@@ -83,8 +83,10 @@ are listed.
 
 ## Working with assistants afterwards
 
-There are no slash commands in this layout. Assistants run `xaden prompt kickoff`, `xaden prompt feature` and so on to print the task
-prompt. A prompt of the same name in `xaden/prompts/` replaces the default.
+Claude Code users get a slash command for each prompt (`/kickoff`, `/feature`, `/bugfix` and so on) in `.claude/commands/`. Each one only
+tells the assistant to run `xaden prompt <name>`; a file of the same name that exists already stays as it is. Other assistants run
+`xaden prompt kickoff`, `xaden prompt feature` and so on to print the task prompt. A prompt of the same name in `xaden/prompts/`
+replaces the default for both.
 
 ## Next
 
