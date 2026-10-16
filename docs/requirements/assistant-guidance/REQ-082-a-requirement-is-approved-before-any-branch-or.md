@@ -3,8 +3,8 @@ id: REQ-082
 type: job
 epic: assistant-guidance
 priority: should
-status: approved
-updated: 2026-10-15
+status: in-progress
+updated: 2026-10-16
 ---
 
 # A requirement is approved before any branch or worktree exists
