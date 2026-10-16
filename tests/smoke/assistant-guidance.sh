@@ -270,20 +270,30 @@ test_personas() {
 
 # REQ-055 maintainers use the project commands on the scaffold itself
 test_scaffold_commands() {
-  local name prompt mapped
+  local name prompt
   for name in bugfix refactor review security; do
     prompt="$(sed -n 's|^@template/prompts/\(.*\)$|\1|p' "$SCAFFOLD_ROOT/.claude/commands/$name.md")"
     assert "/$name includes an existing template prompt" test -n "$prompt" -a -f "$SCAFFOLD_ROOT/template/prompts/$prompt"
   done
   assert "AGENTS.md maps prompt paths for the scaffold" grep -q '^## Using the project commands here' "$SCAFFOLD_ROOT/AGENTS.md"
-  # shellcheck disable=SC2016 # backticks are Markdown in AGENTS.md, not command substitution
-  mapped="$(sed -n 's/^| `scripts\/context-status.sh` | `\(.*\)` |$/\1/p' "$SCAFFOLD_ROOT/AGENTS.md")"
-  assert "AGENTS.md maps the context status for the scaffold" test -n "$mapped"
-  assert "mapped context status prints no error" bash -c "cd '$SCAFFOLD_ROOT' && test -z \"\$($mapped 2>&1 >/dev/null)\""
-  assert "mapped context status lists the CC rules" bash -c "cd '$SCAFFOLD_ROOT' && $mapped | grep -q '^rules: CC-01 '"
   assert "scaffold threat model names entry points" grep -q '^## Entry points' "$SCAFFOLD_ROOT/docs/threat-model.md"
   assert_fails "projects get no scaffold commands" grep -rq 'template/prompts' "$PROJECT/.claude/commands"
   assert_fails "projects get no scaffold threat model" grep -q 'Xaden' "$PROJECT/docs/threat-model.md"
+}
+
+# REQ-085 xaden runs the project commands on the scaffold itself
+test_xaden_in_scaffold() {
+  local xaden="$SCAFFOLD_ROOT/scripts/xaden.sh" lookalike
+  assert "xaden req shows a scaffold requirement" bash -c "cd '$SCAFFOLD_ROOT' && '$xaden' req show REQ-055 | grep -q '^id: REQ-055'"
+  assert "xaden context covers the scaffold rules" bash -c "cd '$SCAFFOLD_ROOT' && '$xaden' context | grep -q '^rules: CC-01 '"
+  # a full run would recurse into this test; a bad flag proves the dispatch to check-scaffold.sh
+  assert "xaden check runs check-scaffold.sh" bash -c "cd '$SCAFFOLD_ROOT' && '$xaden' check --bogus 2>&1 | grep -q 'check-scaffold.sh'"
+  lookalike="$(mktemp -d)"
+  git -C "$lookalike" init -q
+  mkdir -p "$lookalike/template/scripts"
+  : >"$lookalike/template/scripts/req.sh"
+  assert "a repository with only a template folder is no scaffold" bash -c "cd '$lookalike' && '$xaden' req list 2>&1 | grep -q 'not a Xaden project'"
+  rm -rf "$lookalike"
 }
 
 test_template_contents
@@ -299,4 +309,5 @@ test_assistant_plugins
 test_look_before_build
 test_personas
 test_scaffold_commands
+test_xaden_in_scaffold
 test_no_context_pack

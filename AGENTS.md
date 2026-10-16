@@ -7,7 +7,7 @@ This repository **is the scaffold**. Read this before changing it.
   `CC-01`…`CC-09` in its section 3 and the grounding rules in its section 0.
 - The scaffold's own requirements are in `docs/requirements/` (one file per requirement, this
   repository, not the template). Update them first when scope changes; look them up with
-  `PROJECT_ROOT=. template/scripts/req.sh show REQ-nnn`, never from memory.
+  `xaden req show REQ-nnn`, never from memory.
 - Commits: Conventional Commits; `feat` needs `Refs: REQ-nnn` from **this** repository's
   requirements; `CC-nn` IDs are resolved against `template/AGENTS.md`.
 - Branch names: prefix the slug with the ID of the related requirement, e.g. `feat/req-066-adopt`
@@ -60,13 +60,12 @@ secret other than `GITHUB_TOKEN`: the scaffold holds no site credential and neve
 ## Using the project commands here (REQ-055)
 
 `/bugfix`, `/refactor`, `/review` and `/security` in `.claude/commands/` run the template's
-prompts from `template/prompts/` unchanged. Where a prompt names a project path, use:
+prompts from `template/prompts/` unchanged. `xaden check`, `xaden req` and `xaden context` work at
+the root as in any project (REQ-085; `xaden check` is `scripts/check-scaffold.sh`, full run
+`STRICT=1 xaden check`). Where a prompt names another project path, use:
 
 | Prompt says | In this repository |
 |-------------|--------------------|
-| `scripts/check.sh` | `scripts/check-scaffold.sh` (full run: `STRICT=1 scripts/check-scaffold.sh`) |
-| `scripts/req.sh …` | `PROJECT_ROOT=. template/scripts/req.sh …` |
-| `scripts/context-status.sh` | `PROJECT_ROOT=. RULES_FILE=template/AGENTS.md template/scripts/context-status.sh` |
 | `AGENTS.md` | this file, plus the rules in `template/AGENTS.md` |
 | `docs/clean-code.md`, `docs/security.md` | `template/docs/clean-code.md`, `template/docs/security.md` |
 | `docs/architecture.md` | the "Layout" section of `README.md` and this file |

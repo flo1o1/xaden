@@ -598,7 +598,6 @@ test_modes_and_baselines() {
 
   # the baseline shrinks when a violation is fixed, and never grows
   printf '#!/bin/sh\necho "$1"\n' >"$worktree/scripts/build.sh"
-  env -u CI "$XADEN" check >/dev/null 2>&1 || true # (cwd is not the project: harmless)
   (cd "$worktree" && env -u CI "$XADEN" check) >"$XOUT" 2>&1 || true
   assert "a fixed violation leaves the baseline" test ! -s "$baseline"
   assert "the baseline says it shrank" grep -q 'shrank by 1' "$XOUT"
