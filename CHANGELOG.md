@@ -17,6 +17,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - Signed releases: `scripts/sign-release.sh` signs the tree checksum of a tagged release with an SSH key, `xaden fetch` and `xaden upgrade` verify it against `release-signers` and pin the signed checksum; a bad signature stops with exit code 6 (REQ-077, `docs/release-signing.md`). The maintainer still has to add the public key to `release-signers`.
 
 ### Changed
+- A new requirement is drafted in the chat and approved before any branch or worktree exists; the worktree then starts sparse (requirements folder and the scripts that check it) and is widened when implementation starts. This is in the rules, the feature and requirements-update prompts and `xaden/RULES.md` of adopted projects (REQ-082, REQ-060).
 - `xaden create` creates the `xaden/` layout, the same one `xaden adopt` gives an empty repository: no copied scripts, prompts or guides, the Xaden version pinned in `xaden/xaden.conf`, a README, `VERSION` and `CHANGELOG.md`, mode `strict`, hooks and a CI workflow. The old layout is `xaden create --classic` and keeps `xaden update` (REQ-066).
 - Warnings print `WARNING:` instead of `WARN:` in plain output, and a run that passed prints `OK: all checks passed`.
 - A project created by `xaden create` can move to the adopted layout with `xaden adopt`.
