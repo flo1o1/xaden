@@ -27,6 +27,8 @@ SCAFFOLD_ROOT="$(cd "$(dirname "$(resolve_link "${BASH_SOURCE[0]}")")/.." && pwd
 source "$SCAFFOLD_ROOT/template/scripts/lib.sh"
 # shellcheck source=SCRIPTDIR/scaffold-lib.sh
 source "$SCAFFOLD_ROOT/scripts/scaffold-lib.sh"
+# shellcheck source=SCRIPTDIR/../template/scripts/update-check-lib.sh
+source "$SCAFFOLD_ROOT/template/scripts/update-check-lib.sh"
 
 TOOLS="$SCAFFOLD_ROOT/template/scripts"
 
@@ -53,6 +55,8 @@ Inside a project that adopted Xaden:
   fetch <version>    install the pinned version if it is missing (asks first)
   upgrade [--check] [version]
                      move the project to a newer Xaden on a branch for a pull request
+  update-check [--now]
+                     look for a newer Xaden and outdated dependencies (the setting update-check decides whether and how often)
   rules              regenerate xaden/RULES.md from the pinned version
   preset <python|node>
                      add Xaden's preset for a stack and map its checks
@@ -131,6 +135,15 @@ doctor_main() {
     warn "Xaden $pinned is not installed. Install it with: xaden fetch $pinned"
     exit 1
   fi
+  print_update_check "$root"
+}
+
+# print_update_check <root>: the update-check setting in effect and the cached result. No network.
+print_update_check() {
+  local setting
+  setting="$(update_check_setting "$1/xaden/xaden.conf")"
+  info "update check: ${setting% *} (${setting#* })"
+  update_check_print_cached "$1"
 }
 
 # hook_main <root> <name> <args...>: what the git hooks of an adopted project run.
@@ -264,6 +277,7 @@ main() {
     doctor) doctor_main ;;
     fetch) exec "$SCAFFOLD_ROOT/scripts/fetch.sh" fetch "$@" ;;
     upgrade) exec "$SCAFFOLD_ROOT/scripts/fetch.sh" upgrade "$@" ;;
+    update-check) exec "$SCAFFOLD_ROOT/scripts/fetch.sh" update-check "$@" ;;
     setup | check | req | context | persona | release | hook | prompt | doc | rules | ignore-list | preset)
       root="$(project_root)"
       if is_adopted "$root"; then

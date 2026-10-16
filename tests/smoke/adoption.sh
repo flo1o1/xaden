@@ -716,7 +716,7 @@ test_update_check() {
   cache="$repo/.git/xaden-update-check"
   now="$(date +%s)"
   printf '{"tag_name": "v9.9.9"}\n' >"$latest"
-  stub_tool "$stubs" npm "left-pad 1.0.0 1.3.0"
+  stub_tool "$stubs" npm $'Package Current Wanted Latest\nleft-pad 1.0.0 1.3.0 1.3.0'
   export XADEN_LATEST_URL="file://$latest"
   local saved_path=$PATH
   export PATH="$stubs:$PATH"

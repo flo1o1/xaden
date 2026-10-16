@@ -12,6 +12,8 @@ SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="${PROJECT_ROOT:-$(cd "$SCRIPTS/.." && pwd)}"
 # shellcheck source=SCRIPTDIR/lib.sh
 source "$SCRIPTS/lib.sh"
+# shellcheck source=SCRIPTDIR/update-check-lib.sh
+source "$SCRIPTS/update-check-lib.sh"
 # Where the CC-nn rules are defined (RULES_FILE) and the clean-code guide (CLEAN_CODE_FILE).
 layout_init "$ROOT"
 
@@ -45,3 +47,5 @@ requirement_summary() {
 echo "CONTEXT CHECK $(fingerprint)"
 echo "rules: $(rule_ids)"
 echo "requirements: $(requirement_summary)"
+# REQ-084 the cached result of the update check, if the person turned it on; never the network
+update_check_print_cached "$ROOT"

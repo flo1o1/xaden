@@ -2,11 +2,13 @@
 # The only script of Xaden that talks to the network (REQ-072), and the version changes built on it.
 # Usage: xaden fetch <version>             install the version this project pins, after you confirm
 #        xaden upgrade [--check] [version] move the project to a newer Xaden on a branch
+#        xaden update-check [--if-due|--now] look for a newer Xaden and outdated dependencies (REQ-084)
 # Nothing downloads without a person's yes: the question shows version, source and checksum, ends
 # the output, and anything but yes means no. Without a terminal nothing downloads and the command
 # exits with code 3 and prints the command to run. A yes is not remembered. A download is installed
 # only when its checksum equals the one pinned in xaden/xaden.conf. A test greps every other script
-# for network calls.
+# for network calls. The update check is the one lookup that needs no yes each time: the setting
+# `update-check` (off by default) is the person's consent, and it only reports, never installs.
 set -euo pipefail
 
 SCAFFOLD_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -14,6 +16,8 @@ SCAFFOLD_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$SCAFFOLD_ROOT/template/scripts/lib.sh"
 # shellcheck source=SCRIPTDIR/scaffold-lib.sh
 source "$SCAFFOLD_ROOT/scripts/scaffold-lib.sh"
+# shellcheck source=SCRIPTDIR/../template/scripts/update-check-lib.sh
+source "$SCAFFOLD_ROOT/template/scripts/update-check-lib.sh"
 
 EXIT_NO_TERMINAL=3     # nothing was downloaded because nobody could be asked
 EXIT_CHECKSUM=5        # the download does not match the pinned checksum
@@ -247,10 +251,77 @@ upgrade_main() {
   ok "branch $branch is ready in $worktree; push it and open the pull request your team reviews"
 }
 
+# outdated_dependencies <root>: one line about the project's own dependencies. Reports only; never
+# updates anything. shortcut: npm and pip only, no timeout around them; add more stacks on request.
+outdated_dependencies() {
+  local root=$1 parts="" names
+  if [ -f "$root/package.json" ]; then
+    if command -v npm >/dev/null 2>&1; then
+      names="$(cd "$root" && { npm outdated || true; } 2>/dev/null | awk 'NR > 1 { print $1 }' | paste -sd, - | sed 's/,/, /g')"
+      parts="npm: ${names:-up to date}"
+    else
+      parts="npm: not checked (npm is not installed)"
+    fi
+  fi
+  if [ -f "$root/pyproject.toml" ] || ls "$root"/requirements*.txt >/dev/null 2>&1; then
+    if command -v pip >/dev/null 2>&1; then
+      names="$(cd "$root" && { pip list --outdated --format=freeze || true; } 2>/dev/null | sed 's/==.*//' | paste -sd, - | sed 's/,/, /g')"
+      parts="${parts:+$parts; }pip: ${names:-up to date}"
+    else
+      parts="${parts:+$parts; }pip: not checked (pip is not installed)"
+    fi
+  fi
+  printf 'Dependencies: %s\n' "${parts:-no npm or pip project found}"
+}
+
+# update_check_main [--if-due|--now]
+# By hand it checks now (refused while the setting is off); --now checks regardless; --if-due is
+# what commands call: silent, only when the interval has passed, and never an error for a network that is down.
+update_check_main() {
+  local mode=manual root conf setting value origin seconds cache newest installed pinned tmp
+  case "${1:-}" in
+    "") ;;
+    --if-due) mode=due ;;
+    --now) mode=now ;;
+    *) die "usage: xaden update-check [--if-due|--now]" ;;
+  esac
+  root="$(git rev-parse --show-toplevel 2>/dev/null)" || die "run this inside a project (no git repository here)"
+  conf="$root/xaden/xaden.conf"
+  setting="$(update_check_setting "$conf")"
+  value="${setting% *}"
+  origin="${setting#* }"
+  seconds="$(update_check_seconds "$value")" || die "update-check = $value ($origin) is not valid. Use $UPDATE_CHECK_FORMS"
+  if [ "$seconds" = 0 ] && [ "$mode" != now ]; then
+    [ "$mode" = due ] && return 0
+    die "update-check is off ($origin). Turn it on with update-check = 1d in xaden/xaden.conf, or run: xaden update-check --now"
+  fi
+  cache="$(update_check_cache "$root")" || die "run this inside a git repository"
+  if [ "$mode" = due ] && ! update_check_is_due "$cache" "$seconds"; then return 0; fi
+  if ! newest="$(latest_version 2>/dev/null)" || [ -z "$newest" ]; then
+    [ "$mode" = due ] && return 0
+    die "could not read the newest version from $LATEST_URL"
+  fi
+  installed="$(tr -d '[:space:]' <"$SCAFFOLD_ROOT/VERSION")"
+  pinned="$(conf_get "$conf" version "$installed")"
+  tmp="$(mktemp)"
+  {
+    printf 'checked %s\n' "$(update_check_now)"
+    if [ "$newest" = "$pinned" ]; then
+      printf 'Xaden: pinned %s, installed %s, up to date\n' "$pinned" "$installed"
+    else
+      printf 'Xaden: pinned %s, installed %s, newest %s (move the project with: xaden upgrade %s)\n' "$pinned" "$installed" "$newest" "$newest"
+    fi
+    outdated_dependencies "$root"
+  } >"$tmp"
+  mv "$tmp" "$cache"
+  [ "$mode" = due ] || update_check_print_cached "$root"
+}
+
 command_name=${1:-}
 [ "$#" -eq 0 ] || shift
 case "$command_name" in
   fetch) fetch_main "$@" ;;
   upgrade) upgrade_main "$@" ;;
-  *) die "usage: fetch.sh fetch <version> | upgrade [--check] [version]" ;;
+  update-check) update_check_main "$@" ;;
+  *) die "usage: fetch.sh fetch <version> | upgrade [--check] [version] | update-check [--if-due|--now]" ;;
 esac
