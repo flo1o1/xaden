@@ -3,7 +3,7 @@ id: REQ-083
 type: job
 epic: quality-gates
 priority: should
-status: approved
+status: in-progress
 updated: 2026-10-16
 ---
 
