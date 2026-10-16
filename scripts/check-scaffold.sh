@@ -29,6 +29,17 @@ test_semgrep_rules() {
   return "$status"
 }
 
+# warn_shellcheck_version: CI pins the version in .github/shellcheck.version; others may flag different things.
+warn_shellcheck_version() {
+  local pinned local_version
+  has_command shellcheck || return 0
+  pinned="$(sed -n 's/^SHELLCHECK_VERSION=//p' "$ROOT/.github/shellcheck.version")"
+  local_version="$(shellcheck --version | sed -n 's/^version: //p')"
+  [ "$pinned" = "$local_version" ] ||
+    warn "shellcheck $local_version here, CI pins $pinned (.github/shellcheck.version): CI may flag findings this run does not"
+}
+
+REAL_ROOT="$ROOT" # the staged snapshot has no .git
 if [ "$MODE" = "staged" ]; then
   enter_staged_snapshot "$ROOT" # checks see exactly the staged content (REQ-020)
   ROOT="$SNAPSHOT"
@@ -40,6 +51,8 @@ run_tool "scaffold traceability" env PROJECT_ROOT="$ROOT" "$TEMPLATE_SCRIPTS/che
 run_tool "site pages" "$ROOT/scripts/check-site-pages.sh" "$ROOT" # REQ-064
 run_tool "template requirements format" env PROJECT_ROOT="$ROOT/template" ALLOW_TEMPLATE_PLACEHOLDERS=1 "$TEMPLATE_SCRIPTS/check-requirements.sh"
 run_tool "template docs structure" env PROJECT_ROOT="$ROOT/template" "$TEMPLATE_SCRIPTS/check-docs.sh"
+run_tool "git hooks path" "$ROOT/scripts/check-hooks-path.sh" "$REAL_ROOT"
+warn_shellcheck_version
 lint_shell "$MODE"
 scan_secrets "$MODE"
 # tests/semgrep holds deliberately vulnerable fixtures; scan everything else.

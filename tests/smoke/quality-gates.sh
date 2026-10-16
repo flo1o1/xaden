@@ -334,6 +334,47 @@ test_ci_credentials() {
     grep -q 'prefix the slug with the ID of the related requirement' "$SCAFFOLD_ROOT/AGENTS.md"
 }
 
+# REQ-083 the maintainer hooks run locally and refuse what CI refuses
+# shellcheck disable=SC2016 # the bash -c scripts read their arguments as $1 and $2
+test_maintainer_hooks() {
+  local clone="$WORKDIR/scaffold-clone" remote="$WORKDIR/scaffold-remote.git" worktree="$WORKDIR/scaffold-clone-wt" long
+  mkdir -p "$clone"
+  (cd "$SCAFFOLD_ROOT" && tar -cf - .githooks scripts template docs/requirements) | tar -x -C "$clone"
+  git -C "$clone" init -q -b main
+  "$clone/scripts/setup.sh" >/dev/null 2>&1 || true # the tool report may be INCOMPLETE here; the hooks path is what counts
+  assert "setup sets core.hooksPath to .githooks" test "$(git -C "$clone" config core.hooksPath)" = ".githooks"
+  assert "core.hooksPath is a directory that exists" test -d "$clone/.githooks"
+  assert "hooks path check passes" "$clone/scripts/check-hooks-path.sh" "$clone"
+  git -C "$clone" add -A
+  git -C "$clone" commit -q --no-verify -m "chore: scratch scaffold"
+  git -C "$clone" worktree add -q "$worktree" -b scratch
+  assert "a relative hooks path resolves inside each worktree" \
+    test "$(git -C "$worktree" rev-parse --path-format=absolute --git-path hooks 2>/dev/null)" = "$(cd "$worktree" && pwd -P)/.githooks"
+  git -C "$clone" config core.hooksPath /nonexistent/hooks
+  assert_fails_with "a hooks path that does not exist fails the check and is named" '/nonexistent/hooks' "$clone/scripts/check-hooks-path.sh" "$clone"
+  git -C "$clone" config core.hooksPath .githooks
+
+  long="chore: $(printf 'x%.0s' $(seq 1 80))"
+  assert "commit-msg accepts a feat with Refs in the trailer block" \
+    bash -c 'cd "$1" && .githooks/commit-msg "$2"' _ "$clone" "$(msg 'feat(x): add it\n\nRefs: REQ-004\nCo-Authored-By: a <a@example.invalid>\n')"
+  assert_fails_with "commit-msg refuses Refs outside the last paragraph" "'Refs: REQ-nnn' trailer" \
+    bash -c 'cd "$1" && .githooks/commit-msg "$2"' _ "$clone" "$(msg 'feat(x): add it\n\nRefs: REQ-004\n\nCo-Authored-By: a <a@example.invalid>\n')"
+  assert_fails_with "commit-msg refuses a feat without Refs" "'Refs: REQ-nnn' trailer" \
+    bash -c 'cd "$1" && .githooks/commit-msg "$2"' _ "$clone" "$(msg 'feat(x): add it\n')"
+  assert_fails_with "commit-msg refuses a subject over 72 characters" "Conventional Commits" \
+    bash -c 'cd "$1" && .githooks/commit-msg "$2"' _ "$clone" "$(msg "$long\n")"
+
+  git init -q --bare -b main "$remote"
+  git -C "$clone" remote add origin "$remote"
+  git -C "$clone" push -q --no-verify origin main
+  git -C "$clone" commit -q --no-verify --allow-empty -m "chore: fine"
+  assert "pre-push lets good commit messages through" git -C "$clone" push -q origin main
+  git -C "$clone" commit -q --no-verify --allow-empty -m "feat(x): no requirement"
+  assert_fails_with "pre-push refuses a feat without Refs" "'Refs: REQ-nnn' trailer" git -C "$clone" push -q origin main
+  assert "the refused push left the remote untouched" \
+    test "$(git -C "$remote" rev-parse main)" != "$(git -C "$clone" rev-parse main)"
+}
+
 test_quiet_output
 test_generated_project
 test_commit_bypasses
@@ -344,3 +385,4 @@ test_staged_snapshot
 test_stack_enforcement
 test_optional_tools
 test_ci_credentials
+test_maintainer_hooks

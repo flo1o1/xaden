@@ -22,8 +22,11 @@ jobs:
       - name: Install analysis tools (Linux)
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y shellcheck
+          . .github/shellcheck.version
+          archive="shellcheck-v${SHELLCHECK_VERSION}.linux.x86_64.tar.xz"
+          curl -fsSLO "https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VERSION}/${archive}"
+          echo "${SHELLCHECK_SHA256}  ${archive}" | sha256sum -c -
+          tar -xJf "$archive" && sudo install "shellcheck-v${SHELLCHECK_VERSION}/shellcheck" /usr/local/bin/shellcheck
           pipx install "semgrep==1.180.0"
           pipx install "ruff==0.16.10"
           archive="gitleaks_8.30.1_linux_x64.tar.gz"
