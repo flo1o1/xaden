@@ -11,7 +11,7 @@ updated: 2026-10-16
 
 ## Job
 
-When I maintain the scaffold, I want `xaden req`, `xaden check` and `xaden context` to work in the scaffold checkout exactly as they do in a project, so I use the product on itself and need no mapping table.
+When I maintain the scaffold, I want `xaden req`, `xaden check` and `xaden context` to work in the scaffold checkout exactly as they do in a project, so I can use the product on itself and need no mapping table.
 
 ## Acceptance criteria
 
