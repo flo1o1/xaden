@@ -176,30 +176,82 @@ command_name() {
   esac
 }
 
-# sync_commands <dir> <tools-dir>: makes .claude/commands/ match the prompts of those tools
-# (REQ-080). A command file that exists already is never overwritten; only the files the
-# footprint lists as Xaden's own are removed when their prompt is gone.
-sync_commands() {
-  local dir=$1 tools=$2 prompt file wanted="" stale
-  for prompt in "$tools"/prompts/*.md; do
-    prompt="$(basename "$prompt" .md)"
-    [ "$prompt" != 00-index ] || continue
-    file=".claude/commands/$(command_name "$prompt").md"
-    wanted="$wanted $file"
-    if [ -e "$dir/$file" ]; then
-      grep -qxF "file $file" "$dir/$FOOTPRINT_FILE" 2>/dev/null || info "skipped $file: it exists already and stays as it is"
-      continue
-    fi
-    mkdir -p "$dir/.claude/commands"
-    # shellcheck disable=SC2016 # $ARGUMENTS is text for the assistant, not for this shell
-    printf -- '---\ndescription: %s\n---\n\nRun `xaden prompt %s` and follow it. Task input: $ARGUMENTS\n' \
-      "$(sed -n 's/^title: //p' "$tools/prompts/$prompt.md" | head -n 1)" "$prompt" >"$dir/$file"
-    note_footprint "$dir" file "$file"
+# command_kinds <assistants>: the command file layouts a comma separated list of assistants needs
+# (REQ-080, REQ-081). Layouts checked against the vendors' documentation on 2026-10-16:
+#   claude   .claude/commands/<name>.md          (REQ-080)
+#   copilot  .github/prompts/<name>.prompt.md    https://code.visualstudio.com/docs/copilot/customization/prompt-files
+#            front matter description/argument-hint; input is written ${input:task:...}; run as /<name>
+#   skills   .agents/skills/<name>/SKILL.md      Mistral Vibe: https://docs.mistral.ai/vibe/code/cli/skills
+#            (user-invocable, default true; the folder must be trusted); Codex CLI: https://learn.chatgpt.com/docs/build-skills
+#            (name and description required; run as $<name> or /skills). Both read the same files.
+# Codex documents no repository level custom slash commands or prompts, so a skill is its only mechanism.
+command_kinds() {
+  local kinds="" assistant kind
+  for assistant in $(printf '%s' "$1" | tr ',' ' '); do
+    case "$assistant" in
+      claude) kind=claude ;;
+      copilot) kind=copilot ;;
+      vibe | codex) kind=skills ;;
+      *) continue ;;
+    esac
+    case " $kinds " in *" $kind "*) ;; *) kinds="$kinds $kind" ;; esac
   done
-  stale="$(grep -E '^file \.claude/commands/[a-z0-9-]+\.md$' "$dir/$FOOTPRINT_FILE" 2>/dev/null | cut -d' ' -f2 || true)"
+  printf '%s' "${kinds# }"
+}
+
+# command_path <kind> <name>: where the command file of that layout lives.
+command_path() {
+  case "$1" in
+    claude) echo ".claude/commands/$2.md" ;;
+    copilot) echo ".github/prompts/$2.prompt.md" ;;
+    skills) echo ".agents/skills/$2/SKILL.md" ;;
+  esac
+}
+
+# command_text <kind> <name> <prompt> <title>: the whole file. Never the prompt text itself, so a
+# team prompt in xaden/prompts/ is the one every assistant runs.
+command_text() {
+  local kind=$1 name=$2 prompt=$3 title=$4
+  case "$kind" in
+    claude)
+      # shellcheck disable=SC2016 # $ARGUMENTS is text for the assistant, not for this shell
+      printf -- '---\ndescription: %s\n---\n\nRun `xaden prompt %s` and follow it. Task input: $ARGUMENTS\n' "$title" "$prompt" ;;
+    copilot)
+      # shellcheck disable=SC2016 # ${input:...} is Copilot's variable syntax
+      printf -- '---\ndescription: %s\nargument-hint: what the task is\n---\n\nRun `xaden prompt %s` and follow it. Task input: ${input:task:describe the task}\n' "$title" "$prompt" ;;
+    skills)
+      # shellcheck disable=SC2016 # the backticks are Markdown for the assistant, not command substitution
+      printf -- '---\nname: %s\ndescription: %s. Use only when the user asks for it by name (%s).\n---\n\nRun `xaden prompt %s` and follow it. Task input: whatever the user wrote after the name.\n' \
+        "$name" "$title" "$name" "$prompt" ;;
+  esac
+}
+
+# sync_commands <dir> <tools-dir> <assistants>: makes the command files of those assistants match
+# the prompts of those tools (REQ-080, REQ-081). A file that exists already is never overwritten;
+# only the files the footprint lists as Xaden's own are removed when their prompt is gone.
+sync_commands() {
+  local dir=$1 tools=$2 assistants=$3 kind prompt name file wanted="" stale
+  for kind in $(command_kinds "$assistants"); do
+    for prompt in "$tools"/prompts/*.md; do
+      prompt="$(basename "$prompt" .md)"
+      [ "$prompt" != 00-index ] || continue
+      name="$(command_name "$prompt")"
+      file="$(command_path "$kind" "$name")"
+      wanted="$wanted $file"
+      if [ -e "$dir/$file" ]; then
+        grep -qxF "file $file" "$dir/$FOOTPRINT_FILE" 2>/dev/null || info "skipped $file: it exists already and stays as it is"
+        continue
+      fi
+      mkdir -p "$dir/$(dirname "$file")"
+      command_text "$kind" "$name" "$prompt" "$(sed -n 's/^title: //p' "$tools/prompts/$prompt.md" | head -n 1)" >"$dir/$file"
+      note_footprint "$dir" file "$file"
+    done
+  done
+  stale="$(grep -E '^file (\.claude/commands/[a-z0-9-]+\.md|\.github/prompts/[a-z0-9-]+\.prompt\.md|\.agents/skills/[a-z0-9-]+/SKILL\.md)$' "$dir/$FOOTPRINT_FILE" 2>/dev/null | cut -d' ' -f2 || true)"
   for file in $stale; do
     case " $wanted " in *" $file "*) continue ;; esac
     rm -f "${dir:?}/$file"
+    (cd "$dir" && rmdir -p "$(dirname "$file")" 2>/dev/null) || true
     grep -vxF "file $file" "$dir/$FOOTPRINT_FILE" >"$dir/$FOOTPRINT_FILE.new" || true
     mv "$dir/$FOOTPRINT_FILE.new" "$dir/$FOOTPRINT_FILE"
   done

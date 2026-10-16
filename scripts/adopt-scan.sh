@@ -16,6 +16,9 @@ SCAN_CONVENTION=""    # conventional or other
 SCAN_AGENTS=0
 SCAN_CLAUDE=0
 SCAN_CLAUDE_DIR=0
+SCAN_COPILOT=0
+SCAN_VIBE=0
+SCAN_CODEX=0
 SCAN_UNRECOGNISED=""  # what could not be recognised, one line each (newline separated)
 
 # conventional commit subject (the same rule the commit-msg hook enforces)
@@ -216,10 +219,14 @@ scan_repository() {
   scan_hooks "$repo"
   scan_ci "$repo"
   scan_convention "$repo"
-  SCAN_AGENTS=0 SCAN_CLAUDE=0 SCAN_CLAUDE_DIR=0
+  SCAN_AGENTS=0 SCAN_CLAUDE=0 SCAN_CLAUDE_DIR=0 SCAN_COPILOT=0 SCAN_VIBE=0 SCAN_CODEX=0
   [ ! -f "$repo/AGENTS.md" ] || SCAN_AGENTS=1
   [ ! -f "$repo/CLAUDE.md" ] || SCAN_CLAUDE=1
   [ ! -d "$repo/.claude" ] || SCAN_CLAUDE_DIR=1
+  # REQ-081: a file or folder of the assistant's own; .agents/ is shared by Vibe and Codex, so it names neither
+  if [ -f "$repo/.github/copilot-instructions.md" ] || [ -d "$repo/.github/prompts" ]; then SCAN_COPILOT=1; fi
+  [ ! -d "$repo/.vibe" ] || SCAN_VIBE=1
+  [ ! -d "$repo/.codex" ] || SCAN_CODEX=1
   # source files but no stack recognised
   if [ -z "$SCAN_STACKS" ] && [ -n "$(git -C "$repo" ls-files 2>/dev/null | grep -Ev '^(README|LICENSE|\.|docs/)' | head -n 1)" ]; then
     SCAN_UNRECOGNISED="$SCAN_UNRECOGNISED${SCAN_UNRECOGNISED:+$'\n'}no build system recognised: name your own commands with --check test=\"<command>\""
@@ -244,6 +251,9 @@ print_scan() {
   [ "$SCAN_AGENTS" = 1 ] && mapped="AGENTS.md"
   [ "$SCAN_CLAUDE" = 1 ] && mapped="$mapped${mapped:+, }CLAUDE.md"
   [ "$SCAN_CLAUDE_DIR" = 1 ] && mapped="$mapped${mapped:+, }.claude/"
+  [ "$SCAN_COPILOT" = 1 ] && mapped="$mapped${mapped:+, }Copilot (.github/)"
+  [ "$SCAN_VIBE" = 1 ] && mapped="$mapped${mapped:+, }.vibe/"
+  [ "$SCAN_CODEX" = 1 ] && mapped="$mapped${mapped:+, }.codex/"
   printf '  %-18s %s\n' "assistant files" "$(show_or_none "$mapped")"
   if [ -n "$SCAN_GAPS" ]; then
     printf '  %-18s %s\n' "gaps" "no check for: $SCAN_GAPS"
