@@ -18,6 +18,8 @@ source "$SCAFFOLD_ROOT/template/scripts/lib.sh"
 source "$SCAFFOLD_ROOT/template/scripts/requirements-lib.sh"
 # shellcheck source=SCRIPTDIR/scaffold-lib.sh
 source "$SCAFFOLD_ROOT/scripts/scaffold-lib.sh"
+# shellcheck source=SCRIPTDIR/../template/scripts/update-check-lib.sh
+source "$SCAFFOLD_ROOT/template/scripts/update-check-lib.sh"
 # shellcheck source=SCRIPTDIR/adopt-scan.sh
 source "$SCAFFOLD_ROOT/scripts/adopt-scan.sh"
 # shellcheck source=SCRIPTDIR/adopt-lib.sh
@@ -186,6 +188,7 @@ main() {
     ask "Create $NAME with this setup?" || { echo "Nothing was changed."; return 0; }
   fi
   choose_assistants
+  choose_update_check
   apply_new
   summary
 }

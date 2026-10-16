@@ -65,6 +65,25 @@ ask() {
   esac
 }
 
+# ask_text <question> <default>: like ask, for a free answer. The answer lands in ASK_TEXT_ANSWER
+# (empty means the default). Without a terminal it returns 2, asks nothing and leaves it empty.
+ASK_TEXT_ANSWER=""
+# shellcheck disable=SC2034 # read by the scripts that call ask_text
+ask_text() {
+  local question=$1 default=$2 answer=""
+  ASK_TEXT_ANSWER=""
+  has_terminal || return 2
+  printf -- '----------------------------------------\n'
+  if plain_messages 1; then printf '[?] %s [%s] ' "$question" "$default"; else printf '🐉 %s [%s] ' "$question" "$default"; fi
+  if [ "${XADEN_TEST_MODE:-0}" = "1" ] && [ -n "${XADEN_TEST_ANSWER+x}" ]; then
+    answer=$XADEN_TEST_ANSWER
+    printf '%s\n' "$answer"
+  else
+    read -r answer || answer=""
+  fi
+  ASK_TEXT_ANSWER=${answer:-$default}
+}
+
 # has_command <name>: true if <name> is on PATH.
 has_command() { command -v "$1" >/dev/null 2>&1; }
 

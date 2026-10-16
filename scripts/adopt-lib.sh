@@ -23,6 +23,19 @@ ADOPT_PRESET=""        # stack whose preset the person accepted, or empty
 ADOPT_HOOKS=1          # 0 = --skip-hooks
 ADOPT_CI=1             # 0 = --skip-ci
 ADOPT_DEFAULT_BRANCH="main"
+ADOPT_UPDATE_CHECK=""  # the interval the person chose for the update check (REQ-084), or empty: not asked
+
+# choose_update_check: asks once how often Xaden may look for updates. Off is the default answer;
+# nothing is asked or set without a terminal, and an unreadable answer becomes off.
+choose_update_check() {
+  ask_text "How often may Xaden look for newer versions and dependencies? ($UPDATE_CHECK_FORMS; it only reports)" off || return 0
+  if update_check_seconds "$ASK_TEXT_ANSWER" >/dev/null; then
+    ADOPT_UPDATE_CHECK=$ASK_TEXT_ANSWER
+  else
+    warn "'$ASK_TEXT_ANSWER' is not valid. Use $UPDATE_CHECK_FORMS. The update check stays off."
+    ADOPT_UPDATE_CHECK=off
+  fi
+}
 
 # the version and checksum of the Xaden that runs
 running_version() { tr -d '[:space:]' <"$SCAFFOLD_ROOT/VERSION"; }
@@ -156,6 +169,7 @@ hook-checks = lint
 # Without this line Xaden looks at the project (package.json, pyproject.toml) when it checks.
 ${1:+expect = $(printf '%s' "$1" | tr ' ' ',')}
 EOF
+  [ -z "$ADOPT_UPDATE_CHECK" ] || printf '# Look for a newer Xaden and outdated dependencies: off, or an interval such as 12h, 1d, 7d. It only reports.\nupdate-check = %s\n' "$ADOPT_UPDATE_CHECK"
   [ -z "$SCAN_TEST" ] || printf 'check.test = %s\n' "$SCAN_TEST"
   [ -z "$SCAN_LINT" ] || printf 'check.lint = %s\n' "$SCAN_LINT"
   [ -z "$SCAN_TYPECHECK" ] || printf 'check.typecheck = %s\n' "$SCAN_TYPECHECK"

@@ -22,6 +22,8 @@ source "$SCAFFOLD_ROOT/template/scripts/lib.sh"
 source "$SCAFFOLD_ROOT/template/scripts/requirements-lib.sh"
 # shellcheck source=SCRIPTDIR/scaffold-lib.sh
 source "$SCAFFOLD_ROOT/scripts/scaffold-lib.sh"
+# shellcheck source=SCRIPTDIR/../template/scripts/update-check-lib.sh
+source "$SCAFFOLD_ROOT/template/scripts/update-check-lib.sh"
 # shellcheck source=SCRIPTDIR/adopt-scan.sh
 source "$SCAFFOLD_ROOT/scripts/adopt-scan.sh"
 # shellcheck source=SCRIPTDIR/adopt-lib.sh
@@ -293,6 +295,7 @@ adopt_main() {
   fi
   print_plan "$([ "$STOP_AFTER" = plan ] && echo 1 || echo 0)"
   [ "$STOP_AFTER" != plan ] || return 0
+  choose_update_check
   if [ "$ASSUME_YES" != 1 ]; then
     if ! has_terminal; then
       echo "No terminal, so nothing was changed. To apply this plan: xaden adopt --yes (add the options you used)."
