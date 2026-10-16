@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Scaffold maintainer pre-push hook: the commit-message checks CI runs on a push, here on the
+# commits that origin/main does not have yet (REQ-083). Offline: it uses the remote-tracking ref you have.
+set -euo pipefail
+root="$(git rev-parse --show-toplevel)"
+base="refs/remotes/origin/${DEFAULT_BRANCH:-main}"
+if ! git rev-parse -q --verify "$base" >/dev/null; then
+  echo "pre-push: no $base here (run: git fetch origin), so the commit messages were not checked" >&2
+  exit 0
+fi
+zero=0000000000000000000000000000000000000000
+while read -r _ local_sha _; do
+  [ "$local_sha" != "$zero" ] || continue # deleting a branch
+  PROJECT_ROOT="$root" RULES_FILE="$root/template/AGENTS.md" "$root/template/scripts/verify-commits.sh" "$base..$local_sha"
+done
