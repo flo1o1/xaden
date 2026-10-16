@@ -5,6 +5,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 ## [Unreleased]
 
 ### Added
+- Maintainers: `xaden req`, `xaden check` and `xaden context` work in the scaffold checkout like in any project (REQ-085).
 - `xaden update-check` looks for a newer Xaden and outdated npm or pip dependencies. The setting `update-check` in `xaden/xaden.conf` (or `XADEN_UPDATE_CHECK` for one person) is `off` by default, or an interval such as `12h` or `7d`; `xaden doctor` and `context-status.sh` only print the cached result and Xaden never applies an update (REQ-084).
 - Maintainers: a pre-push hook checks the commit messages CI checks, `scripts/check-scaffold.sh` fails when `core.hooksPath` points nowhere and warns when your shellcheck differs from the version CI pins in `.github/shellcheck.version` (REQ-083).
 - `xaden adopt` puts Xaden beneath an existing repository without changing its build, on its own branch and worktree: `--scan` reports what the repository has, `--plan` prints the exact diff, applying creates the folder `xaden/`, a marked block in `AGENTS.md` and, for Claude Code users, `CLAUDE.md` with one line. Your tests and linters are run through `xaden/xaden.conf`, existing hooks and workflows are chained or left alone, and gaps can be filled with Xaden's Python or Node preset as a separate commit. `xaden remove` undoes it (REQ-066, REQ-067, REQ-069, REQ-070, REQ-073).

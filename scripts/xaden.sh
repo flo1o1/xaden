@@ -234,9 +234,27 @@ preset_main() {
   echo "  $(preset_install_command "$stack")"
 }
 
+# is_scaffold <root>: the Xaden scaffold checkout itself (REQ-085); no project has both marker files.
+is_scaffold() { [ -f "$1/template/AGENTS.md" ] && [ -f "$1/scripts/check-scaffold.sh" ]; }
+
+# scaffold_command <command> <root> <args...>: maintainers run the project commands on the scaffold.
+scaffold_command() {
+  local command=$1 root=$2
+  shift 2
+  cd "$root"
+  case "$command" in
+    check) exec "$root/scripts/check-scaffold.sh" "$@" ;;
+    req) PROJECT_ROOT=. exec "$root/template/scripts/req.sh" "$@" ;;
+    context) PROJECT_ROOT=. RULES_FILE=template/AGENTS.md exec "$root/template/scripts/context-status.sh" "$@" ;;
+  esac
+}
+
 # classic_project_command <command> <root> <args...>: the project's own scripts (projects created by `create`).
 classic_project_command() {
   local command=$1 root=$2 script
+  case "$command" in
+    check | req | context) if is_scaffold "$root"; then scaffold_command "$@"; fi ;;
+  esac
   shift 2
   case "$command" in
     setup) script=setup.sh ;;
