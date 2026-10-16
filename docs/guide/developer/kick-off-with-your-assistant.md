@@ -10,11 +10,19 @@ writes things down and you approve them.
 
 ## Start the kickoff
 
-Open your assistant in the project folder and tell it:
+Open your assistant in the project folder. In Claude Code, type:
+
+```text
+/kickoff <what you want to build>
+```
+
+In any other assistant, tell it:
 
 ```text
 Run `xaden prompt kickoff` and follow it. My idea: <what you want to build>
 ```
+
+Claude Code finds the `/kickoff` command in `.claude/commands/`, which `xaden create` and `xaden adopt` write for Claude Code users.
 
 For an existing repository, describe what the project already does instead of a new idea. The assistant asks questions and writes
 the requirements, the threat model and the architecture notes. Review what it writes, because it describes code you know better than it
