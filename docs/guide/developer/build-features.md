@@ -14,6 +14,8 @@ In Claude Code, type:
 /feature <what users can do afterwards>
 ```
 
+The assistant first drafts the requirement in the chat. It creates the branch and worktree only after you approve the draft, and the worktree starts with just the requirements folder, so a large repository is not copied for an idea you may drop.
+
 In any other assistant, tell it:
 
 ```text
