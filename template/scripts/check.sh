@@ -23,6 +23,7 @@ for arg in "$@"; do
     *) die "unknown option: $arg (usage: scripts/check.sh [--staged] [--strict])" ;;
   esac
 done
+if [ "$MODE" = "full" ]; then refuse_nested_run check.sh; fi
 cd "$ROOT"
 layout_init "$ROOT"
 

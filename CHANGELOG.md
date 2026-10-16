@@ -5,6 +5,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 ## [Unreleased]
 
 ### Added
+- A full check, the smoke test or a project's `scripts/check.sh` started from inside itself now stops at once with a clear message instead of spawning processes without end; `XADEN_ALLOW_NESTED=1` allows it on purpose (REQ-086).
 - Maintainers: `xaden req`, `xaden check` and `xaden context` work in the scaffold checkout like in any project (REQ-085).
 - `xaden update-check` looks for a newer Xaden and outdated npm or pip dependencies. The setting `update-check` in `xaden/xaden.conf` (or `XADEN_UPDATE_CHECK` for one person) is `off` by default, or an interval such as `12h` or `7d`; `xaden doctor` and `context-status.sh` only print the cached result and Xaden never applies an update (REQ-084).
 - Maintainers: a pre-push hook checks the commit messages CI checks, `scripts/check-scaffold.sh` fails when `core.hooksPath` points nowhere and warns when your shellcheck differs from the version CI pins in `.github/shellcheck.version` (REQ-083).
