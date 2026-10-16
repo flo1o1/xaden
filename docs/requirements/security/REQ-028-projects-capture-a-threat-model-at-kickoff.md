@@ -18,4 +18,3 @@ When I start a project, I want a threat model captured at kickoff, so I can base
 - Template has docs/threat-model.md (assets, sensitive data, entry points, trust boundaries, attackers, deployment assumptions, ASVS level)
 - kickoff fills it
 - security review reads it
-- context pack includes it

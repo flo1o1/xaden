@@ -2,6 +2,11 @@
 # Shared helpers for scripts in this repo. Source it; do not execute it.
 # Portable on Linux and macOS (bash >= 3.2, POSIX sed/awk/tar only).
 
+# shellcheck source=SCRIPTDIR/layout.sh
+source "$(dirname "${BASH_SOURCE[0]}")/layout.sh"
+# shellcheck source=SCRIPTDIR/gate.sh
+source "$(dirname "${BASH_SOURCE[0]}")/gate.sh"
+
 # Check results (REQ-019): every check is passed, failed or skipped; finish_checks reports them.
 FAILURES=0
 CHECKS_PASSED=0
@@ -9,11 +14,56 @@ SKIPPED_CHECKS=""
 # "1" makes a missing tool a failure instead of a skipped check.
 STRICT="${STRICT:-0}"
 
+# --- messages (REQ-074) --------------------------------------------------------------
+# Four kinds, each marked the same way: question 🐉, warning ⚠️ (stderr), error 🔥 (stderr,
+# exit 1), success ✅. Plain text ([?], WARNING:, ERROR:, OK:) when XADEN_PLAIN=1, CI is set,
+# the stream is not a terminal or the locale is not UTF-8. Scripts print messages only through
+# these helpers; a smoke test fails on a hand-written sign or prompt. Facts in a message
+# (versions, URLs, checksums, commands) are never rephrased; security and data-loss messages
+# carry no jokes.
+
+# plain_messages <fd>: true when messages on that stream use plain text.
+plain_messages() {
+  if [ "${XADEN_PLAIN:-0}" = "1" ] || [ -n "${CI:-}" ] || [ ! -t "$1" ]; then return 0; fi
+  case "${LC_ALL:-${LC_CTYPE:-${LANG:-}}}" in *[Uu][Tt][Ff]-8* | *[Uu][Tt][Ff]8*) return 1 ;; esac
+  return 0
+}
+
 info() { printf '==> %s\n' "$*"; }
 # tip <text>: names an optional tool that fits this project (REQ-051); never changes a result.
 tip() { printf 'TIP: %s\n' "$*"; }
-warn() { printf 'WARN: %s\n' "$*" >&2; }
-die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
+warn() { if plain_messages 2; then printf 'WARNING: %s\n' "$*" >&2; else printf '⚠️  %s\n' "$*" >&2; fi; }
+die() { if plain_messages 2; then printf 'ERROR: %s\n' "$*" >&2; else printf '🔥 %s\n' "$*" >&2; fi; exit 1; }
+# ok <text>: a verified success. Never after a run with skipped checks (AGENTS.md §5).
+ok() { if plain_messages 1; then printf 'OK: %s\n' "$*"; else printf '✅ %s\n' "$*"; fi; }
+
+# has_terminal: true when a person can answer a question. XADEN_TEST_MODE=1 (tests only) lets a
+# test answer on stdin; no other variable or flag answers for a person.
+has_terminal() {
+  { [ "${XADEN_TEST_MODE:-0}" = "1" ] && [ -n "${XADEN_TEST_ANSWER+x}" ]; } || { [ -t 0 ] && [ -t 1 ]; }
+}
+
+# ask <question> [y|n]: a question that waits for an answer: separator line, then the question
+# as the last line with the default (n unless told otherwise). Returns 0 only for an explicit
+# yes; anything else, including no answer, is no. Without a terminal it returns 2 and asks nothing.
+ask() {
+  local question=$1 default=${2:-n} hint answer=""
+  has_terminal || return 2
+  if [ "$default" = "y" ]; then hint="[Y/n]"; else hint="[y/N]"; fi
+  printf -- '----------------------------------------\n'
+  if plain_messages 1; then printf '[?] %s %s ' "$question" "$hint"; else printf '🐉 %s %s ' "$question" "$hint"; fi
+  if [ "${XADEN_TEST_MODE:-0}" = "1" ] && [ -n "${XADEN_TEST_ANSWER+x}" ]; then
+    answer=$XADEN_TEST_ANSWER
+    printf '%s\n' "$answer"
+  else
+    read -r answer || answer=""
+  fi
+  case "$answer" in
+    [Yy] | [Yy][Ee][Ss]) return 0 ;;
+    "") [ "$default" = "y" ] ;;
+    *) return 1 ;;
+  esac
+}
 
 # has_command <name>: true if <name> is on PATH.
 has_command() { command -v "$1" >/dev/null 2>&1; }
@@ -58,7 +108,7 @@ finish_checks() {
     warn "INCOMPLETE: not all checks ran. Install the missing tools, or use --strict to require them."
     exit 0
   fi
-  info "all checks passed"
+  ok "all checks passed"
 }
 
 # --- check helpers shared by check.sh and the scaffold's check-scaffold.sh -------------
@@ -135,7 +185,11 @@ collect_files() {
 lint_shell() {
   collect_files "$1" '(\.sh$|(^|/)hooks/[^/.]+$|^\.githooks/)'
   [ ${#TARGETS[@]} -eq 0 ] && return 0
-  run_tool "shellcheck" shellcheck -x "${TARGETS[@]}" # -x: follow sourced lib.sh even if unstaged
+  if [ "${LAYOUT:-classic}" = "adopted" ]; then
+    run_gated shellcheck "shellcheck" shellcheck -x -f gcc "${TARGETS[@]}"
+  else
+    run_tool "shellcheck" shellcheck -x "${TARGETS[@]}" # -x: follow sourced lib.sh even if unstaged
+  fi
 }
 
 # scan_secrets <mode>: gitleaks on the staged diff, or on the whole git history. Always runs
@@ -156,8 +210,13 @@ scan_secrets() {
 scan_sast() {
   collect_files "$1" "$SOURCE_FILE_PATTERN" "${3:-^$}"
   [ ${#TARGETS[@]} -eq 0 ] && return 0
-  SEMGREP_ENABLE_VERSION_CHECK=0 run_tool "SAST (semgrep, local rules)" \
-    semgrep scan --config "$2" --metrics=off --disable-version-check --error --quiet "${TARGETS[@]}"
+  if [ "${LAYOUT:-classic}" = "adopted" ]; then
+    SEMGREP_ENABLE_VERSION_CHECK=0 run_gated semgrep "SAST (semgrep, local rules)" \
+      semgrep scan --config "$2" --metrics=off --disable-version-check --error --quiet --emacs "${TARGETS[@]}"
+  else
+    SEMGREP_ENABLE_VERSION_CHECK=0 run_tool "SAST (semgrep, local rules)" \
+      semgrep scan --config "$2" --metrics=off --disable-version-check --error --quiet "${TARGETS[@]}"
+  fi
 }
 
 # run_required_tool <label> <binary> [args...]: like run_tool, but a missing binary always

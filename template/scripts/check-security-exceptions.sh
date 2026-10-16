@@ -13,8 +13,7 @@ SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="${PROJECT_ROOT:-$(cd "$SCRIPTS/.." && pwd)}"
 # shellcheck source=SCRIPTDIR/lib.sh
 source "$SCRIPTS/lib.sh"
-
-EXCEPTIONS_FILE="$ROOT/docs/security-exceptions.md"
+layout_init "$ROOT"
 TODAY="${CHECK_DATE:-$(date +%F)}"
 
 # exception_problems <file> <today>: one line per invalid or expired row, nothing when all are fine.
@@ -37,12 +36,12 @@ exception_problems() {
 
 printf '%s' "$TODAY" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' || die "CHECK_DATE must be YYYY-MM-DD (got: $TODAY)"
 if [ ! -f "$EXCEPTIONS_FILE" ]; then # projects generated before REQ-030 have none
-  echo "no docs/security-exceptions.md; nothing to check"
+  echo "no ${EXCEPTIONS_FILE#"$ROOT"/}; nothing to check"
   exit 0
 fi
 problems="$(exception_problems "$EXCEPTIONS_FILE" "$TODAY")"
 if [ -n "$problems" ]; then
-  printf '%s\n' "$problems" | while IFS= read -r problem; do warn "docs/security-exceptions.md: $problem"; done
+  printf '%s\n' "$problems" | while IFS= read -r problem; do warn "${EXCEPTIONS_FILE#"$ROOT"/}: $problem"; done
   exit 1
 fi
 echo "security exceptions OK"

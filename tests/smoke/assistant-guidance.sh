@@ -67,12 +67,11 @@ test_assistant_trust_rules() {
     'affecting production' 'sending code or data outside' 'reading, printing or changing secrets'; do
     assert "AGENTS.md trust rules cover: $item" grep -q -- "$item" "$PROJECT/AGENTS.md"
   done
-  assert "pack carries the trust rules" grep -q '^## 10. Trusted instructions and approvals' "$(full_pack)"
 }
 
 # REQ-050 optional add-on rule sets: documented, never installed, never above AGENTS.md
 test_add_on_rule_sets() {
-  local guide="$SCAFFOLD_ROOT/GETTING-STARTED.md" tools="$PROJECT/docs/optional-tools.md" add_on
+  local guide="$SCAFFOLD_ROOT/docs/guide/admin/requirements-and-platforms.md" tools="$PROJECT/docs/optional-tools.md" add_on
   for add_on in Ponytail Caveman 'Token Optimizer' claude-mem obsidian-skills impeccable; do
     assert "guide lists $add_on as optional" grep -q "^| Optional: \\[$add_on\\]" "$guide"
   done
@@ -197,7 +196,18 @@ test_look_before_build() {
     assert "AGENTS.md rule covers: $item" grep -q -- "$item" "$PROJECT/AGENTS.md"
   done
   assert "feature prompt applies the rule" grep -q 'Look before you build (AGENTS.md' "$PROJECT/prompts/feature.md"
-  assert "pack carries the rule" grep -q 'Look before you build' "$(full_pack)"
+}
+
+# REQ-079 Xaden supports only assistants with file access: no context pack is left anywhere.
+# The pattern is spelled with brackets so this file does not match itself; the changelog,
+# the requirements and the security reviews keep the history and are not searched.
+test_no_context_pack() {
+  local hits
+  hits="$(cd "$SCAFFOLD_ROOT" || exit 1; grep -rIlE 'pack[-]context|context[-]pack|xaden[ ]pack' scripts template tests docs/guide \
+    docs/threat-model.md README.md GETTING-STARTED.md .gitignore 2>/dev/null || true)"
+  assert "no file mentions the context pack: ${hits:-none}" test -z "$hits"
+  assert_fails "xaden has no pack command" "$SCAFFOLD_ROOT/scripts/xaden.sh" pack
+  assert "AGENTS.md says Xaden needs file access" grep -q 'Xaden needs an assistant with file access' "$PROJECT/AGENTS.md"
 }
 
 # REQ-061 user personas that assistants check solutions against
@@ -214,14 +224,6 @@ test_personas() {
   assert_fails_with "a name that breaks the file is rejected" 'without' "$copy/scripts/persona.sh" new 'a/b'
   for name in Ben Cleo Dan Eve; do "$copy/scripts/persona.sh" new "$name" >/dev/null; done
   assert "a sixth persona warns about focus" bash -c "'$copy/scripts/persona.sh' new Finn 2>&1 | grep -q '3 to 5'"
-  assert "pack includes personas but not the template" bash -c "'$copy/scripts/pack-context.sh' >/dev/null \
-    && grep -q '^# USER PERSONA (docs/personas/ada-admin.md)' '$copy/context-pack.md' && ! grep -q '0000-template' '$copy/context-pack.md'"
-  # REQ-023: a committed link must not copy a file from outside the project into the pack.
-  printf 'LINKED_SECRET\n' >"$WORKDIR/outside-secret"
-  ln -s "$WORKDIR/outside-secret" "$copy/docs/personas/zed.md"
-  assert_fails_with "pack refuses a symbolically linked file" 'symbolic link' "$copy/scripts/pack-context.sh"
-  assert_fails "the linked file's content never reaches the pack" grep -q 'LINKED_SECRET' "$copy/context-pack.md"
-  rm "$copy/docs/personas/zed.md"
   # REQ-061: a dangling link in docs/personas/ must not make persona.sh write outside the project.
   ln -s "$WORKDIR/outside-persona" "$copy/docs/personas/mallory.md"
   assert_fails_with "persona.sh refuses a dangling symbolic link" 'exists already' "$copy/scripts/persona.sh" new Mallory
@@ -266,3 +268,4 @@ test_assistant_plugins
 test_look_before_build
 test_personas
 test_scaffold_commands
+test_no_context_pack

@@ -24,18 +24,16 @@ test_quiet_output() {
   assert "passed assertions print nothing by default" test -z "$(SMOKE_VERBOSE=0 pass probe)"
   assert "SMOKE_VERBOSE=1 prints passed assertions" test "$(SMOKE_VERBOSE=1 pass probe)" = "ok   probe"
   # one area can run alone: tests/smoke.sh <area>
-  assert "smoke test lists its areas, one per epic" test "$("$SCAFFOLD_ROOT/tests/smoke.sh" --list | tr '\n' ' ')" = \
-    "assistant-guidance project-setup quality-gates requirements security release-and-docs "
+  assert "smoke test lists its areas" test "$("$SCAFFOLD_ROOT/tests/smoke.sh" --list | tr '\n' ' ')" = \
+    "adoption assistant-guidance project-setup quality-gates requirements security release-and-docs "
   assert_fails_with "smoke test rejects an unknown area" 'unknown area' "$SCAFFOLD_ROOT/tests/smoke.sh" no-such-area
 }
 
-# REQ-004 static analysis, REQ-006 requirements tracking, REQ-010 docs, REQ-011 grounding, REQ-002 chat context pack
+# REQ-004 static analysis, REQ-006 requirements tracking, REQ-010 docs, REQ-011 grounding
 test_generated_project() {
   assert "checks pass" "$PROJECT/scripts/check.sh"
   assert "docs structure valid" "$PROJECT/scripts/check-docs.sh"
   assert_fails "docs check --release flags TODOs" "$PROJECT/scripts/check-docs.sh" --release
-  assert "pack-context works" "$PROJECT/scripts/pack-context.sh" feature
-  assert_fails "pack-context rejects path traversal" "$PROJECT/scripts/pack-context.sh" ../AGENTS
   assert_fails "bad commit message rejected" "$PROJECT/scripts/hooks/commit-msg" "$(msg "did stuff\n")"
   assert_fails "feat citing a draft requirement rejected (REQ-021)" "$PROJECT/scripts/hooks/commit-msg" "$(msg 'feat(api): add endpoint\n\nRefs: REQ-001\n')"
   set_status REQ-001 approved
@@ -52,19 +50,10 @@ test_generated_project() {
   # REQ-011: counts per status, IDs only for requirements not done (the list stays short)
   assert "context status counts requirements per status" grep -qx 'requirements: 1 (1 draft); not done: REQ-001(draft)' <("$PROJECT/scripts/context-status.sh")
   assert "context status leaves out done requirement IDs" bash -c "PROJECT_ROOT='$SCAFFOLD_ROOT' RULES_FILE='$SCAFFOLD_ROOT/template/AGENTS.md' '$SCAFFOLD_ROOT/template/scripts/context-status.sh' | grep -E '^requirements: [0-9]+ \([0-9]+ done' | grep -qv 'REQ-002'"
-  assert "pack carries fingerprint and clean-code details" grep -q 'CLEAN CODE DETAILS' "$PROJECT/context-pack.md"
-  # REQ-023 complete and safely written pack
-  assert "pack includes the security checklist" grep -q 'Secure coding checklist' "$PROJECT/context-pack.md"
-  assert "pack includes unreleased changes" grep -q 'Project created from the Xaden scaffold' "$PROJECT/context-pack.md"
-  assert "pack lists what it excludes" grep -q 'NOT INCLUDED' "$PROJECT/context-pack.md"
   # REQ-028 threat model at kickoff
   assert "project has a threat model with an ASVS level" grep -q 'ASVS level' "$PROJECT/docs/threat-model.md"
   assert "kickoff fills the threat model" grep -q 'docs/threat-model.md' "$PROJECT/prompts/kickoff.md"
   assert "security review reads the threat model" grep -q 'docs/threat-model.md' "$PROJECT/prompts/security-review.md"
-  assert "pack includes the threat model" grep -q '^# PROJECT DOCUMENT (docs/threat-model.md)' "$PROJECT/context-pack.md"
-  mv "$PROJECT/docs/threat-model.md" "$WORKDIR/threat-model.md"
-  assert "pack names a missing threat model" bash -c "'$PROJECT/scripts/pack-context.sh' && grep -q 'threat-model.md (MISSING' '$PROJECT/context-pack.md'"
-  mv "$WORKDIR/threat-model.md" "$PROJECT/docs/threat-model.md"
   # REQ-029 precise security checklist
   local topic
   for topic in 'not a replacement' 'DNS rebinding' 'hard links' 'size limit before reading' \
@@ -121,26 +110,7 @@ test_generated_project() {
   assert "kickoff fills the architecture" grep -q 'docs/architecture.md' "$PROJECT/prompts/kickoff.md"
   assert "feature prompt follows the rules for new code" grep -q 'Rules for new code' "$PROJECT/prompts/feature.md"
   assert "code review checks layering" grep -q 'docs/architecture.md' "$PROJECT/prompts/code-review.md"
-  assert "pack includes the architecture" grep -q '^# PROJECT DOCUMENT (docs/architecture.md)' "$PROJECT/context-pack.md"
   assert_fails "architecture is project-owned, never overwritten by updates" is_managed docs/architecture.md
-  "$PROJECT/scripts/pack-context.sh" feature >/dev/null 2>&1
-  cp "$PROJECT/context-pack.md" "$WORKDIR/pack-before.md"
-  assert_fails "unknown prompt name rejected" "$PROJECT/scripts/pack-context.sh" feature no-such-prompt
-  assert "failed pack keeps the previous pack" cmp -s "$PROJECT/context-pack.md" "$WORKDIR/pack-before.md"
-  # REQ-023 brief pack for small context windows: rules, security, personas, index, chosen requirements
-  local pack="$PROJECT/context-pack.md"
-  assert "brief pack works" "$PROJECT/scripts/pack-context.sh" --brief REQ-001 feature
-  assert "brief pack keeps the rules and the security checklist" bash -c "grep -q '^# PROJECT RULES' '$pack' && grep -q 'Secure coding checklist' '$pack'"
-  assert "brief pack has the index and the chosen requirement" bash -c "grep -q '^# REQUIREMENTS INDEX' '$pack' \
-    && grep -q '^# REQUIREMENTS (docs/requirements/first-epic/REQ-001-' '$pack' && grep -q '^# TASK PROMPT (feature)' '$pack'"
-  assert_fails "brief pack leaves out the clean-code details" grep -q '^# CLEAN CODE DETAILS' "$pack"
-  assert "brief pack names what it leaves out" grep -q '^NOT INCLUDED: docs/clean-code.md' "$pack"
-  assert "brief pack without IDs has no requirement files" bash -c "'$PROJECT/scripts/pack-context.sh' --brief >/dev/null && ! grep -q '^# REQUIREMENTS (docs' '$pack'"
-  cp "$pack" "$WORKDIR/pack-before.md"
-  assert_fails_with "brief pack rejects an unknown requirement" 'does not exist' "$PROJECT/scripts/pack-context.sh" --brief REQ-999 # traceability: ignore
-  assert "failed brief pack keeps the previous pack" cmp -s "$pack" "$WORKDIR/pack-before.md"
-  assert_fails_with "requirement IDs need --brief" 'need --brief' "$PROJECT/scripts/pack-context.sh" REQ-001
-  assert "pack reports its estimated size in tokens" bash -c "'$PROJECT/scripts/pack-context.sh' | grep -q 'about [0-9][0-9]* tokens'"
 
   local check="$PROJECT/scripts/check-requirements.sh"
   assert_fails_with "invalid requirement status rejected" 'unknown status' \

@@ -8,12 +8,26 @@ WORKFLOW_PATTERN='^\.github/workflows/[^/]+\.ya?ml$'
 # stopping early would kill the listing with SIGPIPE, which pipefail reports as "no match".
 has_project_file() { list_project_files | tr '\0' '\n' | grep -E "$1" >/dev/null; }
 
+# run_workflow_check <name> <binary> [args...]: an adopted project judges the existing workflows
+# by its mode and baseline (REQ-068); other projects fail on any finding.
+run_workflow_check() {
+  local name=$1
+  shift
+  if [ "${LAYOUT:-classic}" = "adopted" ]; then run_gated "$name" "workflows: $name" "$@"; else run_tool "workflows: $name" "$@"; fi
+}
+
 # stack_check <mode>: lints staged or all workflow files; full mode also checks duplication.
 stack_check() {
   collect_files "$1" "$WORKFLOW_PATTERN"
   if [ ${#TARGETS[@]} -gt 0 ]; then
-    if has_command actionlint; then run_tool "workflows: actionlint" actionlint "${TARGETS[@]}"; fi
-    if has_command zizmor; then run_tool "workflows: zizmor" zizmor --offline "${TARGETS[@]}"; fi
+    if has_command actionlint; then run_workflow_check actionlint actionlint "${TARGETS[@]}"; fi
+    if has_command zizmor; then
+      if [ "${LAYOUT:-classic}" = "adopted" ]; then # annotations name file and line, so the gate can judge them
+        run_workflow_check zizmor zizmor --offline --format github "${TARGETS[@]}"
+      else
+        run_workflow_check zizmor zizmor --offline "${TARGETS[@]}"
+      fi
+    fi
   fi
   [ "$1" = "full" ] || return 0
   if [ -f .jscpd.json ]; then

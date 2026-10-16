@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Rejects commit messages that cite rules/requirements which do not exist.
 # Usage: scripts/verify-refs.sh <commit-message-file>
-# - Every REQ-nnn must be a requirement file in docs/requirements; every CC-nn a rule in AGENTS.md.
+# - Every REQ-nnn must be a requirement file in the requirements folder; every CC-nn a rule in AGENTS.md.
 # - `feat` needs a "Refs: REQ-nnn" trailer; `fix` needs one or "Refs: none".
 set -euo pipefail
 
@@ -11,10 +11,11 @@ SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="${PROJECT_ROOT:-$(cd "$SCRIPTS/.." && pwd)}"
 # shellcheck source=SCRIPTDIR/lib.sh
 source "$SCRIPTS/lib.sh"
+layout_init "$ROOT"
+REQUIREMENTS_RELATIVE="${REQ_DIR#"$ROOT"/}" # docs/requirements, or xaden/requirements
 
 MESSAGE_FILE=${1:-}
 [ -f "$MESSAGE_FILE" ] || die "usage: scripts/verify-refs.sh <commit-message-file>"
-RULES_FILE="${RULES_FILE:-$ROOT/AGENTS.md}"  # where CC-nn rules are defined
 
 # read_committed_version <path>: the file as it will be committed (git index) when tracked,
 # otherwise the working-tree file. Unstaged edits must not validate a commit (REQ-020).
@@ -41,8 +42,9 @@ committed_requirements_root() {
     return 0
   fi
   prefix="$(git -C "$ROOT" rev-parse --show-prefix)" # checkout-index writes repository paths
-  mkdir -p "$SNAPSHOT/${prefix}docs/requirements"
-  git -C "$ROOT" ls-files -z -- docs/requirements |
+  mkdir -p "$SNAPSHOT/${prefix}$REQUIREMENTS_RELATIVE"
+  # The settings file is exported too: its presence selects the adopted layout (REQ-070).
+  git -C "$ROOT" ls-files -z -- "$REQUIREMENTS_RELATIVE" "$TEAM_DIR_NAME/$CONF_NAME" |
     git -C "$ROOT" checkout-index -z --stdin --prefix="$SNAPSHOT/"
   printf '%s' "$SNAPSHOT/$prefix"
 }

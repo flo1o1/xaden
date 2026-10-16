@@ -14,7 +14,6 @@ scripts/check.sh   # static analysis, requirements and docs checks
 
 Start an AI session by pointing the tool at this folder, then run the kickoff prompt:
 `prompts/kickoff.md` (Claude Code: `/kickoff`).
-Tools without file access: `scripts/pack-context.sh kickoff` and paste `context-pack.md`.
 
 ## Where things are
 

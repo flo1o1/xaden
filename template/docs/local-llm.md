@@ -1,34 +1,19 @@
-# Using the scaffold with other LLMs
+# Use Xaden with other assistants and local models
 
 The rules live in plain Markdown (`AGENTS.md`), so any tool works. Tool-specific files are
 thin pointers: `CLAUDE.md`, `.github/copilot-instructions.md`, `.clinerules`,
 `.continue/rules/project.md`, `.aider.conf.yml`.
 
-## ChatGPT / web chat (no file access)
+Xaden needs an assistant that can read and edit your files and run commands. A chat window
+without file access is not supported; a model on your own machine works through a tool that has
+that access (Aider, Cline, Continue).
 
-```bash
-scripts/pack-context.sh feature   # rules, security, requirements, changes, prompt → context-pack.md
-```
-
-Paste it as the first message, then your task. Paste changed files back for review; apply
-code manually, then run `scripts/check.sh` yourself and paste failures back.
-Repeat the pack whenever requirements change.
-
-## Local models
+## Run a model on your own machine
 
 Small models have small context windows: keep `AGENTS.md` short, use one prompt at a time,
-and edit few files per request. For a pasted pack, use the brief form with only the
-requirements the task touches:
+and edit few files per request.
 
-```bash
-scripts/pack-context.sh --brief REQ-003 feature   # rules, security, personas, index, REQ-003, prompt
-```
-
-It leaves out `docs/clean-code.md`, the architecture, the threat model and all other requirement
-files, and says so in its header. The script prints the pack's estimated size in tokens and warns
-above about 12,000.
-
-### Ollama + Aider
+### Ollama with Aider
 ```bash
 ollama pull qwen2.5-coder:14b          # any coder model your hardware handles
 export OLLAMA_API_BASE=http://127.0.0.1:11434
@@ -43,17 +28,17 @@ Start the local server (OpenAI-compatible, default `http://localhost:1234/v1`), 
 model with a context length ≥ 16k, then point Aider/Cline/Continue at it as an
 "OpenAI-compatible" provider with any dummy API key.
 
-### Cline / Continue (VS Code)
+### Cline or Continue in VS Code
 Provider "Ollama" or "OpenAI compatible". Both pick up the rules from `.clinerules` and
 `.continue/rules/project.md`, which point to `AGENTS.md`.
 
-## Limits to expect
+## What to expect from smaller models
 
-Weaker models skip steps. Counter: ask for the plan first, run `scripts/check.sh` yourself,
+Weaker models skip steps. Counter: ask for the plan first, run `xaden check` yourself,
 and never merge without a green check. Security review quality drops with model size —
-re-run `prompts/security-review.md` with a stronger model before releases.
+re-run the security review (`xaden prompt security-review`) with a stronger model before releases.
 
-## Platforms
+## Which systems these steps cover
 
 Linux and macOS are supported. Scripts are bash and use only POSIX tools. On Windows use
 WSL (recommended) or Git Bash; native PowerShell is not supported.

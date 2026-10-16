@@ -57,7 +57,7 @@ requirement_path() {
   local path
   printf '%s' "$2" | grep -Eq '^REQ-[0-9]{3,}$' || die "invalid requirement ID: $2"
   path="$(requirement_records "$1" | awk -F'\t' -v id="$2" '$1 == id { print $7; exit }')"
-  [ -n "$path" ] || die "$2 does not exist in docs/requirements"
+  [ -n "$path" ] || die "$2 does not exist in the requirements folder"
   printf '%s' "$path"
 }
 

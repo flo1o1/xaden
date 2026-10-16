@@ -1,0 +1,256 @@
+#!/usr/bin/env bash
+# The only script of Xaden that talks to the network (REQ-072), and the version changes built on it.
+# Usage: xaden fetch <version>             install the version this project pins, after you confirm
+#        xaden upgrade [--check] [version] move the project to a newer Xaden on a branch
+# Nothing downloads without a person's yes: the question shows version, source and checksum, ends
+# the output, and anything but yes means no. Without a terminal nothing downloads and the command
+# exits with code 3 and prints the command to run. A yes is not remembered. A download is installed
+# only when its checksum equals the one pinned in xaden/xaden.conf. A test greps every other script
+# for network calls.
+set -euo pipefail
+
+SCAFFOLD_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=SCRIPTDIR/../template/scripts/lib.sh
+source "$SCAFFOLD_ROOT/template/scripts/lib.sh"
+# shellcheck source=SCRIPTDIR/scaffold-lib.sh
+source "$SCAFFOLD_ROOT/scripts/scaffold-lib.sh"
+
+EXIT_NO_TERMINAL=3     # nothing was downloaded because nobody could be asked
+EXIT_CHECKSUM=5        # the download does not match the pinned checksum
+EXIT_SIGNATURE=6       # the signature of a release is wrong
+RELEASES_URL="${XADEN_RELEASES_URL:-https://github.com/flo1o1/xaden/archive/refs/tags}"
+ASSETS_URL="${XADEN_ASSETS_URL:-https://github.com/flo1o1/xaden/releases/download}"
+SIGNERS_FILE="$SCAFFOLD_ROOT/release-signers"
+# Tests may point to their own key; no other caller can change which keys are trusted.
+if [ "${XADEN_TEST_MODE:-0}" = "1" ]; then SIGNERS_FILE="${XADEN_SIGNERS_FILE:-$SIGNERS_FILE}"; fi
+SIGNATURE_NAMESPACE="xaden-release"
+SIGNER_PRINCIPAL="release@xaden.dev"
+LATEST_URL="${XADEN_LATEST_URL:-https://api.github.com/repos/flo1o1/xaden/releases/latest}"
+
+# release_url <version>: where a release archive comes from.
+release_url() { printf '%s/v%s.tar.gz' "$RELEASES_URL" "$1"; }
+
+# require_version <string>: dies unless it looks like MAJOR.MINOR.PATCH.
+require_version() { is_semver "$1" || die "not a version like 1.2.3: $1"; }
+
+# project_conf: the settings file of the project around the current directory.
+project_conf() {
+  local root
+  root="$(git rev-parse --show-toplevel 2>/dev/null)" || die "run this inside a project (no git repository here)"
+  [ -f "$root/xaden/xaden.conf" ] || die "this project has not adopted Xaden (xaden/xaden.conf is missing); see: xaden adopt"
+  printf '%s' "$root/xaden/xaden.conf"
+}
+
+# confirm_download <version> <checksum|"">: shows what would arrive and asks. Returns 0 only for yes.
+# Without a terminal it prints the command to run yourself and exits with EXIT_NO_TERMINAL.
+confirm_download() {
+  local version=$1 checksum=$2
+  info "Xaden $version"
+  echo "  source:   $(release_url "$version")"
+  echo "  checksum: ${checksum:-not pinned yet; it is shown after the download and goes into xaden/xaden.conf}"
+  if ! has_terminal; then
+    warn "No terminal, so nothing was downloaded. Run this yourself in a terminal: xaden fetch $version"
+    exit "$EXIT_NO_TERMINAL"
+  fi
+  ask "Download and install Xaden $version now?"
+}
+
+# MAX_RELEASE_BYTES: a release archive larger than this is refused (the real one is about 1 MB).
+MAX_RELEASE_BYTES=52428800
+
+# safe_archive <archive>: dies unless every member is a plain file or folder inside the archive's
+# top folder: no absolute path, no "..", no link. The archive comes from the network; extracting
+# one with such a member could write outside the target folder.
+safe_archive() {
+  # no -q: grep must read all input, or tar dies of SIGPIPE and pipefail hides the match
+  if tar -tzf "$1" | grep -E '^/|(^|/)\.\.(/|$)' >/dev/null; then die "the archive has a path that leaves its folder; refusing to extract it"; fi
+  if tar -tvzf "$1" | grep -E '^[lh]' >/dev/null; then die "the archive contains a link; refusing to extract it"; fi
+}
+
+# download_release <version> <dir>: the one download. Fetches the release archive, checks that
+# it is safe to extract, and extracts it into <dir>.
+download_release() {
+  local archive
+  archive="$(mktemp)"
+  if ! curl -fsSL --max-filesize "$MAX_RELEASE_BYTES" -o "$archive" "$(release_url "$1")"; then
+    rm -f "$archive"
+    return 1
+  fi
+  if ! (safe_archive "$archive"); then rm -f "$archive"; return 1; fi
+  tar -xz -C "$2" --strip-components=1 -f "$archive"
+  rm -f "$archive"
+}
+
+# signing_keys_exist: true when release-signers holds at least one key.
+signing_keys_exist() { [ -f "$SIGNERS_FILE" ] && grep -Ev '^[[:space:]]*(#|$)' "$SIGNERS_FILE" >/dev/null; }
+
+# signed_checksum <version>: prints the checksum of a release that the maintainer signed. Returns 0
+# when the signature is valid, 10 when there is nothing to verify (no key in release-signers, no
+# ssh-keygen, no signature published for the release) and EXIT_SIGNATURE when a signature exists and
+# is wrong.
+signed_checksum() {
+  local version=$1 dir status=0 line
+  signing_keys_exist && has_command ssh-keygen || return 10
+  dir="$(mktemp -d)"
+  if ! curl -fsSL --max-filesize 4096 -o "$dir/checksum" "$ASSETS_URL/v$version/xaden-$version.checksum" ||
+    ! curl -fsSL --max-filesize 4096 -o "$dir/checksum.sig" "$ASSETS_URL/v$version/xaden-$version.checksum.sig"; then
+    rm -rf "${dir:?}"
+    return 10
+  fi
+  ssh-keygen -Y verify -f "$SIGNERS_FILE" -I "$SIGNER_PRINCIPAL" -n "$SIGNATURE_NAMESPACE" -s "$dir/checksum.sig" <"$dir/checksum" >/dev/null 2>&1 || status=$?
+  line="$(awk 'NR == 1 { print $1 }' "$dir/checksum")"
+  rm -rf "${dir:?}"
+  if [ "$status" -ne 0 ]; then
+    return "$EXIT_SIGNATURE"
+  fi
+  printf '%s' "$line"
+}
+
+# install_release <version> <expected-checksum|"">: downloads, verifies and installs one version
+# into the versions folder. Prints the checksum of what was installed.
+install_release() {
+  local version=$1 expected=$2 staging actual target signed status
+  staging="$(mktemp -d)"
+  download_release "$version" "$staging" || { rm -rf "${staging:?}"; die "download failed for Xaden $version"; }
+  if [ ! -f "$staging/VERSION" ] || [ "$(tr -d '[:space:]' <"$staging/VERSION")" != "$version" ]; then
+    rm -rf "${staging:?}"
+    die "the download is not Xaden $version; nothing was installed"
+  fi
+  actual="$(tree_checksum "$staging")"
+  signed=""
+  status=0
+  signed="$(signed_checksum "$version")" || status=$?
+  if [ "$status" -eq "$EXIT_SIGNATURE" ]; then
+    rm -rf "${staging:?}"
+    warn "The signature of Xaden $version does not verify against the keys in release-signers. Nothing was installed."
+    exit "$EXIT_SIGNATURE"
+  elif [ "$status" -eq 0 ]; then
+    if [ -n "$expected" ] && [ "$expected" != "$signed" ]; then
+      rm -rf "${staging:?}"
+      warn "The checksum pinned in xaden/xaden.conf is not the one the maintainer signed for Xaden $version. Nothing was installed."
+      exit "$EXIT_CHECKSUM"
+    fi
+    expected=$signed
+    info "signature verified: the checksum of Xaden $version comes from the maintainer" >&2
+  elif [ -z "$expected" ]; then
+    warn "No verifiable signature for Xaden $version: the checksum is taken from the download itself (trust on first use)." >&2
+  fi
+  if [ -n "$expected" ] && [ "$actual" != "$expected" ]; then
+    rm -rf "${staging:?}"
+    warn "expected checksum $expected"
+    warn "received checksum $actual"
+    warn "The download does not match the checksum pinned in xaden/xaden.conf. Nothing was installed."
+    exit "$EXIT_CHECKSUM"
+  fi
+  target="$(versions_dir)/$version"
+  mkdir -p "$(versions_dir)"
+  rm -rf "${target:?}"
+  mv "$staging" "$target"
+  printf '%s' "$actual"
+}
+
+# fetch_main <version>: installs the version the project pins.
+fetch_main() {
+  local version=${1:-} conf pinned checksum
+  [ -n "$version" ] || die "usage: xaden fetch <version>"
+  require_version "$version"
+  conf="$(project_conf)"
+  pinned="$(conf_get "$conf" version)"
+  checksum="$(conf_get "$conf" checksum)"
+  [ "$version" = "$pinned" ] || die "this project pins Xaden $pinned, not $version. To move it to $version: xaden upgrade $version"
+  if [ -x "$(versions_dir)/$version/scripts/xaden.sh" ] || [ "$(tr -d '[:space:]' <"$SCAFFOLD_ROOT/VERSION")" = "$version" ]; then
+    ok "Xaden $version is installed already"
+    return 0
+  fi
+  confirm_download "$version" "$checksum" || { echo "Nothing was downloaded."; exit 1; }
+  install_release "$version" "$checksum" >/dev/null
+  ok "Xaden $version is installed in $(versions_dir)/$version (checksum verified)"
+}
+
+# latest_version: asks the release API for the newest version (after the person agreed).
+latest_version() {
+  curl -fsS "$LATEST_URL" | sed -n 's/.*"tag_name": *"v\{0,1\}\([0-9][0-9.]*\)".*/\1/p' | head -n 1
+}
+
+# changelog_between <changelog> <from> <to>: the entries of versions after <from> up to <to>.
+changelog_between() {
+  awk -v from="$2" -v to="$3" '
+    function key(v,   p) { split(v, p, "."); return p[1] * 1000000 + p[2] * 1000 + p[3] }
+    /^## \[[0-9]/ { v = $2; gsub(/[\[\]]/, "", v); show = (key(v) > key(from) && key(v) <= key(to)) }
+    show { print }' "$1"
+}
+
+# tools_for <version>: the folder of an installed Xaden of that version; downloads it after a yes.
+tools_for() {
+  local version=$1 checksum
+  if [ "$(tr -d '[:space:]' <"$SCAFFOLD_ROOT/VERSION")" = "$version" ]; then printf '%s' "$SCAFFOLD_ROOT"; return 0; fi
+  if [ -x "$(versions_dir)/$version/scripts/xaden.sh" ]; then printf '%s' "$(versions_dir)/$version"; return 0; fi
+  confirm_download "$version" "" >&2 || { echo "Nothing was downloaded." >&2; exit 1; }
+  checksum="$(install_release "$version" "")" || exit $? # the subshell cannot stop this script by itself
+  info "checksum of Xaden $version: $checksum (it goes into xaden/xaden.conf; your team reviews it in the pull request)" >&2
+  printf '%s' "$(versions_dir)/$version"
+}
+
+# upgrade_main [--check] [version]
+upgrade_main() {
+  local check_only=0 target="" conf root pinned tools checksum branch worktree base
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --check) check_only=1 ;;
+      -*) die "usage: xaden upgrade [--check] [version]" ;;
+      *) target=$1 ;;
+    esac
+    shift
+  done
+  conf="$(project_conf)"
+  root="$(dirname "$(dirname "$conf")")"
+  pinned="$(conf_get "$conf" version)"
+  if [ "$check_only" = 1 ] || [ -z "$target" ]; then
+    if ! has_terminal; then
+      warn "No terminal, so Xaden did not look for a newer release. Run 'xaden upgrade --check' in a terminal, or name the version: xaden upgrade <version>"
+      exit "$EXIT_NO_TERMINAL"
+    fi
+    ask "Look up the newest Xaden release on github.com? Nothing else is sent." || { echo "Nothing was looked up."; exit 1; }
+    target="$(latest_version)"
+    [ -n "$target" ] || die "could not read the newest version from $LATEST_URL"
+    if [ "$check_only" = 1 ]; then
+      if [ "$target" = "$pinned" ]; then ok "project pins Xaden $pinned, the newest release"; else info "project pins Xaden $pinned, newest release is $target (xaden upgrade $target)"; fi
+      return 0
+    fi
+  fi
+  require_version "$target"
+  [ "$target" != "$pinned" ] || { ok "project pins Xaden $pinned already"; return 0; }
+  tools="$(tools_for "$target")"
+  checksum="$(tree_checksum "$tools")"
+  base="$(git -C "$root" symbolic-ref -q --short HEAD)" || die "check out a branch first"
+  branch="chore/upgrade-xaden-$target"
+  worktree="$(dirname "$root")/$(basename "$root")-upgrade-xaden-$target"
+  [ ! -e "$worktree" ] || die "$worktree exists already; remove it first (git worktree remove)"
+  git -C "$root" worktree add -q -b "$branch" "$worktree" "$base"
+  conf_set "$worktree/xaden/xaden.conf" version "$target"
+  conf_set "$worktree/xaden/xaden.conf" checksum "$checksum"
+  (cd "$worktree" && bash -c 'source "$1/template/scripts/lib.sh"; TOOLS_DIR="$1/template"; render_rules' _ "$tools" >xaden/RULES.md)
+  # REQ-080 the Claude command files follow the prompts of the new version
+  if grep -qE '^(created-)?line CLAUDE\.md$' "$worktree/$FOOTPRINT_FILE" 2>/dev/null; then sync_commands "$worktree" "$tools/template"; fi
+  if [ -f "$worktree/.github/workflows/xaden.yml" ]; then
+    sed -i.bak -e "s/^  XADEN_VERSION: .*/  XADEN_VERSION: \"$target\"/" -e "s/^  XADEN_CHECKSUM: .*/  XADEN_CHECKSUM: \"$checksum\"/" "$worktree/.github/workflows/xaden.yml"
+    rm -f "$worktree/.github/workflows/xaden.yml.bak"
+  fi
+  git -C "$worktree" add -A
+  git -C "$worktree" -c core.hooksPath=/dev/null commit -q -n -m "chore: upgrade Xaden from $pinned to $target" \
+    -m "Pins version $target and its checksum, and regenerates xaden/RULES.md. Review the rules diff and the changelog in the pull request."
+  info "changes of this upgrade"
+  git -C "$worktree" show --stat --format= HEAD
+  git -C "$worktree" show --format= HEAD -- xaden/xaden.conf xaden/RULES.md
+  info "changelog, Xaden $pinned to $target"
+  changelog_between "$tools/CHANGELOG.md" "$pinned" "$target"
+  ok "branch $branch is ready in $worktree; push it and open the pull request your team reviews"
+}
+
+command_name=${1:-}
+[ "$#" -eq 0 ] || shift
+case "$command_name" in
+  fetch) fetch_main "$@" ;;
+  upgrade) upgrade_main "$@" ;;
+  *) die "usage: fetch.sh fetch <version> | upgrade [--check] [version]" ;;
+esac

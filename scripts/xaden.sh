@@ -2,6 +2,11 @@
 # The `xaden` command (REQ-056): one entry point for the scaffold's scripts and the current
 # project's own scripts, usable from any directory. scripts/install.sh links it onto PATH.
 # Usage: xaden <command> [args...]   (`xaden help` lists the commands)
+#
+# A project that adopted Xaden (xaden/xaden.conf, REQ-066) keeps no copy of the tooling: the
+# project commands run the installed Xaden, and the version pinned in xaden/xaden.conf decides
+# which installed version that is (REQ-070, REQ-071). A pinned version that is not installed is
+# never downloaded without a person's yes (REQ-072; fetch.sh asks).
 set -euo pipefail
 
 # resolve_link <path>: follows symbolic links to the real file (older macOS has no readlink -f).
@@ -20,24 +25,48 @@ resolve_link() {
 SCAFFOLD_ROOT="$(cd "$(dirname "$(resolve_link "${BASH_SOURCE[0]}")")/.." && pwd)"
 # shellcheck source=SCRIPTDIR/../template/scripts/lib.sh
 source "$SCAFFOLD_ROOT/template/scripts/lib.sh"
+# shellcheck source=SCRIPTDIR/scaffold-lib.sh
+source "$SCAFFOLD_ROOT/scripts/scaffold-lib.sh"
+
+TOOLS="$SCAFFOLD_ROOT/template/scripts"
 
 usage() {
   cat <<'EOF'
 Usage: xaden <command> [args...]
 
-Scaffold commands (any directory):
-  create <name> [dir] create a project in ./<name>, or in <dir>   (new: former name)
-  update [--apply]   bring the current project to this scaffold version (dry run without --apply)
-  version            print the scaffold version
+Start and keep (any directory):
+  create <name> [dir]
+                     create a project in ./<name>, or in <dir>, with the xaden/ layout
+  create --autopilot --stack python|node <name>
+                     create it with the recommended setup after one confirmation
+  create --classic <name> [dir]
+                     create a project that keeps its own copy of the tooling (update it with `xaden update`)
+  adopt [--scan|--plan]
+                     add Xaden to the repository you are in, on a branch (scan and plan change nothing)
+  remove             take Xaden out of the repository you are in
+  update [--apply]   bring a project created by `create` to this Xaden version (dry run without --apply)
+  version            print the installed Xaden version
   help               show this list
 
-Project commands (anywhere inside a project; run the project's own scripts/):
-  setup              activate git hooks, report missing tools    scripts/setup.sh
-  check [...]        static analysis (--staged, --strict)        scripts/check.sh
-  req [...]          requirements: list, show, new, index         scripts/req.sh
-  pack [--brief] [REQ-nnn...] [prompt...]
-                     context pack for chat tools                  scripts/pack-context.sh
-  release <part>     cut a release: major, minor or patch         scripts/release.sh
+Inside a project that adopted Xaden:
+  doctor             compare the installed version with the pinned one (no network)
+  fetch <version>    install the pinned version if it is missing (asks first)
+  upgrade [--check] [version]
+                     move the project to a newer Xaden on a branch for a pull request
+  rules              regenerate xaden/RULES.md from the pinned version
+  preset <python|node>
+                     add Xaden's preset for a stack and map its checks
+  prompt <name>      print a task prompt (kickoff, feature, bugfix, ...)
+  doc <name>         print a guide (clean-code, security, optional-tools, local-llm)
+  ignore-list        print the paths Xaden owns, for .dockerignore and archive excludes
+
+Project commands (anywhere inside a project):
+  setup              activate git hooks, report missing tools
+  check [...]        static analysis (--staged, --strict)
+  req [...]          requirements: list, show, new, index
+  context            rule IDs, requirement counts and the CONTEXT CHECK fingerprint
+  persona new <name> create a user persona
+  release <part>     cut a release: major, minor or patch (projects created by `create`)
 EOF
 }
 
@@ -46,13 +75,166 @@ project_root() {
   git rev-parse --show-toplevel 2>/dev/null || die "run this inside a project (no git repository here)"
 }
 
-# run_project_script <script> [args...]: runs the current project's own scripts/<script>
-# from the project root. This runs the project's code, as running the script by hand would.
-run_project_script() {
-  local script=$1 root
+# is_adopted <root>: true if the project keeps its settings in xaden/xaden.conf.
+is_adopted() { [ -f "$1/xaden/xaden.conf" ]; }
+
+# running_version: the version of the Xaden that runs this command.
+running_version() { tr -d '[:space:]' <"$SCAFFOLD_ROOT/VERSION"; }
+
+# select_pinned_version <root> <args...>: runs the Xaden version the project pins. When it is
+# not the running one, hands over to the installed copy; when it is not installed, asks before
+# anything downloads.
+select_pinned_version() {
+  local root=$1 conf pinned
   shift
+  conf="$root/xaden/xaden.conf"
+  pinned="$(conf_get "$conf" version)"
+  is_semver "$pinned" || die "xaden/xaden.conf: version must look like 1.2.3 (got: ${pinned:-nothing})"
+  [ "$pinned" != "$(running_version)" ] || return 0
+  [ -z "${XADEN_HANDED_OVER:-}" ] || die "Xaden $(running_version) was started for a project that pins $pinned"
+  if [ -x "$(versions_dir)/$pinned/scripts/xaden.sh" ]; then
+    XADEN_HANDED_OVER=1 exec "$(versions_dir)/$pinned/scripts/xaden.sh" "$@"
+  fi
+  info "this project pins Xaden $pinned; this machine has $(running_version)"
+  # fetch.sh shows version, source and checksum, asks, and downloads only after a yes
+  "$SCAFFOLD_ROOT/scripts/fetch.sh" fetch "$pinned" || exit $?
+  XADEN_HANDED_OVER=1 exec "$(versions_dir)/$pinned/scripts/xaden.sh" "$@"
+}
+
+# run_tool_script <root> <script> [args...]: runs one of the installed tooling scripts on the project.
+run_tool_script() {
+  local root=$1 script=$2
+  shift 2
+  cd "$root"
+  PROJECT_ROOT="$root" exec "$TOOLS/$script" "$@"
+}
+
+# doctor_main: compares the installed version with the pinned one. Reads two files; no network.
+doctor_main() {
+  local root conf pinned checksum
   root="$(project_root)"
-  [ -x "$root/scripts/$script" ] || die "not a Xaden project: $root/scripts/$script is missing"
+  is_adopted "$root" || die "this project has not adopted Xaden (xaden/xaden.conf is missing); see: xaden adopt"
+  conf="$root/xaden/xaden.conf"
+  pinned="$(conf_get "$conf" version)"
+  checksum="$(conf_get "$conf" checksum)"
+  info "installed $(running_version), project pinned $pinned"
+  if [ "$pinned" = "$(running_version)" ]; then
+    if [ "$(tree_checksum "$SCAFFOLD_ROOT")" = "$checksum" ]; then
+      ok "the installed Xaden is the pinned one (checksum matches)"
+    else
+      warn "the installed Xaden $pinned does not match the pinned checksum (local changes in the Xaden folder?)"
+      exit 1
+    fi
+  elif [ -x "$(versions_dir)/$pinned/scripts/xaden.sh" ]; then
+    ok "Xaden $pinned is installed in $(versions_dir)/$pinned and is used for this project"
+  else
+    warn "Xaden $pinned is not installed. Install it with: xaden fetch $pinned"
+    exit 1
+  fi
+}
+
+# hook_main <root> <name> <args...>: what the git hooks of an adopted project run.
+hook_main() {
+  local root=$1 name=$2 convention
+  shift 2
+  convention="$(conf_get "$root/xaden/xaden.conf" commit-convention conventional)"
+  case "$name" in
+    pre-commit) run_tool_script "$root" check.sh --staged ;;
+    commit-msg)
+      if [ "$convention" = "conventional" ]; then
+        PROJECT_ROOT="$root" exec "$TOOLS/hooks/commit-msg" "$@"
+      fi
+      # Another commit convention: the Refs: checks only advise until the team opts in (REQ-068).
+      PROJECT_ROOT="$root" "$TOOLS/verify-refs.sh" "$@" || warn "commit references: advisory only while commit-convention is '$convention'"
+      ;;
+    *) die "unknown hook: $name (pre-commit or commit-msg)" ;;
+  esac
+}
+
+# setup_main <root>: hooks and tools for one clone of an adopted project.
+setup_main() {
+  local root=$1 manager
+  PROJECT_ROOT="$root" "$TOOLS/setup.sh" --tools-only || true
+  # shellcheck source=SCRIPTDIR/adopt-scan.sh
+  source "$SCAFFOLD_ROOT/scripts/adopt-scan.sh"
+  # shellcheck source=SCRIPTDIR/adopt-lib.sh
+  source "$SCAFFOLD_ROOT/scripts/adopt-lib.sh"
+  scan_hooks "$root"
+  manager=$SCAN_HOOKS
+  case "$manager" in
+    husky) info "husky hooks are part of the repository; nothing to install" ;;
+    unsupported*) warn "hook setup not supported ($manager); call 'xaden hook pre-commit' and 'xaden hook commit-msg \"\$1\"' from your hooks yourself" ;;
+    *) install_local_hooks "$root"; info "Xaden is chained into the git hooks of this clone ($manager)" ;;
+  esac
+}
+
+# ignore_list_main <root>: the paths Xaden owns (REQ-075). Reads the repository, changes nothing.
+ignore_list_main() {
+  local root=$1
+  is_adopted "$root" || die "this project has not adopted Xaden (xaden/xaden.conf is missing)"
+  printf 'xaden/\nAGENTS.md\n'
+  if [ -f "$root/CLAUDE.md" ]; then printf 'CLAUDE.md\n'; fi
+}
+
+# adopted_project_command <command> <root> <args...>
+adopted_project_command() {
+  local command=$1 root=$2 name file
+  shift 2
+  select_pinned_version "$root" "$command" "$@"
+  case "$command" in
+    setup) setup_main "$root" ;;
+    check) run_tool_script "$root" check.sh "$@" ;;
+    req) run_tool_script "$root" req.sh "$@" ;;
+    context) run_tool_script "$root" context-status.sh "$@" ;;
+    persona) run_tool_script "$root" persona.sh "$@" ;;
+    release) run_tool_script "$root" release.sh "$@" ;;
+    hook) hook_main "$root" "${1:-}" "${@:2}" ;;
+    prompt)
+      name="${1:-}"
+      [ -n "$name" ] || die "usage: xaden prompt <name>"
+      # shellcheck disable=SC1091 # layout.sh is part of the tooling
+      (PROJECT_ROOT="$root"; layout_init "$root"; file="$(resolve_prompt "$name")"; cat "$file"; case "$file" in "$TEAM_DIR"/*) ;; *) rm -f "$file" ;; esac) ;;
+    doc)
+      name="${1:-}"
+      case "$name" in clean-code | security | optional-tools | local-llm) cat "$SCAFFOLD_ROOT/template/docs/$name.md" ;; *) die "usage: xaden doc <clean-code|security|optional-tools|local-llm>" ;; esac ;;
+    rules)
+      layout_init "$root"
+      render_rules >"$root/xaden/RULES.md"
+      ok "xaden/RULES.md regenerated from Xaden $(running_version); review the diff and commit it" ;;
+    ignore-list) ignore_list_main "$root" ;;
+    preset) preset_main "$root" "${1:-}" ;;
+  esac
+}
+
+# preset_main <root> <stack>: Xaden's preset for a stack in an adopted project: the configuration
+# files at the root (never overwriting yours) and the check commands in xaden/xaden.conf.
+preset_main() {
+  local root=$1 stack=$2
+  case "$stack" in python | node) ;; *) die "usage: xaden preset <python|node>" ;; esac
+  # shellcheck source=SCRIPTDIR/adopt-scan.sh
+  source "$SCAFFOLD_ROOT/scripts/adopt-scan.sh"
+  # shellcheck source=SCRIPTDIR/adopt-lib.sh
+  source "$SCAFFOLD_ROOT/scripts/adopt-lib.sh"
+  SCAN_GAPS="test lint typecheck"
+  apply_preset "$root" "$stack"
+  ok "the $stack preset is in place; review it with git diff, then install its tools yourself:"
+  echo "  $(preset_install_command "$stack")"
+}
+
+# classic_project_command <command> <root> <args...>: the project's own scripts (projects created by `create`).
+classic_project_command() {
+  local command=$1 root=$2 script
+  shift 2
+  case "$command" in
+    setup) script=setup.sh ;;
+    check) script=check.sh ;;
+    req) script=req.sh ;;
+    release) script=release.sh ;;
+    context) script=context-status.sh ;;
+    persona) script=persona.sh ;;
+    *) die "xaden $command works in a project that adopted Xaden (xaden adopt); this project keeps its own copy of the tooling" ;;
+  esac
+  [ -x "$root/scripts/$script" ] || die "not a Xaden project: $root/scripts/$script is missing (to add Xaden to a repository: xaden adopt)"
   cd "$root"
   exec "$root/scripts/$script" "$@"
 }
@@ -61,22 +243,37 @@ main() {
   local command=${1:-help} root
   [ "$#" -gt 0 ] && shift
   case "$command" in
-    new | create)
+    create | new)
       [ "$command" = new ] && warn "xaden new is now called xaden create; the old name still works"
-      [ -n "${1:-}" ] || die "usage: xaden create <name> [dir]"
-      exec "$SCAFFOLD_ROOT/scripts/new-project.sh" "$1" "${2:-$PWD/$1}"
+      if [ "${1:-}" = "--classic" ]; then
+        shift
+        [ -n "${1:-}" ] || die "usage: xaden create --classic <name> [dir]"
+        exec "$SCAFFOLD_ROOT/scripts/new-project.sh" "$1" "${2:-$PWD/$1}"
+      fi
+      exec "$SCAFFOLD_ROOT/scripts/create.sh" "$@"
       ;;
+    adopt) exec "$SCAFFOLD_ROOT/scripts/adopt.sh" "$@" ;;
+    remove) exec "$SCAFFOLD_ROOT/scripts/adopt.sh" __remove "$@" ;;
     update)
       root="$(project_root)"
+      if is_adopted "$root"; then die "this project pins its Xaden version; move it with: xaden upgrade"; fi
       exec "$SCAFFOLD_ROOT/scripts/update-scaffold.sh" "$root" "$@"
       ;;
     version) tr -d '[:space:]' <"$SCAFFOLD_ROOT/VERSION" && echo ;;
     help | -h | --help) usage ;;
-    setup) run_project_script setup.sh "$@" ;;
-    check) run_project_script check.sh "$@" ;;
-    req) run_project_script req.sh "$@" ;;
-    pack) run_project_script pack-context.sh "$@" ;;
-    release) run_project_script release.sh "$@" ;;
+    doctor) doctor_main ;;
+    fetch) exec "$SCAFFOLD_ROOT/scripts/fetch.sh" fetch "$@" ;;
+    upgrade) exec "$SCAFFOLD_ROOT/scripts/fetch.sh" upgrade "$@" ;;
+    setup | check | req | context | persona | release | hook | prompt | doc | rules | ignore-list | preset)
+      root="$(project_root)"
+      if is_adopted "$root"; then
+        adopted_project_command "$command" "$root" "$@"
+      elif [ "$command" = "hook" ]; then
+        exit 0 # a clone whose branch does not carry Xaden yet: nothing to check
+      else
+        classic_project_command "$command" "$root" "$@"
+      fi
+      ;;
     *)
       usage >&2
       die "unknown command: $command"

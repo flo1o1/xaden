@@ -18,13 +18,14 @@ ROOT="${PROJECT_ROOT:-$(cd "$SCRIPTS/.." && pwd)}"
 source "$SCRIPTS/lib.sh"
 # shellcheck source=SCRIPTDIR/requirements-lib.sh
 source "$SCRIPTS/requirements-lib.sh"
+layout_init "$ROOT"
 
 RELEASE_MODE=0
 if [ "${1:-}" = "--release" ]; then
   RELEASE_MODE=1
   shift
 fi
-DIR="${1:-$ROOT/docs/requirements}"
+DIR="${1:-$REQ_DIR}"
 # The date placeholder, assembled from two parts so project generation (which fills every
 # literal occurrence in the template) does not rewrite it here.
 DATE_PLACEHOLDER="{{""DATE}}"
@@ -54,6 +55,10 @@ check_epics() {
 check_files() {
   local files
   files="$(requirement_files "$DIR")"
+  if [ -z "$files" ] && [ "$LAYOUT" = "adopted" ]; then # a freshly adopted project starts without requirements
+    echo "no requirements yet (write them with: xaden prompt kickoff)"
+    return 0
+  fi
   [ -n "$files" ] || { warn "no requirement files found in $DIR"; FAILURES=$((FAILURES + 1)); return 0; }
   printf '%s\n' "$files" | tr '\n' '\0' | xargs -0 awk \
     -v types="$REQUIREMENT_TYPES" -v priorities="$REQUIREMENT_PRIORITIES" \

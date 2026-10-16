@@ -35,7 +35,7 @@ logo image (inspected only: PNG without embedded text other than the creating so
 
 Verified safe:
 
-- `xaden new` passes the name to `new-project.sh`, which validates it before any use; the
+- `xaden create` passes the name to `new-project.sh`, which validates it before any use; the
   default target `$PWD/<name>` is built only from the validated name.
 - `xaden update` resolves the project root with `git rev-parse --show-toplevel` and runs the
   checkout's own `update-scaffold.sh`, which keeps the symlink and manifest protections of the

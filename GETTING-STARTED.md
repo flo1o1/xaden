@@ -1,184 +1,40 @@
 # Getting started
 
-From zero to a released first version. Nothing here assumes a particular person's machine or
-private skills.
+From zero to a released first version. The detailed guides are in [`docs/guide/`](docs/guide/); they are also the source of
+the pages on https://xaden.dev. Nothing here assumes a particular person's machine or private skills.
 
-## 1. Prerequisites
+## The short path
 
-| Needed | Why |
-|--------|-----|
-| Linux or macOS (Windows: WSL or Git Bash, untested) | Scripts are bash + POSIX tools |
-| git, bash, awk, sed, tar, grep, cksum | Preinstalled on Linux/macOS |
-| An AI coding tool | Claude Code recommended; Aider, Cline, Continue, Cursor, Codex, Copilot, ChatGPT or a local model (Ollama, LM Studio) also work — see `template/docs/local-llm.md` |
-| Recommended: shellcheck, gitleaks, semgrep | Static analysis and secret scanning. Locally a missing tool is skipped and the run reported INCOMPLETE; CI and releases use `--strict`, where it fails. Once a stack exists, its tools are required too: ruff, mypy, bandit, pip-audit, pytest (Python) or npm with `lint`/`typecheck`/`test` scripts (Node) |
-| Optional: Obsidian | Comfortable reading and editing of the prompt library |
-| Optional: extra checks and plugins | `scripts/check.sh` suggests the ones that fit your project (`TIP:` lines); list in `template/docs/optional-tools.md` |
-| Optional: [Ponytail](https://github.com/DietrichGebert/ponytail) | Third-party rule set (MIT) that pushes assistants towards less new code; see the add-ons note below |
-| Optional: [Caveman](https://github.com/JuliusBrussee/caveman) | Third-party rule set (Apache-2.0) that makes assistant replies shorter; see the add-ons note below |
-| Optional: [Token Optimizer](https://github.com/alexgreensh/token-optimizer) | Third-party plugin (PolyForm Noncommercial, not open source) that compresses context and tool output; see the add-ons note below |
-| Optional: [claude-mem](https://github.com/thedotmack/claude-mem) | Third-party plugin (Apache-2.0) that carries memory of past sessions into new ones; see the add-ons note below |
-| Optional: [obsidian-skills](https://github.com/kepano/obsidian-skills) | Third-party plugin (MIT) that teaches assistants Obsidian's Markdown, Bases and Canvas formats; see the add-ons note below |
-| Optional: [impeccable](https://github.com/pbakaus/impeccable) | Third-party plugin (Apache-2.0) for projects with a web UI: design guidance and 59 deterministic checks for generated frontend design; see the add-ons note below |
+1. [Check the requirements](docs/guide/admin/requirements-and-platforms.md): Linux or macOS with git and bash (Windows: WSL).
+2. [Install Xaden](docs/guide/admin/install-xaden.md): `git clone https://github.com/flo1o1/xaden.git ~/.xaden` and `~/.xaden/scripts/install.sh`.
+3. [Create a project](docs/guide/developer/create-a-project.md) with `xaden create my-app`, or [add Xaden to a repository](docs/guide/developer/add-xaden-to-a-repository.md) with `xaden adopt`.
+4. [Kick off with your assistant](docs/guide/developer/kick-off-with-your-assistant.md): `xaden prompt kickoff`.
+5. [Build features](docs/guide/developer/build-features.md) and [release a version](docs/guide/developer/release-a-version.md).
 
-### Optional: assistant add-ons
+## Developer guide
 
-The add-ons in the table above are third-party; the scaffold installs none of them, and your
-project's `AGENTS.md` takes precedence over each (§10). Install commands, sources, licenses and
-the risks to know before installing are in `template/docs/optional-tools.md` → "Assistant
-plugins" (in a generated project: `docs/optional-tools.md`).
+- [Create a project](docs/guide/developer/create-a-project.md)
+- [Add Xaden to a repository](docs/guide/developer/add-xaden-to-a-repository.md)
+- [Check modes and baselines](docs/guide/developer/check-modes-and-baselines.md)
+- [Kick off with your assistant](docs/guide/developer/kick-off-with-your-assistant.md)
+- [Build features](docs/guide/developer/build-features.md)
+- [Release a version](docs/guide/developer/release-a-version.md)
+- [Join a project that uses Xaden](docs/guide/developer/join-a-project.md)
+- [Use Xaden with other assistants and local models](template/docs/local-llm.md)
 
-### Optional: the `xaden` command
+## Admin guide
 
-`scripts/install.sh` links `xaden` into `~/.local/bin` (or the directory you pass) so you can
-use the scaffold from any directory. It writes nothing else; `git pull` in the checkout updates
-the command, and `scripts/install.sh --uninstall` removes the link. If the directory is not on
-your `PATH`, the script prints the line to add to your shell profile. Keep the checkout where it
-is: the link points into it.
+- [Requirements and platforms](docs/guide/admin/requirements-and-platforms.md)
+- [Install Xaden](docs/guide/admin/install-xaden.md)
+- [Update Xaden](docs/guide/admin/update-xaden.md)
+- [Pin one Xaden version per project](docs/guide/admin/pin-one-version-per-project.md)
+- [Verify releases](docs/guide/admin/verify-releases.md)
+- [Optional tools and assistant plugins](template/docs/optional-tools.md)
+- [Update a classic project](docs/guide/admin/update-a-classic-project.md)
+- [Uninstall](docs/guide/admin/uninstall.md)
 
-| Command | Does |
-|---------|------|
-| `xaden create my-app [dir]` | `scripts/new-project.sh`, creating `./my-app` (or `dir`); the former name `xaden new` still works |
-| `xaden update [--apply]` | `scripts/update-scaffold.sh` for the project you are in |
-| `xaden setup`, `check`, `req`, `pack`, `release` | the project's own `scripts/setup.sh`, `check.sh`, `req.sh`, `pack-context.sh`, `release.sh`, from anywhere inside it |
-| `xaden version`, `xaden help` | scaffold version, command list |
+## Security
 
-Project commands run that project's scripts, just as typing them would: use them only in
-projects you trust.
-
-## 2. Get Xaden
-
-Two ways, same files. Below, `<xaden-repo-url>` is the address of the Xaden repository you found
-this guide in. Both need git, because new projects get their own git repository.
-
-### Download the release (zip)
-
-1. Download the release archive: `<xaden-repo-url>/archive/refs/tags/v<version>.zip`
-   (`<version>` as in `CHANGELOG.md`, for example `0.2.2`).
-2. Extract it somewhere permanent, for example `unzip xaden-<version>.zip -d ~/tools`. The optional
-   `xaden` command links into this folder, so do not move it afterwards.
-3. `cd ~/tools/xaden-<version>`, then continue with section 3 (`scripts/new-project.sh my-app`) or install the
-   `xaden` command (`scripts/install.sh`, below).
-
-Verify: Xaden publishes no checksums or signatures. Download only from the repository address over
-HTTPS, check that `scripts/xaden.sh version` prints the version in the file name, and read the scripts
-you are about to run: they are plain shell.
-
-Update: download the new release and extract it next to the old one. Remove the old command link
-with `old-folder/scripts/install.sh --uninstall`, run `new-folder/scripts/install.sh`, then delete the
-old folder. `install.sh` never replaces a link that points somewhere else.
-
-### Clone the repository
-
-```bash
-git clone <xaden-repo-url> xaden && cd xaden
-```
-
-Update: `git pull` in the clone; the `xaden` command keeps working. To use a fixed release instead of
-`main`, run `git tag -l` and `git checkout v<version>`; return with `git checkout main` before the
-next `git pull`.
-
-### When to choose which
-
-- Zip: you only want to use Xaden, need no git history, and are happy to download updates yourself.
-- Clone: you want `git pull` updates, a choice of release tags, or to read the history and contribute.
-
-### Linux
-
-git, bash, awk, sed, tar, grep and cksum are normally preinstalled; install a missing one with your
-distribution's package manager. If `~/.local/bin` is not on your `PATH`, `scripts/install.sh` prints the
-line to add, usually to `~/.bashrc` (bash) or `~/.zshrc` (zsh).
-
-### macOS
-
-bash 3.2, the version macOS ships, is supported. If `git` is missing, running it once offers to install
-Apple's command line tools. The default shell is zsh: put the `PATH` line that `scripts/install.sh`
-prints into `~/.zshrc`.
-
-### Windows
-
-Untested: nobody has run these steps on Windows yet, so expect to adapt them. WSL is recommended: open a
-WSL shell and follow the Linux steps, keeping Xaden and your projects in the Linux file system (your
-WSL home directory) rather than under `/mnt/c`. Git Bash is also possible but untested.
-Native PowerShell is not supported, because the scripts are bash.
-
-## 3. Create your project
-
-```bash
-scripts/new-project.sh my-app        # creates ../my-app with its own git repo and hooks
-scripts/new-project.sh my-app ~/code/x   # or at a location of your choice
-cd ../my-app
-```
-
-With the `xaden` command: `cd ~/code && xaden create my-app` creates `~/code/my-app`.
-
-Only files tracked by git in `template/` are copied (including uncommitted edits to them);
-untracked or ignored files such as `.env`, `node_modules/` or `inbox/` content never are.
-A failed run removes the half-created project.
-
-Prefer GitHub's "Use this template" button? Then clone your copy and run
-`scripts/new-project.sh my-app` from it the same way. Never develop your project inside the
-scaffold: everything a project gets comes from `template/`.
-
-## 4. Kickoff
-
-- Claude Code: start `claude` in `my-app`, run `/kickoff <your idea>`.
-- Other tools: open the folder; ask the tool to follow `prompts/kickoff.md`.
-- Chat without file access: `scripts/pack-context.sh kickoff`, paste `context-pack.md`.
-
-The assistant's first reply must start with `CONTEXT CHECK <number>`. Compare it with your own
-`scripts/context-status.sh`: a mismatch means it started from stale or missing files. A match
-is a consistency aid only; it does not prove the rules were read or followed, so still review its work.
-
-You answer its questions, approve the requirements, and choose the stack. It then builds a
-minimal runnable skeleton and fills installation details in the guides.
-
-## 5. Build features (repeat)
-
-`/feature <what users can do afterwards>` (or `prompts/feature.md`). The assistant links the work
-to a requirement, plans, works test-first, runs `scripts/check.sh`, runs a security review when
-input/auth/data/network are touched, updates guides and changelog, and commits with
-`Refs: REQ-nnn`. Changed your mind? Say it, or run `/requirements`.
-
-Also available: `/bugfix`, `/refactor`, `/review`, `/security`, `/docs`.
-
-## 6. Release
-
-`/release` proposes a SemVer bump; you confirm; `scripts/release.sh` checks everything, refuses
-while the guides are incomplete, stamps versions, and tags locally. Push when you want:
-`git push --follow-tags`.
-
-## Getting scaffold improvements into your project
-
-Pull the newest scaffold, then from the scaffold directory:
-
-```bash
-scripts/update-scaffold.sh ../my-app            # dry run
-scripts/update-scaffold.sh ../my-app --apply    # stage changes; review with git diff --cached
-```
-
-With the `xaden` command, run `xaden update` (dry run) and `xaden update --apply` inside the project.
-
-Only scaffold-managed files (scripts, prompts, presets, rules, commands, Claude Code
-permissions in `.claude/settings.json`) are updated; code,
-requirements, guides, README and changelog are never touched. Merge any `*.scaffold-new` files
-it reports (your local edits are never overwritten), then commit
-`chore(scaffold): update to vX.Y.Z`. Each project records its scaffold version in `.scaffold/`.
-
-Projects that still keep requirements in one `docs/requirements/REQUIREMENTS.md` table run
-`scripts/migrate-requirements.sh` after updating: it converts every row into a requirement
-file (job stories left as TODO to rewrite) and the checks then accept the new format.
-
-## Joining an existing project
-
-```bash
-git clone <project-url> && cd <project>
-scripts/setup.sh     # git hooks are not cloned; this turns them on
-```
-
-CI re-runs the static analysis and commit-message checks, so skipped hooks are caught there.
-
-## Security review quality
-
-`/security` follows `prompts/security-review.md` (OWASP WSTG based), which works with any model.
-Claude Code users can additionally run the built-in `/security-review`. Use a strong model for
-reviews before releases.
+[How Xaden helps keep a project secure](template/docs/security.md) is the checklist every project follows. Security review quality:
+`xaden prompt security-review` follows the OWASP Web Security Testing Guide and works with any model; use a strong model for reviews
+before releases.

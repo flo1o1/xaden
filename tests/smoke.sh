@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Smoke test for the scaffold: generates a project and exercises its tooling.
 # Usage: tests/smoke.sh [area ...]   all areas, or only the named ones (needs git)
-#        tests/smoke.sh --list       the areas in run order: tests/smoke/<area>.sh, one per epic
+#        tests/smoke.sh --list       the areas in run order: tests/smoke/<area>.sh, one per epic, plus adoption
 # Every run first creates the demo project (test_new_project); an area then runs alone.
 # REQ-009: .github/workflows/scaffold-ci.yml runs this file on ubuntu-latest and macos-latest.
 set -euo pipefail
@@ -15,7 +15,7 @@ source "$SMOKE_DIR/lib.sh"
 
 # Run order of the areas. release-and-docs runs last: its release fills the demo project's
 # placeholder requirement and stamps a version, which earlier areas still need unchanged.
-AREAS="assistant-guidance project-setup quality-gates requirements security release-and-docs"
+AREAS="adoption assistant-guidance project-setup quality-gates requirements security release-and-docs"
 
 # areas: the areas in run order; dies when a file in tests/smoke/ is missing from AREAS.
 areas() {

@@ -66,7 +66,7 @@ export_template() {
     [ -z "$(cd "$source" && find . -type l | head -n 1)" ] || die "template contains symbolic links; refusing to export"
     (cd "$source" && find . \( -name .git -o -name node_modules -o -name .venv -o -name __pycache__ \) -prune -o \
       -type f ! -name .DS_Store ! -name .env ! \( -name '.env.*' ! -name .env.example \) \
-      ! -name '*.scaffold-new' ! -name context-pack.md ! \( -path './inbox/*' ! -name README.md \) -print |
+      ! -name '*.scaffold-new' ! \( -path './inbox/*' ! -name README.md \) -print |
       tar cf - -T -) | (cd "$destination" && tar xf -)
   fi
 }
@@ -128,4 +128,79 @@ write_manifest() {
   managed_template_files "$template" | while IFS= read -r file; do
     printf '%s\t%s\n' "$(render_file "$template/$file" "$name" | content_sum)" "$file"
   done >"$project/$SCAFFOLD_STATE_DIR/manifest"
+}
+
+# --- versions and checksums (REQ-071, REQ-072) ------------------------------------------
+
+# sha256_stdin: filter; the SHA-256 (hex) of stdin.
+sha256_stdin() {
+  if has_command sha256sum; then sha256sum | awk '{ print $1 }'; else shasum -a 256 | awk '{ print $1 }'; fi
+}
+
+# tree_checksum <dir>: SHA-256 over the paths and contents of the files of an Xaden tree.
+# A git checkout counts its tracked files, an extracted release all files; both give the same
+# value for the same release. The CI workflow of an adopted project recomputes it with the same
+# find, sed, sort and sha256 steps (scripts/adopt/ci.yml).
+tree_checksum() {
+  (
+    cd "$1" || return
+    if [ -e .git ]; then git ls-files; else find . -type f | sed 's|^\./||'; fi |
+      LC_ALL=C sort |
+      while IFS= read -r file; do printf '%s  %s\n' "$(sha256_stdin <"$file")" "$file"; done |
+      sha256_stdin
+  )
+}
+
+# The installed versions of Xaden besides the one that runs: one folder per version.
+xaden_home() { printf '%s' "${XADEN_HOME:-${XDG_DATA_HOME:-${HOME:?HOME is not set}/.local/share}/xaden}"; }
+versions_dir() { printf '%s/versions' "$(xaden_home)"; }
+
+# --- what an adopted project records outside xaden/ (REQ-073, REQ-080) ---------------------
+
+FOOTPRINT_FILE="xaden/footprint.txt"
+
+# note_footprint <dir> <kind> <path>: records a path outside xaden/ so `xaden remove` can undo it.
+note_footprint() {
+  mkdir -p "$1/xaden"
+  grep -qxF "$2 $3" "$1/$FOOTPRINT_FILE" 2>/dev/null || printf '%s %s\n' "$2" "$3" >>"$1/$FOOTPRINT_FILE"
+}
+
+# command_name <prompt>: the Claude Code slash command that starts a prompt.
+command_name() {
+  case "$1" in
+    code-review) echo review ;;
+    security-review) echo security ;;
+    requirements-update) echo requirements ;;
+    documentation) echo docs ;;
+    *) echo "$1" ;;
+  esac
+}
+
+# sync_commands <dir> <tools-dir>: makes .claude/commands/ match the prompts of those tools
+# (REQ-080). A command file that exists already is never overwritten; only the files the
+# footprint lists as Xaden's own are removed when their prompt is gone.
+sync_commands() {
+  local dir=$1 tools=$2 prompt file wanted="" stale
+  for prompt in "$tools"/prompts/*.md; do
+    prompt="$(basename "$prompt" .md)"
+    [ "$prompt" != 00-index ] || continue
+    file=".claude/commands/$(command_name "$prompt").md"
+    wanted="$wanted $file"
+    if [ -e "$dir/$file" ]; then
+      grep -qxF "file $file" "$dir/$FOOTPRINT_FILE" 2>/dev/null || info "skipped $file: it exists already and stays as it is"
+      continue
+    fi
+    mkdir -p "$dir/.claude/commands"
+    # shellcheck disable=SC2016 # $ARGUMENTS is text for the assistant, not for this shell
+    printf -- '---\ndescription: %s\n---\n\nRun `xaden prompt %s` and follow it. Task input: $ARGUMENTS\n' \
+      "$(sed -n 's/^title: //p' "$tools/prompts/$prompt.md" | head -n 1)" "$prompt" >"$dir/$file"
+    note_footprint "$dir" file "$file"
+  done
+  stale="$(grep -E '^file \.claude/commands/[a-z0-9-]+\.md$' "$dir/$FOOTPRINT_FILE" 2>/dev/null | cut -d' ' -f2 || true)"
+  for file in $stale; do
+    case " $wanted " in *" $file "*) continue ;; esac
+    rm -f "${dir:?}/$file"
+    grep -vxF "file $file" "$dir/$FOOTPRINT_FILE" >"$dir/$FOOTPRINT_FILE.new" || true
+    mv "$dir/$FOOTPRINT_FILE.new" "$dir/$FOOTPRINT_FILE"
+  done
 }
