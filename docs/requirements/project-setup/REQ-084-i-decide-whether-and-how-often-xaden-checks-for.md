@@ -15,8 +15,8 @@ When a newer Xaden or newer dependencies exist for my project, I want to choose 
 
 ## Acceptance criteria
 
-- Given no setting, then `update_check=off`: Xaden makes no network call for update checks.
-- Given `update_check=<interval>` in `xaden/xaden.conf`, where the interval is `off` or a number with `h` or `d` (`12h`, `1d`, `7d`), when a command or session start runs and the last check is older than the interval, then one check runs and its result is cached in a git-ignored file.
+- Given no setting, then `update-check=off`: Xaden makes no network call for update checks.
+- Given `update-check=<interval>` in `xaden/xaden.conf`, where the interval is `off` or a number with `h` or `d` (`12h`, `1d`, `7d`), when a command or session start runs and the last check is older than the interval, then one check runs and its result is cached in a git-ignored file.
 - Given an interval under `1h` or an unreadable value, then Xaden refuses it, names the allowed forms, and checks nothing.
 - Given the environment variable `XADEN_UPDATE_CHECK` (same values), then it overrides the project value for that person only, and `xaden doctor` shows which value is in effect and where it came from.
 - Given `xaden update-check` run by hand, then it checks now and ignores the interval; with the value `off` it refuses unless `--now` is given.
