@@ -700,6 +700,130 @@ test_new_project_layout() {
   fi
 }
 
+# stub_tool <dir> <name> <output>: a fake command that prints the output (npm, pip).
+stub_tool() {
+  mkdir -p "$1"
+  printf '#!/bin/sh\nprintf "%%s\\n" "%s"\nexit 1\n' "$3" >"$1/$2"
+  chmod +x "$1/$2"
+}
+
+# REQ-084 the person decides whether and how often Xaden looks for updates
+test_update_check() {
+  local worktree repo conf cache latest="$WORKDIR/latest.json" stubs="$WORKDIR/update-stubs" now
+  worktree="$(adopted_copy updates)"
+  repo="${worktree%-adopt-xaden}"
+  conf="$worktree/xaden/xaden.conf"
+  cache="$repo/.git/xaden-update-check"
+  now="$(date +%s)"
+  printf '{"tag_name": "v9.9.9"}\n' >"$latest"
+  stub_tool "$stubs" npm "left-pad 1.0.0 1.3.0"
+  export XADEN_LATEST_URL="file://$latest"
+  local saved_path=$PATH
+  export PATH="$stubs:$PATH"
+
+  x_in "$worktree" update-check --if-due
+  assert "without a setting nothing is checked" test "$XRC" -eq 0 -a ! -e "$cache"
+  x_in "$worktree" doctor
+  assert "doctor names the value and where it comes from" grep -q 'update check: off (default)' "$XOUT"
+
+  printf 'update-check = 1d\n' >>"$conf"
+  x_in "$worktree" update-check --if-due
+  assert "with a setting a due check runs" test "$XRC" -eq 0 -a -f "$cache"
+  assert "the cache lives in the git folder, so it is never tracked" test -z "$(git -C "$worktree" status --porcelain | grep xaden-update-check)"
+  assert "the cache names the newest Xaden" grep -qE '^Xaden.*9\.9\.9' "$cache"
+  assert "the cache lists outdated dependencies on their own line" grep -qE '^Dependencies.*left-pad' "$cache"
+  x_in "$worktree" doctor
+  assert "doctor shows the project value" grep -q 'update check: 1d (xaden/xaden.conf)' "$XOUT"
+  assert "doctor prints the cached result" grep -q '9\.9\.9' "$XOUT"
+
+  printf '{"tag_name": "v9.9.8"}\n' >"$latest"
+  XADEN_TEST_MODE=1 XADEN_NOW=$((now + 3600)) x_in "$worktree" update-check --if-due
+  assert "a check that is not due yet keeps the cache" grep -qE '^Xaden.*9\.9\.9' "$cache"
+  XADEN_TEST_MODE=1 XADEN_NOW=$((now + 2 * 86400)) x_in "$worktree" update-check --if-due
+  assert "a due check refreshes the cache" grep -qE '^Xaden.*9\.9\.8' "$cache"
+  printf '{"tag_name": "v9.9.7"}\n' >"$latest"
+  x_in "$worktree" update-check
+  assert "update-check by hand ignores the interval" grep -qE '^Xaden.*9\.9\.7' "$cache"
+
+  cp "$cache" "$WORKDIR/cache.before"
+  XADEN_LATEST_URL="file://$WORKDIR/does-not-exist" XADEN_TEST_MODE=1 XADEN_NOW=$((now + 9 * 86400)) x_in "$worktree" update-check --if-due
+  assert "no network: the check is silent and exits 0" test "$XRC" -eq 0 -a ! -s "$XOUT"
+  assert "no network: the old cache stays" cmp -s "$cache" "$WORKDIR/cache.before"
+
+  local value
+  for value in 30m 0h abc 1.5d 1w; do
+    conf_set "$conf" update-check "$value"
+    rm -f "$cache"
+    x_in "$worktree" update-check
+    assert "the value '$value' is refused" test "$XRC" -ne 0
+    assert "the refusal names the allowed forms" grep -q "off, or a number with h or d" "$XOUT"
+    assert "nothing is checked for '$value'" test ! -e "$cache"
+  done
+
+  conf_set "$conf" update-check off
+  x_in "$worktree" update-check
+  assert "by hand with the value off refuses" test "$XRC" -ne 0 -a ! -e "$cache"
+  x_in "$worktree" update-check --now
+  assert "--now checks although the value is off" test "$XRC" -eq 0 -a -f "$cache"
+  rm -f "$cache"
+  XADEN_UPDATE_CHECK=12h x_in "$worktree" update-check --if-due
+  assert "the environment variable overrides the project value for one person" test -f "$cache"
+  XADEN_UPDATE_CHECK=12h x_in "$worktree" doctor
+  assert "doctor names the environment as the source" grep -q 'update check: 12h (XADEN_UPDATE_CHECK)' "$XOUT"
+  assert "the override leaves the project file alone" grep -q '^update-check = off$' "$conf"
+  XADEN_UPDATE_CHECK=often x_in "$worktree" update-check --if-due
+  assert "a bad environment value is refused too" test "$XRC" -ne 0
+
+  # offline readers never touch the network
+  conf_set "$conf" update-check 1d
+  rm -f "$cache"
+  x_in "$worktree" update-check --now >/dev/null
+  PATH="$(path_without curl)" x_in "$worktree" doctor
+  assert "doctor prints the cache without curl" grep -q '9\.9\.7' "$XOUT"
+  assert "context-status prints the cached result" bash -c 'PROJECT_ROOT="$1" "$2/template/scripts/context-status.sh" | grep -q "9\.9\.7"' _ "$worktree" "$SCAFFOLD_ROOT"
+  rm -f "$cache"
+  git -C "$worktree" commit -q --allow-empty -m "chore: hooks stay offline"
+  assert "the commit hooks started no check" test ! -e "$cache"
+  PATH="$(path_without curl)" XADEN_LATEST_URL="file://$latest" x_in "$worktree" doctor
+  assert "doctor started no check" test ! -e "$cache"
+
+  # the update is reported, never applied; user-owned files stay
+  local releases="$WORKDIR/update-releases" base_commit
+  fake_release "$releases" 9.9.9
+  export XADEN_RELEASES_URL="file://$releases" XADEN_HOME="$WORKDIR/update-home"
+  printf '{}\n' >"$worktree/package-lock.json"
+  printf 'pytest\n' >"$worktree/requirements-dev.txt"
+  git -C "$worktree" add -A && git -C "$worktree" -c core.hooksPath=/dev/null commit -q -m "chore: lockfiles"
+  base_commit="$(git -C "$worktree" rev-parse HEAD)"
+  x_answers y "$worktree" upgrade 9.9.9
+  assert "upgrade succeeds" test "$XRC" -eq 0
+  assert "upgrade leaves package.json, lockfile and requirements-dev.txt alone" bash -c \
+    '! git -C "$1" diff --name-only "$2" "chore/upgrade-xaden-9.9.9" | grep -E "^(package(-lock)?\.json|requirements-dev\.txt)$"' _ "$worktree" "$base_commit"
+  unset XADEN_RELEASES_URL XADEN_HOME
+
+  # create and adopt ask once, off is the default answer
+  local asked="$WORKDIR/repos/asked"
+  make_repo "$asked" shop
+  XADEN_TEST_MODE=1 XADEN_TEST_ANSWER=7d x_in "$asked" adopt --yes --skip-ci
+  assert "adopt asks for the interval and records the answer" grep -q '^update-check = 7d$' "$asked-adopt-xaden/xaden/xaden.conf"
+  make_repo "$asked" shop
+  rm -rf "$asked-adopt-xaden"
+  XADEN_TEST_MODE=1 XADEN_TEST_ANSWER='' x_in "$asked" adopt --yes --skip-ci
+  assert "an empty answer records off" grep -q '^update-check = off$' "$asked-adopt-xaden/xaden/xaden.conf"
+  make_repo "$asked" shop
+  rm -rf "$asked-adopt-xaden"
+  x_in "$asked" adopt --yes --skip-ci
+  assert "without a terminal adopt sets nothing" bash -c '! grep -q "^update-check" "$1/xaden/xaden.conf"' _ "$asked-adopt-xaden"
+  rm -rf "$WORKDIR/asked-create" && mkdir -p "$WORKDIR/asked-create"
+  XADEN_TEST_MODE=1 XADEN_TEST_ANSWER=12h x_in "$WORKDIR/asked-create" create demo
+  assert "create asks for the interval and records the answer" grep -q '^update-check = 12h$' "$WORKDIR/asked-create/demo/xaden/xaden.conf"
+  XADEN_TEST_MODE=1 XADEN_TEST_ANSWER=banana x_in "$WORKDIR/asked-create" create demo2
+  assert "an unreadable answer names the allowed forms and records off" bash -c 'grep -q "off, or a number with h or d" "$1" && grep -q "^update-check = off$" "$2"' _ "$XOUT" "$WORKDIR/asked-create/demo2/xaden/xaden.conf"
+
+  export PATH=$saved_path
+  unset XADEN_LATEST_URL
+}
+
 test_messages
 test_scan_and_plan
 test_adopt_and_remove
@@ -711,3 +835,4 @@ test_prompts_and_ignore_list
 test_autopilot
 test_migration
 test_new_project_layout
+test_update_check
