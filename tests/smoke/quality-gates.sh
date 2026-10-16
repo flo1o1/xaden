@@ -385,7 +385,7 @@ test_nested_run_guard() {
       check.sh) script="'$PROJECT/scripts/check.sh'" ;;
     esac
     # shellcheck disable=SC2086 # script may carry an option
-    assert "$name refuses to start inside itself" bash -c "XADEN_RUNNING=$name timeout 20 $script 2>&1 | grep -q 'already running in this process tree'"
+    assert "$name refuses to start inside itself" bash -c "XADEN_RUNNING=$name $script 2>&1 | grep -q 'already running in this process tree'"
   done
   # shellcheck disable=SC2016 # the inner shell expands the variables
   assert "the override allows a nested run on purpose" bash -c 'source "$1/template/scripts/lib.sh"; XADEN_RUNNING=x.sh XADEN_ALLOW_NESTED=1 refuse_nested_run x.sh' _ "$SCAFFOLD_ROOT"
