@@ -107,6 +107,7 @@ adopted_text() {
     -e 's#scripts/release\.sh#xaden release#g' \
     -e 's#scripts/req\.sh#xaden req#g' \
     -e 's#scripts/check\.sh#xaden check#g' \
+    -e 's#--cone docs/requirements scripts#--cone docs/requirements#g' \
     -e 's#docs/requirements#xaden/requirements#g' \
     -e 's#docs/personas#xaden/personas#g' \
     -e 's#docs/security-reviews#xaden/security-reviews#g' \

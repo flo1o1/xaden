@@ -177,6 +177,36 @@ test_branch_rule() {
     grep -q 'git worktree add ../<repo>-<slug> -b <type>/<slug> main' "$PROJECT/AGENTS.md"
 }
 
+# shellcheck disable=SC2016 # the bash -c scripts read their file as $1
+# REQ-082: a requirement is approved before any branch or worktree exists; the worktree starts sparse.
+test_approve_before_branch() {
+  local rules="$SCAFFOLD_ROOT/template/AGENTS.md" feature="$SCAFFOLD_ROOT/template/prompts/feature.md"
+  local draft add approval creation file repo="$WORKDIR/sparse-repo" tree="$WORKDIR/sparse-repo-req-001-x"
+  draft="$(grep -n 'Draft the requirement' "$rules" | head -n1 | cut -d: -f1)"
+  add="$(grep -n 'worktree add --no-checkout' "$rules" | head -n1 | cut -d: -f1)"
+  assert "the rules draft the requirement before they create the worktree" test -n "$draft" -a "${draft:-9}" -lt "${add:-0}"
+  assert "the rules start the worktree sparse and widen it for the implementation" \
+    bash -c 'grep -q "sparse-checkout set --cone docs/requirements scripts" "$1" && grep -q "sparse-checkout disable" "$1"' _ "$rules"
+  approval="$(grep -n 'Approval point' "$feature" | head -n1 | cut -d: -f1)"
+  creation="$(grep -n 'req.sh new' "$feature" | head -n1 | cut -d: -f1)"
+  assert "the feature prompt asks for approval before it creates a requirement file" test -n "$approval" -a "${approval:-9}" -lt "${creation:-0}"
+  for file in "$SCAFFOLD_ROOT/AGENTS.md" "$rules" "$SCAFFOLD_ROOT"/template/prompts/*.md; do
+    assert "no 'branch per change first' rule in ${file#"$SCAFFOLD_ROOT"/}" bash -c '! grep -Eq "^- One branch per change" "$1"' _ "$file"
+  done
+
+  mkdir -p "$repo/docs/requirements" "$repo/scripts" "$repo/src"
+  git init -q -b main "$repo"
+  printf 'r\n' >"$repo/docs/requirements/a.md" && printf 's\n' >"$repo/scripts/a.sh" && printf 'big\n' >"$repo/src/big.txt"
+  git -C "$repo" add -A && git -C "$repo" commit -q -m "docs: scratch"
+  git -C "$repo" worktree add -q --no-checkout -b feat/req-001-x "$tree" main
+  git -C "$tree" sparse-checkout set --cone docs/requirements scripts
+  git -C "$tree" checkout -q
+  assert "the sparse worktree has the requirements and the scripts" test -f "$tree/docs/requirements/a.md" -a -f "$tree/scripts/a.sh"
+  assert "the sparse worktree leaves the rest out" test ! -e "$tree/src/big.txt"
+  git -C "$tree" sparse-checkout disable
+  assert "sparse-checkout disable restores the full tree" test -f "$tree/src/big.txt"
+}
+
 # REQ-053 optional assistant plugins are documented, not installed
 test_assistant_plugins() {
   local doc="$PROJECT/docs/optional-tools.md" item
@@ -264,6 +294,7 @@ test_model_routing_option
 test_claude_permissions
 test_prompt_workflow
 test_branch_rule
+test_approve_before_branch
 test_assistant_plugins
 test_look_before_build
 test_personas

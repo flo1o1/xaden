@@ -36,6 +36,7 @@ Explicit user instructions in the current session override this file.
 - When the user adds, changes, or drops something during a session:
   **update the requirement files first, then write code.** Create new ones with
   `scripts/req.sh new <epic> <job|quality> "<title>"`; after edits run `scripts/req.sh index`.
+  A new requirement is drafted in the chat first and becomes a file only after the user approves it (§7).
 - IDs are global and stable. Never delete, reuse or renumber; set status `dropped` instead.
   Moving a requirement to another epic keeps its ID (move the file, change `epic:`).
 - History: `git log -- docs/requirements`. Say in the commit message what changed and why.
@@ -134,9 +135,18 @@ Details and examples: `docs/clean-code.md` (same IDs).
   Merge/Revert/fixup!/squash! messages skip only the format check; IDs are always verified,
   and CI re-checks every commit a push or pull request introduces.
 - Add a user-visible bullet to `CHANGELOG.md` → `Unreleased` for every `feat`/`fix`.
-- One branch per change, in its own folder, so parallel changes never touch each other:
-  `git worktree add ../<repo>-<slug> -b <type>/<slug> main` (`<type>` as in the commit types).
-  Work, commit and run the checks there. Never commit on `main` or `master`: the pre-commit hook
+- A change starts with an approved requirement, not with a branch (REQ-082). Draft the requirement
+  in the chat and wait for the user's OK; until then create no branch, worktree, commit or file in
+  the tree. A rejected draft leaves nothing behind.
+- After the OK: one branch per change, in its own folder, so parallel changes never touch each other.
+  Take the next free requirement number `nnn` and start sparse, so a large repository is not checked
+  out in full for the requirement commit (`<type>` as in the commit types):
+  `git worktree add --no-checkout -b <type>/req-nnn-<slug> ../<repo>-req-nnn-<slug> main`,
+  `git -C ../<repo>-req-nnn-<slug> sparse-checkout set --cone docs/requirements scripts`, then
+  `git -C ../<repo>-req-nnn-<slug> checkout`. Create the requirement there with status `approved` and
+  commit it first. When implementation starts, run `git sparse-checkout disable` in that folder.
+  A change without a requirement (`Refs: none`) skips the draft: `git worktree add ../<repo>-<slug> -b <type>/<slug> main`.
+- Work, commit and run the checks in that folder. Never commit on `main` or `master`: the pre-commit hook
   refuses it (`ALLOW_MAIN_COMMIT=1` only when the user tells you to; releases and the first
   commit are allowed automatically).
 - Finish a change with the full `scripts/check.sh`, then push the branch and open a pull request
