@@ -28,7 +28,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-063 | job | could | done | Claude Code users can plan with a stronger model and implement with a cheaper one |
 | REQ-079 | job | should | done | Xaden supports only assistants with file access |
 | REQ-082 | job | should | done | A requirement is approved before any branch or worktree exists |
-| REQ-085 | job | should | approved | Maintainers run the xaden project commands on the scaffold itself |
+| REQ-085 | job | should | done | Maintainers run the xaden project commands on the scaffold itself |
 
 ## Project setup (`project-setup`)
 
@@ -74,6 +74,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-068 | job | must | done | Legacy code never blocks a team that adopts Xaden |
 | REQ-078 | job | could | done | Branches name the requirement they relate to |
 | REQ-083 | job | should | done | The maintainer's local checks catch what CI catches |
+| REQ-086 | job | should | approved | A check started from inside a check stops at once |
 
 ## Releases and documentation (`release-and-docs`)
 
