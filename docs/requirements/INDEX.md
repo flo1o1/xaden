@@ -53,7 +53,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-074 | quality | could | done | Xaden messages are recognisable at a glance and readable in plain logs |
 | REQ-076 | job | should | done | Xaden sets up a plain new project in the best possible way with one confirmation |
 | REQ-080 | job | should | done | Claude Code users start Xaden workflows with slash commands in an adopted repository |
-| REQ-084 | job | should | approved | I decide whether and how often Xaden checks for updates |
+| REQ-084 | job | should | done | I decide whether and how often Xaden checks for updates |
 
 ## Quality gates (`quality-gates`)
 
