@@ -7,7 +7,7 @@
 #   --plan        print the exact diff and the files a run would create or change; changes nothing
 #   (default)     scan, plan, then ask once whether to apply the plan on a new branch and worktree
 #   --yes         apply without the question (a script or CI job); nothing downloads either way
-#   --assistants  claude,codex,...  default: what the scan finds, confirmed by you
+#   --assistants  claude,copilot,vibe,codex  default: what the scan finds, confirmed by you
 #   --mode        advisory | changed-files | strict   default: changed-files
 #   --check       name a command the scan could not find, for example --check test="make verify"
 # The repository's own build, tests, docs and workflows are never changed: Xaden adds the folder
@@ -111,19 +111,33 @@ default_branch() {
 has_commits() { git -C "$ADOPT_REPO" rev-parse -q --verify HEAD >/dev/null; }
 
 # choose_assistants: from --assistants, else what the scan finds, confirmed when a person can answer.
+# Without a finding, only Claude Code is asked about (REQ-066); the others are offered when detected (REQ-081).
 choose_assistants() {
   [ -z "$ADOPT_ASSISTANTS" ] || return 0
-  local detected=0
-  if [ "$SCAN_CLAUDE" = 1 ] || [ "$SCAN_CLAUDE_DIR" = 1 ]; then detected=1; fi
+  local detected="" name question
+  if [ "$SCAN_CLAUDE" = 1 ] || [ "$SCAN_CLAUDE_DIR" = 1 ]; then detected=claude; fi
+  if [ "$SCAN_COPILOT" = 1 ]; then detected="$detected${detected:+,}copilot"; fi
+  if [ "$SCAN_VIBE" = 1 ]; then detected="$detected${detected:+,}vibe"; fi
+  if [ "$SCAN_CODEX" = 1 ]; then detected="$detected${detected:+,}codex"; fi
   if [ "$ASSUME_YES" = 1 ] || ! has_terminal; then
-    if [ "$detected" = 1 ]; then ADOPT_ASSISTANTS=claude; fi
+    ADOPT_ASSISTANTS=$detected
     return 0
   fi
-  if [ "$detected" = 1 ]; then
-    if ask "Claude Code is used here. Add CLAUDE.md with the line @AGENTS.md and the slash commands (/feature, /bugfix, ...)?" y; then ADOPT_ASSISTANTS=claude; fi
-  elif ask "Does your team use Claude Code? Xaden then adds CLAUDE.md with the line @AGENTS.md and the slash commands (/feature, /bugfix, ...)."; then
-    ADOPT_ASSISTANTS=claude
+  if [ -z "$detected" ]; then
+    if ask "Does your team use Claude Code? Xaden then adds CLAUDE.md with the line @AGENTS.md and the slash commands (/feature, /bugfix, ...)."; then
+      ADOPT_ASSISTANTS=claude
+    fi
+    return 0
   fi
+  for name in $(printf '%s' "$detected" | tr ',' ' '); do
+    case "$name" in
+      claude) question="Claude Code is used here. Add CLAUDE.md with the line @AGENTS.md and the slash commands (/feature, /bugfix, ...)?" ;;
+      copilot) question="GitHub Copilot is used here. Add the slash commands (/feature, /bugfix, ...) as prompt files in .github/prompts/?" ;;
+      vibe) question="Mistral Vibe is used here. Add the slash commands (/feature, /bugfix, ...) as skills in .agents/skills/?" ;;
+      codex) question="Codex CLI is used here. Add the commands (\$feature, \$bugfix, ...) as skills in .agents/skills/?" ;;
+    esac
+    if ask "$question" y; then ADOPT_ASSISTANTS="$ADOPT_ASSISTANTS${ADOPT_ASSISTANTS:+,}$name"; fi
+  done
 }
 
 # choose_preset: offers Xaden's preset for the first stack with a gap, as a separate step.

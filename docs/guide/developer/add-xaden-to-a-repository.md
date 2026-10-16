@@ -41,6 +41,7 @@ Without a terminal (a script, a CI job) `xaden adopt` stops after the plan and p
 
 - A visible folder `xaden/` with `xaden.conf` (the pinned Xaden version and checksum, the mode of the checks and the commands Xaden runs), `RULES.md` (the rules for assistants, generated from the pinned version: do not edit), `requirements/`, `personas/`, `security-reviews/`, `baselines/`, an optional `prompts/` and `footprint.txt`. It is plain Markdown plus one settings file.
 - A short marked block in `AGENTS.md`. Text you wrote there stays untouched.
+- Slash commands for the assistants your team uses, one file for each prompt and nothing else: Claude Code `.claude/commands/<name>.md`, GitHub Copilot `.github/prompts/<name>.prompt.md`, Mistral Vibe and Codex CLI `.agents/skills/<name>/SKILL.md` (one skill that both read). Xaden offers an assistant when it finds a file or folder of its own (`.claude/`, `.github/copilot-instructions.md` or `.github/prompts/`, `.vibe/`, `.codex/`); `--assistants claude,copilot,vibe,codex` answers in advance. A file of the same name that exists already stays as it is.
 - For Claude Code users, `CLAUDE.md` with the single line `@AGENTS.md`, or that line added to an existing `CLAUDE.md` that lacks it. Xaden pre-selects Claude when it finds `CLAUDE.md` or `.claude/` and asks you to confirm; `--assistants claude` answers in advance.
 - A separate workflow, `.github/workflows/xaden.yml`, in its own commit. It installs the pinned Xaden version and verifies its checksum. Your existing workflows are not edited. `--skip-ci` leaves it out.
 - Xaden's checks in your git hooks, chained into the hook manager you have (see [Hooks and CI that do not fit](#hooks-and-ci-that-do-not-fit)).
@@ -83,10 +84,11 @@ are listed.
 
 ## Working with assistants afterwards
 
-Claude Code users get a slash command for each prompt (`/kickoff`, `/feature`, `/bugfix` and so on) in `.claude/commands/`. Each one only
-tells the assistant to run `xaden prompt <name>`; a file of the same name that exists already stays as it is. Other assistants run
-`xaden prompt kickoff`, `xaden prompt feature` and so on to print the task prompt. A prompt of the same name in `xaden/prompts/`
-replaces the default for both.
+Claude Code, GitHub Copilot and Mistral Vibe users get a slash command for each prompt (`/kickoff`, `/feature`, `/bugfix` and so on), and
+Codex CLI users a skill they start with `$kickoff`, `$feature` and so on. Each one only tells the assistant to run `xaden prompt <name>`; a file of
+the same name that exists already stays as it is. Other assistants run `xaden prompt kickoff`, `xaden prompt feature` and so on to print the
+task prompt. A prompt of the same name in `xaden/prompts/` replaces the default for all of them. Copilot prompt files work in VS Code, and Vibe
+reads project skills only from a folder you marked as trusted.
 
 ## Next
 

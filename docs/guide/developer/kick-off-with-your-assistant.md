@@ -22,7 +22,9 @@ In any other assistant, tell it:
 Run `xaden prompt kickoff` and follow it. My idea: <what you want to build>
 ```
 
-Claude Code finds the `/kickoff` command in `.claude/commands/`, which `xaden create` and `xaden adopt` write for Claude Code users.
+Claude Code finds the `/kickoff` command in `.claude/commands/`, which `xaden create` and `xaden adopt` write for Claude Code users. GitHub Copilot,
+Mistral Vibe and Codex CLI users get the same command in their own place when `--assistants` names them or `xaden adopt` finds them (see
+[Add Xaden to a repository](add-xaden-to-a-repository.md)).
 
 For an existing repository, describe what the project already does instead of a new idea. The assistant asks questions and writes
 the requirements, the threat model and the architecture notes. Review what it writes, because it describes code you know better than it
