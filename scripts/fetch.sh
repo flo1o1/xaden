@@ -22,14 +22,14 @@ source "$SCAFFOLD_ROOT/template/scripts/update-check-lib.sh"
 EXIT_NO_TERMINAL=3     # nothing was downloaded because nobody could be asked
 EXIT_CHECKSUM=5        # the download does not match the pinned checksum
 EXIT_SIGNATURE=6       # the signature of a release is wrong
-RELEASES_URL="${XADEN_RELEASES_URL:-https://github.com/flo1o1/xaden/archive/refs/tags}"
-ASSETS_URL="${XADEN_ASSETS_URL:-https://github.com/flo1o1/xaden/releases/download}"
+RELEASES_URL="${XADEN_RELEASES_URL:-https://github.com/flo1o1/xaden-dev/archive/refs/tags}"
+ASSETS_URL="${XADEN_ASSETS_URL:-https://github.com/flo1o1/xaden-dev/releases/download}"
 SIGNERS_FILE="$SCAFFOLD_ROOT/release-signers"
 # Tests may point to their own key; no other caller can change which keys are trusted.
 if [ "${XADEN_TEST_MODE:-0}" = "1" ]; then SIGNERS_FILE="${XADEN_SIGNERS_FILE:-$SIGNERS_FILE}"; fi
 SIGNATURE_NAMESPACE="xaden-release"
 SIGNER_PRINCIPAL="release@xaden.dev"
-LATEST_URL="${XADEN_LATEST_URL:-https://api.github.com/repos/flo1o1/xaden/releases/latest}"
+LATEST_URL="${XADEN_LATEST_URL:-https://api.github.com/repos/flo1o1/xaden-dev/releases/latest}"
 
 # release_url <version>: where a release archive comes from.
 release_url() { printf '%s/v%s.tar.gz' "$RELEASES_URL" "$1"; }
@@ -173,7 +173,7 @@ fetch_main() {
 
 # latest_version: asks the release API for the newest version (after the person agreed).
 latest_version() {
-  curl -fsS "$LATEST_URL" | sed -n 's/.*"tag_name": *"v\{0,1\}\([0-9][0-9.]*\)".*/\1/p' | head -n 1
+  curl -fsSL "$LATEST_URL" | sed -n 's/.*"tag_name": *"v\{0,1\}\([0-9][0-9.]*\)".*/\1/p' | head -n 1
 }
 
 # changelog_between <changelog> <from> <to>: the entries of versions after <from> up to <to>.

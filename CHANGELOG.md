@@ -27,6 +27,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - **Breaking:** `xaden pack` and `scripts/pack-context.sh` are removed (REQ-079). Xaden supports only assistants with file access; a chat window without it is no longer covered. `xaden update` removes the old script from a project that still has it and leaves your own files, such as an ignored `context-pack.md`.
 
 ### Fixed
+- Download and clone URLs name the repository `flo1o1/xaden-dev`, and the lookup of the newest release follows redirects, so `xaden upgrade --check` keeps working after the repository rename.
 - `scripts/new-project.sh` no longer configures hooks on another repository when `PROJECT_ROOT` is set in your environment; the new project gets its own hooks.
 
 ## [0.2.3] - 2026-10-13

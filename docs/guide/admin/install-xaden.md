@@ -10,7 +10,7 @@ You have the [requirements](requirements-and-platforms.md): git, bash and the ot
 ## Install with git (recommended)
 
 ```bash
-git clone https://github.com/flo1o1/xaden.git ~/.xaden
+git clone https://github.com/flo1o1/xaden-dev.git ~/.xaden
 ~/.xaden/scripts/install.sh
 ```
 
@@ -39,7 +39,7 @@ xaden version
 Choose this if you only want to use Xaden, need no git history, and are happy to download updates yourself.
 
 ```bash
-curl -fsSL -o xaden.zip https://github.com/flo1o1/xaden/archive/refs/tags/v<version>.zip
+curl -fsSL -o xaden.zip https://github.com/flo1o1/xaden-dev/archive/refs/tags/v<version>.zip
 unzip -q xaden.zip -d ~/tools
 ~/tools/xaden-<version>/scripts/install.sh
 ```
