@@ -412,16 +412,17 @@ fake_release() {
 
 # REQ-071 REQ-072 pinned versions, upgrades and downloads only with a yes
 test_versions_and_downloads() {
-  local repo worktree releases="$WORKDIR/releases" home="$WORKDIR/xaden-home" upgraded
+  local current repo worktree releases="$WORKDIR/releases" home="$WORKDIR/xaden-home" upgraded
+  current="$(tr -d '[:space:]' <"$SCAFFOLD_ROOT/VERSION")" # not hardcoded: a release bumps it
   fake_release "$releases" 9.9.9
   export XADEN_RELEASES_URL="file://$releases" XADEN_HOME="$home"
   worktree="$(adopted_copy versions)"
   repo="${worktree%-adopt-xaden}"
 
   x_in "$worktree" doctor
-  assert "doctor reports installed and pinned version" grep -q 'installed 0.2.3, project pinned 0.2.3' "$XOUT"
+  assert "doctor reports installed and pinned version" grep -q "installed $current, project pinned $current" "$XOUT"
   PATH="$(path_without curl)" x_in "$worktree" doctor
-  assert "doctor works without curl, so it uses no network" grep -q 'installed 0.2.3' "$XOUT"
+  assert "doctor works without curl, so it uses no network" grep -q "installed $current" "$XOUT"
   x_in "$worktree" upgrade --check
   assert "looking for newer releases needs a terminal and a yes" test "$XRC" -eq 3
   assert "nothing was looked up without a terminal" grep -q 'did not look for a newer release' "$XOUT"
@@ -449,7 +450,7 @@ test_versions_and_downloads() {
   assert "upgrade adds a skill for a new prompt (REQ-081)" grep -q 'xaden prompt newthing' "$upgraded/.agents/skills/newthing/SKILL.md"
   assert "upgrade removes the Copilot file and the skill of a dropped prompt (REQ-081)" test ! -e "$upgraded/.github/prompts/release.prompt.md" -a ! -e "$upgraded/.agents/skills/release"
   assert "upgrade updates the pinned workflow" grep -q 'XADEN_VERSION: "9.9.9"' "$upgraded/.github/workflows/xaden.yml"
-  assert "the project on the old branch is unchanged" grep -q '^version = 0.2.3$' "$worktree/xaden/xaden.conf"
+  assert "the project on the old branch is unchanged" grep -q "^version = $current\$" "$worktree/xaden/xaden.conf"
   assert "the downloaded version is installed once" test -x "$home/versions/9.9.9/scripts/xaden.sh"
 
   # a newer Xaden installed on one machine changes no repository file; the pinned one is used
