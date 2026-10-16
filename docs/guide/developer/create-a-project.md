@@ -44,7 +44,7 @@ Nothing is copied from the Xaden folder into the project. The tooling stays in t
 pins the version it uses. See [Pin one Xaden version per project](../admin/pin-one-version-per-project.md).
 
 Claude Code users get `CLAUDE.md` with the single line `@AGENTS.md`. `xaden create` asks when a terminal is attached;
-`--assistants claude` answers it in advance.
+`--assistants claude` answers it in advance; `--assistants claude,copilot,vibe,codex` also writes the slash commands of GitHub Copilot, Mistral Vibe and Codex CLI.
 
 ## Set up a stack in one step (autopilot)
 

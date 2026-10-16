@@ -234,8 +234,9 @@ upgrade_main() {
   conf_set "$worktree/xaden/xaden.conf" version "$target"
   conf_set "$worktree/xaden/xaden.conf" checksum "$checksum"
   (cd "$worktree" && bash -c 'source "$1/template/scripts/lib.sh"; TOOLS_DIR="$1/template"; render_rules' _ "$tools" >xaden/RULES.md)
-  # REQ-080 the Claude command files follow the prompts of the new version
-  if grep -qE '^(created-)?line CLAUDE\.md$' "$worktree/$FOOTPRINT_FILE" 2>/dev/null; then sync_commands "$worktree" "$tools/template"; fi
+  # REQ-080, REQ-081 the command files follow the prompts of the new version
+  assistants="$(conf_get "$worktree/xaden/xaden.conf" assistants)"
+  if [ -n "$(command_kinds "$assistants")" ]; then sync_commands "$worktree" "$tools/template" "$assistants"; fi
   if [ -f "$worktree/.github/workflows/xaden.yml" ]; then
     sed -i.bak -e "s/^  XADEN_VERSION: .*/  XADEN_VERSION: \"$target\"/" -e "s/^  XADEN_CHECKSUM: .*/  XADEN_CHECKSUM: \"$checksum\"/" "$worktree/.github/workflows/xaden.yml"
     rm -f "$worktree/.github/workflows/xaden.yml.bak"

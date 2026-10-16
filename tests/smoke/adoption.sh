@@ -94,7 +94,7 @@ make_repo() {
 adopted_copy() {
   local repo="$WORKDIR/repos/$1"
   make_repo "$repo" shop
-  x_in "$repo" adopt --yes --assistants claude >/dev/null || true
+  x_in "$repo" adopt --yes --assistants claude,copilot,vibe >/dev/null || true
   printf '%s' "$repo-adopt-xaden"
 }
 
@@ -148,7 +148,7 @@ test_adopt_and_remove() {
   assert "adopt works on its own branch and worktree" test "$(git -C "$worktree" branch --show-current)" = "chore/adopt-xaden"
   assert "the default branch is untouched" test "$(git -C "$repo" rev-parse main)" = "$(git -C "$repo" rev-parse HEAD)"
   assert "the first commit message names Xaden" git -C "$worktree" log -1 --format=%s main..HEAD
-  changed="$(git -C "$worktree" diff --name-only main HEAD | grep -Ev '^(xaden/|AGENTS\.md$|CLAUDE\.md$|\.claude/commands/[a-z-]+\.md$|\.github/workflows/xaden\.yml$)' || true)"
+  changed="$(git -C "$worktree" diff --name-only main HEAD | grep -Ev '^(xaden/|AGENTS\.md$|CLAUDE\.md$|\.claude/commands/[a-z-]+\.md$|\.github/prompts/[a-z-]+\.prompt\.md$|\.agents/skills/[a-z-]+/SKILL\.md$|\.github/workflows/xaden\.yml$)' || true)"
   assert "only xaden/, AGENTS.md, CLAUDE.md, the command files and the documented workflow change (REQ-073)" test -z "$changed"
   assert "README, docs, scripts and CHANGELOG are untouched (REQ-066)" test -z "$(git -C "$worktree" diff --name-only main HEAD -- README.md docs scripts CHANGELOG.md package.json Makefile .github/workflows/ci.yml)"
   assert "the existing workflow is untouched" cmp -s "$repo/.github/workflows/ci.yml" "$worktree/.github/workflows/ci.yml"
@@ -251,6 +251,67 @@ test_claude_commands() {
   make_repo "$plain" shop
   x_in "$plain" adopt --yes --skip-ci
   assert "without Claude there are no command files" test ! -e "$plain-adopt-xaden/.claude"
+}
+
+# REQ-081 Copilot, Mistral Vibe and Codex CLI users get command files in their own layout
+test_other_assistant_commands() {
+  local repo="$WORKDIR/repos/others" wt="$WORKDIR/repos/others-adopt-xaden" name file
+  make_repo "$repo" shop
+  mkdir -p "$repo/.github/prompts"
+  printf 'my own feature prompt\n' >"$repo/.github/prompts/feature.prompt.md"
+  git -C "$repo" add -A && git -C "$repo" commit -q -m "docs: own feature prompt"
+
+  x_in "$repo" adopt --plan --assistants copilot,vibe,codex
+  assert "the plan lists a Copilot prompt file" grep -Eq 'A[[:space:]]+\.github/prompts/bugfix\.prompt\.md' "$XOUT"
+  assert "the plan lists a skill" grep -Eq 'A[[:space:]]+\.agents/skills/bugfix/SKILL\.md' "$XOUT"
+  assert "the plan names the file it skips" grep -q 'skipped .github/prompts/feature.prompt.md' "$XOUT"
+
+  x_in "$repo" adopt --yes --assistants copilot,vibe,codex
+  assert "adopt succeeds" test "$XRC" -eq 0
+  for name in kickoff feature bugfix refactor review security requirements docs persona release; do
+    assert "skill $name exists" test -f "$wt/.agents/skills/$name/SKILL.md"
+    [ "$name" = feature ] || assert "Copilot prompt $name exists" test -f "$wt/.github/prompts/$name.prompt.md"
+  done
+  file="$wt/.github/prompts/review.prompt.md"
+  assert "a Copilot prompt asks the assistant to run xaden prompt" grep -Fq 'Run `xaden prompt code-review` and follow it. Task input: ${input:task:describe the task}' "$file"
+  assert "a Copilot prompt has a description" grep -q '^description: .' "$file"
+  file="$wt/.agents/skills/review/SKILL.md"
+  assert "a skill is named like its command" grep -qx 'name: review' "$file"
+  assert "a skill asks the assistant to run xaden prompt" grep -Fq 'Run `xaden prompt code-review` and follow it.' "$file"
+  assert "a skill is explicit-use only by its description" grep -q '^description: .*Use only when the user asks for it by name (review)' "$file"
+  assert "no file holds the prompt text" test "$(cat "$wt"/.agents/skills/*/SKILL.md "$wt"/.github/prompts/*.prompt.md | wc -l)" -le 200
+  assert "an existing Copilot prompt is not overwritten" test "$(cat "$wt/.github/prompts/feature.prompt.md")" = "my own feature prompt"
+  assert "a skipped file is not in the footprint" bash -c '! grep -q "prompts/feature.prompt.md" "$1"' _ "$wt/xaden/footprint.txt"
+  assert "the footprint lists a created skill once, although Vibe and Codex share it" test "$(grep -cx 'file .agents/skills/bugfix/SKILL.md' "$wt/xaden/footprint.txt")" -eq 1
+  assert "adopt creates exactly the new Copilot prompts" test "$(git -C "$wt" diff --name-only main HEAD | grep -c '^\.github/prompts/')" -eq 9
+  assert "adopt creates one skill for each prompt" test "$(git -C "$wt" diff --name-only main HEAD | grep -c '^\.agents/skills/')" -eq 10
+  assert "without Claude there are no Claude files" test ! -e "$wt/CLAUDE.md" -a ! -e "$wt/.claude"
+
+  x_in "$wt" remove --yes
+  assert "remove deletes the Copilot prompts and skills Xaden created" test ! -e "$wt/.github/prompts/bugfix.prompt.md" -a ! -e "$wt/.agents"
+  assert "remove keeps the team's own prompt" test "$(cat "$wt/.github/prompts/feature.prompt.md")" = "my own feature prompt"
+  assert "remove leaves no stray file" test -z "$(git -C "$wt" status --porcelain | grep -Ev ' (xaden/|AGENTS\.md|\.github/prompts/[a-z-]+\.prompt\.md|\.agents/skills/[a-z-]+/SKILL\.md|\.github/workflows/xaden\.yml)' || true)"
+
+  # a file or folder of the assistant's own is what makes adopt offer it; .agents/ names neither Vibe nor Codex
+  local vibe="$WORKDIR/repos/detect-vibe" copilot="$WORKDIR/repos/detect-copilot" codex="$WORKDIR/repos/detect-codex"
+  make_repo "$vibe" shop
+  mkdir -p "$vibe/.vibe" && printf 'x = 1\n' >"$vibe/.vibe/config.toml"
+  git -C "$vibe" add -A && git -C "$vibe" commit -q -m "chore: vibe"
+  x_in "$vibe" adopt --yes --skip-ci
+  assert "Vibe is detected and gets skills" test -f "$vibe-adopt-xaden/.agents/skills/feature/SKILL.md"
+  assert "only the detected assistant gets files" test ! -e "$vibe-adopt-xaden/.github/prompts" -a ! -e "$vibe-adopt-xaden/.claude"
+  make_repo "$copilot" shop
+  printf 'Be kind.\n' >"$copilot/.github/copilot-instructions.md"
+  git -C "$copilot" add -A && git -C "$copilot" commit -q -m "chore: copilot"
+  x_in "$copilot" adopt --yes --skip-ci
+  assert "Copilot is detected and gets prompt files" test -f "$copilot-adopt-xaden/.github/prompts/feature.prompt.md"
+  assert "Copilot alone gets no skills" test ! -e "$copilot-adopt-xaden/.agents"
+  make_repo "$codex" shop
+  mkdir -p "$codex/.codex" && printf 'x = 1\n' >"$codex/.codex/config.toml"
+  git -C "$codex" add -A && git -C "$codex" commit -q -m "chore: codex"
+  x_in "$codex" adopt --yes --skip-ci
+  assert "Codex is detected and gets skills" test -f "$codex-adopt-xaden/.agents/skills/feature/SKILL.md"
+  assert "Codex alone gets no Copilot files" test ! -e "$codex-adopt-xaden/.github/prompts"
 }
 
 # REQ-069 existing hooks, CI and tools are chained, reused and never replaced
@@ -384,6 +445,9 @@ test_versions_and_downloads() {
   assert "upgrade adds a command for a new prompt (REQ-080)" grep -q 'xaden prompt newthing' "$upgraded/.claude/commands/newthing.md"
   assert "upgrade removes the command of a dropped prompt (REQ-080)" test ! -e "$upgraded/.claude/commands/release.md"
   assert "upgrade drops that file from the footprint (REQ-080)" bash -c '! grep -q "commands/release.md" "$1"' _ "$upgraded/xaden/footprint.txt"
+  assert "upgrade adds a Copilot prompt file for a new prompt (REQ-081)" grep -q 'xaden prompt newthing' "$upgraded/.github/prompts/newthing.prompt.md"
+  assert "upgrade adds a skill for a new prompt (REQ-081)" grep -q 'xaden prompt newthing' "$upgraded/.agents/skills/newthing/SKILL.md"
+  assert "upgrade removes the Copilot file and the skill of a dropped prompt (REQ-081)" test ! -e "$upgraded/.github/prompts/release.prompt.md" -a ! -e "$upgraded/.agents/skills/release"
   assert "upgrade updates the pinned workflow" grep -q 'XADEN_VERSION: "9.9.9"' "$upgraded/.github/workflows/xaden.yml"
   assert "the project on the old branch is unchanged" grep -q '^version = 0.2.3$' "$worktree/xaden/xaden.conf"
   assert "the downloaded version is installed once" test -x "$home/versions/9.9.9/scripts/xaden.sh"
@@ -833,6 +897,7 @@ test_messages
 test_scan_and_plan
 test_adopt_and_remove
 test_claude_commands
+test_other_assistant_commands
 test_reuse_of_existing_tooling
 test_versions_and_downloads
 test_modes_and_baselines

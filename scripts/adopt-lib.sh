@@ -225,9 +225,9 @@ apply_core() {
       if ! grep -qx '@AGENTS.md' "$dir/CLAUDE.md" 2>/dev/null; then
         { [ ! -s "$dir/CLAUDE.md" ] || { cat "$dir/CLAUDE.md"; [ -z "$(tail -c 1 "$dir/CLAUDE.md")" ] || printf '\n'; }
           printf '@AGENTS.md\n'; } >"$dir/CLAUDE.md.new" && mv "$dir/CLAUDE.md.new" "$dir/CLAUDE.md"
-      fi
-      sync_commands "$dir" "$TOOLS_DIR" ;;
+      fi ;;
   esac
+  [ -z "$(command_kinds "$ADOPT_ASSISTANTS")" ] || sync_commands "$dir" "$TOOLS_DIR" "$ADOPT_ASSISTANTS"
 }
 
 # --- step 2: hooks that live in the repository (husky) --------------------------------
@@ -372,7 +372,9 @@ remove_adoption() {
         if [ -z "$(tr -d '[:space:]' <"$repo/$path.new")" ]; then delete_file "$repo/$path"; else cat "$repo/$path.new" >"$repo/$path"; fi
         delete_file "$repo/$path.new" ;;
       hook-block) remove_block "$repo/$path" "$HOOK_BEGIN" "$HOOK_END" ;;
-      file | preset-file) delete_file "$repo/$path" ;;
+      file | preset-file)
+        delete_file "$repo/$path"
+        (cd "$repo" && rmdir -p "$(dirname "$path")" 2>/dev/null) || true ;;
     esac
   done <"$repo/$FOOTPRINT_FILE"
   hooks_dir="$(git_hooks_dir "$repo")"

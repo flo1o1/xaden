@@ -93,7 +93,7 @@ print_plan() {
   cat <<PLAN
   1. git init (branch main) and a first commit with the layout below
   2. xaden/: requirements, personas, security reviews, baselines, xaden.conf (Xaden $(running_version) pinned with its checksum), RULES.md
-  3. AGENTS.md with the Xaden block${ADOPT_ASSISTANTS:+, CLAUDE.md and .claude/commands/ for: $ADOPT_ASSISTANTS}
+  3. AGENTS.md with the Xaden block${ADOPT_ASSISTANTS:+, and the assistant files and slash commands for: $ADOPT_ASSISTANTS}
   4. README.md, SECURITY.md, .gitignore, VERSION and CHANGELOG.md of the new project
   5. the $STACK preset: $(preset_files "$STACK" | tr '\n' ' ')
   6. checks mapped in xaden.conf: $(preset_commands "$STACK" | sed 's/^/check./;s/=/ = /' | tr '\n' ';')
