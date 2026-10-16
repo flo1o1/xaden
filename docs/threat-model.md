@@ -31,7 +31,7 @@ may meet secrets in the working tree (`.env`, `inbox/`), which they must not cop
 - CLI arguments: project name and target directory (`new-project.sh`), project directory and
   `--apply` (`update-scaffold.sh`), bump part (`release*.sh`),
   requirement IDs, epics and titles (`req.sh`), persona names (`persona.sh`); command and arguments of `xaden`, target
-  directory of `install.sh`; `adopt`, `remove`, `upgrade`, `fetch`, `hook`, `prompt`, `doc` and `new --autopilot`
+  directory of `install.sh`; `adopt`, `remove`, `upgrade`, `fetch`, `update-check`, `hook`, `prompt`, `doc` and `new --autopilot`
   with their options (`--check <kind>=<command>`, `--assistants`, `--mode`, `--stack`, version numbers).
 - Files the scripts read: `template/` (exported to projects), requirement files, commit message
   files, the old requirements table `docs/requirements/REQUIREMENTS.md` (`migrate-requirements.sh`),
@@ -41,12 +41,15 @@ may meet secrets in the working tree (`.env`, `inbox/`), which they must not cop
 - Files of an adopted repository: `xaden/xaden.conf` (version, checksum, mode and the commands `check.<name>`
   that `xaden check` runs), `xaden/footprint.txt` (paths `xaden remove` deletes), `xaden/baselines/`,
   `xaden/prompts/`, the existing `AGENTS.md`, `CLAUDE.md`, hook files and workflows.
-- Environment: `XADEN_HOME`, `XADEN_RELEASES_URL`, `XADEN_LATEST_URL`, `XADEN_PLAIN`; `XADEN_TEST_MODE` and
-  `XADEN_TEST_ANSWER` (tests only; ignored without `XADEN_TEST_MODE=1`); `PROJECT_ROOT`, `RULES_FILE`, `STRICT`, `ALLOW_MAIN_COMMIT`, `PATH`; the current
+- Environment: `XADEN_HOME`, `XADEN_RELEASES_URL`, `XADEN_LATEST_URL`, `XADEN_PLAIN`, `XADEN_UPDATE_CHECK`; `XADEN_TEST_MODE` and
+  `XADEN_TEST_ANSWER`, `XADEN_NOW` (tests only; ignored without `XADEN_TEST_MODE=1`); `PROJECT_ROOT`, `RULES_FILE`, `STRICT`, `ALLOW_MAIN_COMMIT`, `PATH`; the current
   branch (pre-commit branch guard); in CI `EVENT_NAME`, `BASE_REF`,
   `BEFORE_SHA`, `DEFAULT_BRANCH`, filled from GitHub event data.
 - Release archives of Xaden itself from GitHub (`fetch.sh`, only after a person's yes) and the release API
-  (`xaden upgrade --check`, same).
+  (`xaden upgrade --check`, same). The update check (REQ-084) asks the same API without a yes each time, but only when
+  the person set `update-check` in `xaden/xaden.conf` or `XADEN_UPDATE_CHECK` (off by default); it also runs `npm outdated` and
+  `pip list --outdated` in the project. Its result is cached in `.git/xaden-update-check` and printed by `doctor` and
+  `context-status.sh`, which an assistant reads: names are filtered to package-name characters before they are cached.
 - Downloaded tools in CI: gitleaks archive, semgrep and ruff from PyPI, GitHub Actions, Homebrew.
 - `inbox/`: files dropped by the user, untrusted by definition.
 

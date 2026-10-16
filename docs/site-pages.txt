@@ -5,6 +5,7 @@ docs/guide/developer/create-a-project.md
 docs/guide/developer/join-a-project.md
 docs/guide/developer/kick-off-with-your-assistant.md
 docs/guide/developer/release-a-version.md
+docs/guide/admin/check-for-updates.md
 docs/guide/admin/install-xaden.md
 docs/guide/admin/pin-one-version-per-project.md
 docs/guide/admin/requirements-and-platforms.md

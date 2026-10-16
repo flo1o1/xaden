@@ -257,7 +257,7 @@ outdated_dependencies() {
   local root=$1 parts="" names
   if [ -f "$root/package.json" ]; then
     if command -v npm >/dev/null 2>&1; then
-      names="$(cd "$root" && { npm outdated || true; } 2>/dev/null | awk 'NR > 1 { print $1 }' | paste -sd, - | sed 's/,/, /g')"
+      names="$(cd "$root" && { npm outdated || true; } 2>/dev/null | awk 'NR > 1 { print $1 }' | { grep -E '^[A-Za-z0-9@/._-]+$' || true; } | paste -sd, - | sed 's/,/, /g')"
       parts="npm: ${names:-up to date}"
     else
       parts="npm: not checked (npm is not installed)"
@@ -265,7 +265,7 @@ outdated_dependencies() {
   fi
   if [ -f "$root/pyproject.toml" ] || ls "$root"/requirements*.txt >/dev/null 2>&1; then
     if command -v pip >/dev/null 2>&1; then
-      names="$(cd "$root" && { pip list --outdated --format=freeze || true; } 2>/dev/null | sed 's/==.*//' | paste -sd, - | sed 's/,/, /g')"
+      names="$(cd "$root" && { pip list --outdated --format=freeze || true; } 2>/dev/null | sed 's/==.*//' | { grep -E '^[A-Za-z0-9@/._-]+$' || true; } | paste -sd, - | sed 's/,/, /g')"
       parts="${parts:+$parts; }pip: ${names:-up to date}"
     else
       parts="${parts:+$parts; }pip: not checked (pip is not installed)"

@@ -11,7 +11,7 @@ changes nothing in the repository.
 xaden doctor
 ```
 
-- `xaden doctor`: prints `installed X, project pinned Y` and checks that the installed copy matches the pinned checksum. It reads two files and uses no network.
+- `xaden doctor`: prints `installed X, project pinned Y` and checks that the installed copy matches the pinned checksum. It reads two files and uses no network. It also shows the `update-check` setting in effect and the cached result of the last check ([Check for updates](check-for-updates.md)).
 
 If `xaden/RULES.md` does not match the pinned version, `xaden check` fails and names the fix, `xaden rules`, which regenerates the file from
 the pinned version.

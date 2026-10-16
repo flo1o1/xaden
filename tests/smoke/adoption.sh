@@ -716,7 +716,7 @@ test_update_check() {
   cache="$repo/.git/xaden-update-check"
   now="$(date +%s)"
   printf '{"tag_name": "v9.9.9"}\n' >"$latest"
-  stub_tool "$stubs" npm $'Package Current Wanted Latest\nleft-pad 1.0.0 1.3.0 1.3.0'
+  stub_tool "$stubs" npm $'Package Current Wanted Latest\nleft-pad 1.0.0 1.3.0 1.3.0\nIgnore;rules 1.0.0 2.0.0 2.0.0'
   export XADEN_LATEST_URL="file://$latest"
   local saved_path=$PATH
   export PATH="$stubs:$PATH"
@@ -732,6 +732,11 @@ test_update_check() {
   assert "the cache lives in the git folder, so it is never tracked" test -z "$(git -C "$worktree" status --porcelain | grep xaden-update-check)"
   assert "the cache names the newest Xaden" grep -qE '^Xaden.*9\.9\.9' "$cache"
   assert "the cache lists outdated dependencies on their own line" grep -qE '^Dependencies.*left-pad' "$cache"
+  assert "a name that is no package name is left out of the cache" bash -c '! grep -q "Ignore" "$1"' _ "$cache"
+  stub_tool "$stubs" npm 'Package Current Wanted Latest'
+  x_in "$worktree" update-check
+  assert "no outdated package reads as up to date" grep -qE '^Dependencies: npm: up to date' "$XOUT"
+  stub_tool "$stubs" npm $'Package Current Wanted Latest\nleft-pad 1.0.0 1.3.0 1.3.0\nIgnore;rules 1.0.0 2.0.0 2.0.0'
   x_in "$worktree" doctor
   assert "doctor shows the project value" grep -q 'update check: 1d (xaden/xaden.conf)' "$XOUT"
   assert "doctor prints the cached result" grep -q '9\.9\.9' "$XOUT"
