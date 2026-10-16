@@ -19,6 +19,9 @@ case "${1:-}" in
   *) die "usage: scripts/check-scaffold.sh [--staged]" ;;
 esac
 
+# The hook's --staged run is meant to nest (commits inside tests); only a full run must not.
+if [ "$MODE" = "full" ]; then refuse_nested_run check-scaffold.sh; fi
+
 # test_semgrep_rules: proves every local rule fires on its fixtures in tests/semgrep/.
 test_semgrep_rules() {
   local workdir status=0

@@ -375,6 +375,23 @@ test_maintainer_hooks() {
     test "$(git -C "$remote" rev-parse main)" != "$(git -C "$clone" rev-parse main)"
 }
 
+# REQ-086 a check started from inside a check stops at once
+test_nested_run_guard() {
+  local name script
+  for name in check-scaffold.sh smoke.sh check.sh; do
+    case "$name" in
+      check-scaffold.sh) script="$SCAFFOLD_ROOT/scripts/check-scaffold.sh" ;;
+      smoke.sh) script="$SCAFFOLD_ROOT/tests/smoke.sh assistant-guidance" ;;
+      check.sh) script="'$PROJECT/scripts/check.sh'" ;;
+    esac
+    # shellcheck disable=SC2086 # script may carry an option
+    assert "$name refuses to start inside itself" bash -c "XADEN_RUNNING=$name timeout 20 $script 2>&1 | grep -q 'already running in this process tree'"
+  done
+  # shellcheck disable=SC2016 # the inner shell expands the variables
+  assert "the override allows a nested run on purpose" bash -c 'source "$1/template/scripts/lib.sh"; XADEN_RUNNING=x.sh XADEN_ALLOW_NESTED=1 refuse_nested_run x.sh' _ "$SCAFFOLD_ROOT"
+  assert "a staged run may nest (hooks inside tests)" bash -c "XADEN_RUNNING=check.sh '$PROJECT/scripts/check.sh' --staged 2>&1 | grep -qv 'already running'"
+}
+
 test_quiet_output
 test_generated_project
 test_commit_bypasses
@@ -386,3 +403,4 @@ test_stack_enforcement
 test_optional_tools
 test_ci_credentials
 test_maintainer_hooks
+test_nested_run_guard

@@ -36,6 +36,7 @@ main() {
   while IFS= read -r area; do
     if [ "$#" -eq 0 ] || grep -qx -- "$area" <<<"$(printf '%s\n' "$@")"; then chosen+=("$area"); fi
   done <<<"$known"
+  refuse_nested_run smoke.sh # checks above only print or fail, so they may nest
   test_new_project
   for area in "${chosen[@]}"; do
     # shellcheck source=/dev/null # the area is chosen at run time

@@ -85,6 +85,16 @@ ask_text() {
 }
 
 # has_command <name>: true if <name> is on PATH.
+# refuse_nested_run <name>: dies when <name> already runs in this process tree, so a check that
+# starts itself fails at once instead of spawning processes without end (REQ-086).
+# XADEN_ALLOW_NESTED=1 lets a test start one on purpose.
+refuse_nested_run() {
+  case ":${XADEN_RUNNING:-}:" in
+    *":$1:"*) [ "${XADEN_ALLOW_NESTED:-}" = 1 ] || die "$1 is already running in this process tree (recursion?); XADEN_ALLOW_NESTED=1 allows it on purpose" ;;
+  esac
+  export XADEN_RUNNING="${XADEN_RUNNING:+$XADEN_RUNNING:}$1"
+}
+
 has_command() { command -v "$1" >/dev/null 2>&1; }
 
 # record_missing_tool <label> <binary>: a check whose tool is missing is skipped (reported
