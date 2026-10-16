@@ -36,7 +36,7 @@ and so is a `feat` commit without a `Refs:` line. Loosening a linter setting or 
 
 ## Other tasks
 
-Claude Code has a slash command for each prompt; other assistants run the `xaden prompt` command.
+Claude Code, GitHub Copilot and Mistral Vibe have a slash command for each prompt (Codex CLI a `$name` skill) when your team chose them; other assistants run the `xaden prompt` command.
 
 | You want to | Claude Code | Tell another assistant to run |
 |-------------|-------------|-------------------------------|
