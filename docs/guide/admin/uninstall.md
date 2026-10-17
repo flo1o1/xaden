@@ -14,13 +14,25 @@ Your build, tests, documentation and other workflows were never changed, so ther
 
 ## Remove Xaden from a machine
 
+If you installed from the zip, remove the link with the `install.sh` of the extracted folder, then delete that folder:
+
+```bash
+~/tools/xaden-<version>/scripts/install.sh --uninstall
+rm -r ~/tools/xaden-<version>
+```
+
+- `~/tools/xaden-<version>/scripts/install.sh --uninstall`: removes the `xaden` link, but only if it points into that folder.
+- `rm -r ~/tools/xaden-<version>`: deletes the extracted folder. Delete the downloaded `xaden-<version>.zip` and `.zip.sig` too.
+
+If you installed with git:
+
 ```bash
 ~/.xaden/scripts/install.sh --uninstall
 rm -r ~/.xaden
 ```
 
 - `~/.xaden/scripts/install.sh --uninstall`: removes the `xaden` link, but only if it points into that folder.
-- `rm -r ~/.xaden`: deletes the Xaden folder. For a zip install, delete the extracted folder instead.
+- `rm -r ~/.xaden`: deletes the Xaden folder.
 
 Other versions that Xaden installed for pinned projects live in `~/.local/share/xaden`. Delete that folder as well if you no longer need them.
 

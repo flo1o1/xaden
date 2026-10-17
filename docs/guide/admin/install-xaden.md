@@ -13,6 +13,10 @@ The release zip holds only what Xaden needs to run: no tests, no maintainer docu
 zip, so you can check it before you extract it. Replace `<version>` with the release you want (for example `0.5.0`; the
 [releases page](https://github.com/flo1o1/xaden-dev/releases) lists them).
 
+> **Untested until the first zip release.** The steps in this section are written for the release page of the first release that carries
+> a signed zip. Until a release lists `xaden-<version>.zip` and `xaden-<version>.zip.sig` and the website publishes the public key, use the
+> git route below. The scaffold's smoke test covers the extracted archive and the signing script, not a download from the release page.
+
 ```bash
 base=https://github.com/flo1o1/xaden-dev/releases/download/v<version>
 curl -fsSLO "$base/xaden-<version>.zip"
