@@ -18,7 +18,11 @@ This repository **is the scaffold**. Read this before changing it.
   commit the requirement first, and run `git sparse-checkout disable` there when implementation starts.
 - While working (REQ-092): `tests/smoke.sh <area>` runs one smoke area (`--list` names them) and
   `scripts/check-scaffold.sh --staged` the fast offline subset; see "Smoke areas" below.
-- Before "done": `STRICT=1 scripts/check-scaffold.sh` (full run including `tests/smoke.sh`), once, before the pull request.
+- Before the pull request (REQ-093): `scripts/check-scaffold.sh --staged` and `tests/smoke.sh <area>` for each
+  area the change touched. CI runs the full suite once; do not run it locally first. Run the full
+  `STRICT=1 scripts/check-scaffold.sh` before a release, when CI is red and the cause is not clear, and
+  when the change touches no row of the area table in "Smoke areas" (for example the workflow or
+  `scripts/check-scaffold.sh` itself).
 - Template changes must work on Linux and macOS (bash 3.2, POSIX awk/sed/tar, no GNU-only flags).
 - Never put scaffold-maintenance content into `template/`, and never put project content at the root.
 - Keep the scaffold generic: never reference personal skills, plugins, accounts or private tools
@@ -40,8 +44,8 @@ gh pr checks --watch                     # one run of each check per commit
 gh pr merge --merge --delete-branch      # when both checks are green
 ```
 
-Before opening the pull request run `STRICT=1 scripts/check-scaffold.sh` locally. Pushing is an
-approval point. A release is a change like any other: run `scripts/release-scaffold.sh [--check] <part>`
+Before opening the pull request run the checks "Before the pull request" names above (REQ-093); CI runs the
+full suite. Pushing is an approval point. A release is a change like any other: run `scripts/release-scaffold.sh [--check] <part>`
 on a `release/v<version>` branch (`--check` runs the full check first; CI checks the pull request
 anyway), push the branch, open the pull request, merge it, then tag the merge commit
 (`git tag -a v<version> <merge commit>`) and push the tag with `git push origin v<version>`. Ruleset
@@ -69,8 +73,8 @@ secret other than `GITHUB_TOKEN`: the scaffold holds no site credential and neve
 
 `tests/smoke.sh <area>` runs one area after the demo project is created; `tests/smoke.sh --list` names
 them. Pick the area by the requirement your change refers to (one area per epic under
-`docs/requirements/`, plus `adoption`); the paths are the scripts it exercises most. Run the full
-`STRICT=1 scripts/check-scaffold.sh` once before the pull request.
+`docs/requirements/`, plus `adoption`); the paths are the scripts it exercises most. CI runs the full
+suite once for the pull request (REQ-093), so run only the areas you touched before opening it.
 `scripts/check-smoke-areas.sh` (part of `scripts/check-scaffold.sh`) fails when an area has no row here.
 
 | Area | Requirements | Main paths |
