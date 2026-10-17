@@ -16,17 +16,17 @@ source "$ROOT/scripts/scaffold-lib.sh"
 SIGNATURE_NAMESPACE="xaden-release"
 
 main() {
-  local version=${1:-} key=${XADEN_SIGNING_KEY:-} staging out
+  local version=${1:-} key=${XADEN_SIGNING_KEY:-} out
   is_semver "$version" || die "usage: XADEN_SIGNING_KEY=<key> scripts/sign-release.sh <version>"
   [ -f "$key" ] || die "XADEN_SIGNING_KEY must name your private SSH key file (docs/release-signing.md)"
   has_command ssh-keygen || die "ssh-keygen is required"
   git -C "$ROOT" rev-parse -q --verify "refs/tags/v$version" >/dev/null || die "tag v$version does not exist"
-  staging="$(mktemp -d)"
-  trap 'rm -rf "${staging:?}"' EXIT
-  git -C "$ROOT" archive "v$version" | tar -x -C "$staging"
+  STAGING="$(mktemp -d)" # global: the EXIT trap runs after main has returned, when a local would be gone
+  trap 'rm -rf "${STAGING:?}"' EXIT
+  git -C "$ROOT" archive "v$version" | tar -x -C "$STAGING"
   out="$ROOT/dist"
   mkdir -p "$out"
-  printf '%s  xaden-%s\n' "$(tree_checksum "$staging")" "$version" >"$out/xaden-$version.checksum"
+  printf '%s  xaden-%s\n' "$(tree_checksum "$STAGING")" "$version" >"$out/xaden-$version.checksum"
   rm -f "$out/xaden-$version.checksum.sig"
   ssh-keygen -q -Y sign -f "$key" -n "$SIGNATURE_NAMESPACE" "$out/xaden-$version.checksum"
   ok "signed: $out/xaden-$version.checksum and .sig"
