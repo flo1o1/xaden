@@ -133,5 +133,5 @@ suppress that line with a `nosemgrep: <rule-id>` comment and a one-line reason (
   APIs that only accept tokens from an `Authorization` header are not exposed to CSRF.
 - **CORS**: narrow allowed origins; never reflect an arbitrary `Origin` together with credentials.
 
-Run a security review (`/security` in Claude Code, or `prompts/security-review.md`)
+Run a security review (`/xaden-security` in Claude Code, or `prompts/security-review.md`)
 after each feature touching the above and before every release.

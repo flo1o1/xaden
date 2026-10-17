@@ -124,7 +124,7 @@ write_project_files() {
 choose_assistants() {
   [ -z "$ADOPT_ASSISTANTS" ] || return 0
   if [ "$AUTOPILOT" = 1 ] || ! has_terminal; then return 0; fi
-  if ask "Does your team use Claude Code? Xaden then adds CLAUDE.md with the line @AGENTS.md and the slash commands (/feature, /bugfix, ...)." y; then ADOPT_ASSISTANTS=claude; fi
+  if ask "Does your team use Claude Code? Xaden then adds CLAUDE.md with the line @AGENTS.md and the slash commands (/xaden-feature, /xaden-bugfix, ...)." y; then ADOPT_ASSISTANTS=claude; fi
 }
 
 # apply_new: creates the project, in the adopted layout; with a stack, the stack's preset too.

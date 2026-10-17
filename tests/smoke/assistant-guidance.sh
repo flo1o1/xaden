@@ -24,7 +24,7 @@ test_template_contents() {
   for pointer in CLAUDE.md .clinerules .continue/rules/project.md .github/copilot-instructions.md .aider.conf.yml; do
     assert "$pointer points to AGENTS.md" grep -q 'AGENTS.md' "$PROJECT/$pointer"
   done
-  assert "/security runs the tool-agnostic review prompt" grep -q '@prompts/security-review.md' "$PROJECT/.claude/commands/security.md"
+  assert "/xaden-security runs the tool-agnostic review prompt" grep -q '@prompts/security-review.md' "$PROJECT/.claude/commands/xaden-security.md"
   # REQ-045 no personal skills, plugins or private tools: the generated project names none
   # optional-tools.md names a public plugin catalogue whose repository is called "skills" (REQ-053)
   assert_fails "generated project references no skills" grep -rli 'skill' "$PROJECT" --exclude-dir=.git --exclude=optional-tools.md
@@ -214,8 +214,8 @@ test_assistant_plugins() {
     'takes precedence over them' 'Not recommended'; do
     assert "optional tools document covers: $item" grep -q -- "$item" "$doc"
   done
-  assert "/review offers ponytail-review as an optional second pass" \
-    grep -q 'Optional second pass: if the Ponytail plugin is installed' "$PROJECT/.claude/commands/review.md"
+  assert "/xaden-review offers ponytail-review as an optional second pass" \
+    grep -q 'Optional second pass: if the Ponytail plugin is installed' "$PROJECT/.claude/commands/xaden-review.md"
 }
 
 # REQ-054 look for mature existing solutions before building
@@ -263,7 +263,7 @@ test_personas() {
   for name in kickoff feature code-review; do
     assert "$name prompt uses the personas" grep -q 'docs/personas\|\[\[persona\]\]' "$PROJECT/prompts/$name.md"
   done
-  assert "/persona runs the persona prompt" grep -qx '@prompts/persona.md' "$PROJECT/.claude/commands/persona.md"
+  assert "/xaden-persona runs the persona prompt" grep -qx '@prompts/persona.md' "$PROJECT/.claude/commands/xaden-persona.md"
   assert "the scaffold manages the persona template" is_managed docs/personas/0000-template.md
   assert_fails "the scaffold never manages project personas" is_managed docs/personas/ada-admin.md
 }
@@ -272,7 +272,7 @@ test_personas() {
 test_scaffold_commands() {
   local name prompt
   for name in bugfix refactor review security; do
-    prompt="$(sed -n 's|^@template/prompts/\(.*\)$|\1|p' "$SCAFFOLD_ROOT/.claude/commands/$name.md")"
+    prompt="$(sed -n 's|^@template/prompts/\(.*\)$|\1|p' "$SCAFFOLD_ROOT/.claude/commands/xaden-$name.md")"
     assert "/$name includes an existing template prompt" test -n "$prompt" -a -f "$SCAFFOLD_ROOT/template/prompts/$prompt"
   done
   assert "AGENTS.md maps prompt paths for the scaffold" grep -q '^## Using the project commands here' "$SCAFFOLD_ROOT/AGENTS.md"

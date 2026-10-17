@@ -52,7 +52,7 @@ main() {
   "$SCRIPTS/check.sh" --strict # every required tool must run (REQ-019)
   "$SCRIPTS/check-requirements.sh" --release || die "replace template placeholders in the requirements first"
   "$SCRIPTS/check-docs.sh" --release ||
-    die "documentation incomplete (files named above): guides via /docs; fill SECURITY.md and docs/threat-model.md"
+    die "documentation incomplete (files named above): guides via /xaden-docs; fill SECURITY.md and docs/threat-model.md"
   stamp_release_or_restore stamp_release "$next" "${release_files[@]}"
   commit_release_or_restore "chore(release): v$next" "${release_files[@]}"
   tag_release_or_report "v$next"

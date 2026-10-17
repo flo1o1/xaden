@@ -165,14 +165,15 @@ note_footprint() {
   grep -qxF "$2 $3" "$1/$FOOTPRINT_FILE" 2>/dev/null || printf '%s %s\n' "$2" "$3" >>"$1/$FOOTPRINT_FILE"
 }
 
-# command_name <prompt>: the Claude Code slash command that starts a prompt.
+# command_name <prompt>: the slash command that starts a prompt. Every Xaden command carries the
+# xaden- prefix (REQ-087), so it is told apart from the commands of other tools.
 command_name() {
   case "$1" in
-    code-review) echo review ;;
-    security-review) echo security ;;
-    requirements-update) echo requirements ;;
-    documentation) echo docs ;;
-    *) echo "$1" ;;
+    code-review) echo xaden-review ;;
+    security-review) echo xaden-security ;;
+    requirements-update) echo xaden-requirements ;;
+    documentation) echo xaden-docs ;;
+    *) echo "xaden-$1" ;;
   esac
 }
 

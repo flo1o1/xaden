@@ -116,7 +116,7 @@ Details and examples: `docs/clean-code.md` (same IDs).
   secret is rotated and revoked, not just removed from git.
 - After finishing a feature that touches input, auth, data, files, network, or
   dependencies — and before every release — run a security review:
-  - Claude Code: `/security` (runs `prompts/security-review.md`).
+  - Claude Code: `/xaden-security` (runs `prompts/security-review.md`).
   - Any other LLM: paste `prompts/security-review.md` plus the changed files.
   - Save the report in `docs/security-reviews/` (scope, evidence, limitations, findings, status).
     A completed checklist is not proof of security.
@@ -161,7 +161,7 @@ Details and examples: `docs/clean-code.md` (same IDs).
   deployment, backup, monitoring, upgrade, uninstall).
 - A feature is not done until the guides describe it. Update them in the same change.
 - Fill the `<!-- TODO -->` markers with verified facts; ask if a fact is unknown. Never invent
-  system requirements or commands. Prompt: `prompts/documentation.md` (`/docs` in Claude Code).
+  system requirements or commands. Prompt: `prompts/documentation.md` (`/xaden-docs` in Claude Code).
 - `scripts/check-docs.sh` enforces the section structure; releases are blocked while TODO
   markers remain. It checks structure only, not whether the content is true: run the
   documented commands, or mark them "untested". `scripts/release.sh` stamps the version into

@@ -11,16 +11,16 @@ Every prompt has frontmatter (`status`, `version`, `works-with`) visible in Obsi
 
 | Prompt | Use when | Claude Code |
 |--------|----------|-------------|
-| [[kickoff]] | New project: capture goals, requirements, stack | `/kickoff` |
-| [[persona]] | Add a user persona that solutions are checked against | `/persona` |
-| [[feature]] | Build a new capability | `/feature` |
-| [[bugfix]] | Fix a defect | `/bugfix` |
-| [[refactor]] | Improve structure, same behaviour | `/refactor` |
-| [[requirements-update]] | Scope changed mid-session | `/requirements` |
-| [[code-review]] | Review a diff against clean-code rules | `/review` |
-| [[security-review]] | Security audit (OWASP WSTG based) | `/security` |
-| [[documentation]] | Write/update user and admin guides | `/docs` |
-| [[release]] | Cut a SemVer release | `/release` |
+| [[kickoff]] | New project: capture goals, requirements, stack | `/xaden-kickoff` |
+| [[persona]] | Add a user persona that solutions are checked against | `/xaden-persona` |
+| [[feature]] | Build a new capability | `/xaden-feature` |
+| [[bugfix]] | Fix a defect | `/xaden-bugfix` |
+| [[refactor]] | Improve structure, same behaviour | `/xaden-refactor` |
+| [[requirements-update]] | Scope changed mid-session | `/xaden-requirements` |
+| [[code-review]] | Review a diff against clean-code rules | `/xaden-review` |
+| [[security-review]] | Security audit (OWASP WSTG based) | `/xaden-security` |
+| [[documentation]] | Write/update user and admin guides | `/xaden-docs` |
+| [[release]] | Cut a SemVer release | `/xaden-release` |
 
 Related: [[prompt-template]] · rules in `AGENTS.md` · requirements in `docs/requirements/INDEX.md`
 
