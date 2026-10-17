@@ -99,7 +99,7 @@ test_install_ways() {
   local install="$SCAFFOLD_ROOT/docs/guide/admin/install-xaden.md" platforms="$SCAFFOLD_ROOT/docs/guide/admin/requirements-and-platforms.md"
   local update="$SCAFFOLD_ROOT/docs/guide/admin/update-xaden.md"
   local extracted="$WORKDIR/extracted-zip" clone="$WORKDIR/cloned-xaden" heading version
-  for heading in '## Install with git \(recommended\)' '## Install from a zip archive' '## When to choose which' '## Verify what you downloaded'; do
+  for heading in '## Install from a signed zip \(recommended\)' '## Install with git \(contributors\)' '## When to choose which' '## Verify what you downloaded'; do
     assert "install guide has the heading $heading" grep -qE "^$heading\$" "$install"
   done
   for heading in '## Linux' '## macOS' '## Windows'; do
@@ -108,6 +108,7 @@ test_install_ways() {
   assert "guide states the Windows support level" grep -q 'untested' "$platforms"
   assert "guide says native PowerShell is not supported" grep -qi 'native PowerShell is not supported' "$platforms"
   assert "guide says the maintainer signs the checksum of every release" grep -q 'signs the checksum of every release' "$install"
+  assert "guide verifies the zip signature before extracting" grep -q 'ssh-keygen -Y verify .* xaden-<version>.zip.sig' "$install"
   assert "guide explains the zip update" grep -q 'Download the new release' "$update"
   assert "guide explains the clone update" grep -q 'git -C ~/.xaden pull' "$update"
   assert "guide explains picking a release tag" grep -q 'git -C ~/.xaden checkout v' "$update"
@@ -217,6 +218,37 @@ test_sign_release() {
   assert "signing prints no shell error" test ! -s "$err"
   assert "the checksum and its signature are written" test -s "$copy/dist/xaden-0.1.0.checksum" -a -s "$copy/dist/xaden-0.1.0.checksum.sig"
   assert "signing leaves no temp folder behind" test -z "$(ls -A "$tmp")"
+  # REQ-094 the release zip is written and signed too; the signature verifies against the key
+  printf 'release@xaden.dev namespaces="xaden-release" %s\n' "$(cat "$WORKDIR/sign-key.pub")" >"$WORKDIR/sign-signers"
+  assert "the zip and its signature are written" test -s "$copy/dist/xaden-0.1.0.zip" -a -s "$copy/dist/xaden-0.1.0.zip.sig"
+  assert "the zip signature verifies" bash -c "ssh-keygen -Y verify -f '$WORKDIR/sign-signers' -I release@xaden.dev -n xaden-release -s '$copy/dist/xaden-0.1.0.zip.sig' <'$copy/dist/xaden-0.1.0.zip'"
+  assert "a changed zip does not verify" bash -c "! { cat '$copy/dist/xaden-0.1.0.zip'; echo x; } | ssh-keygen -Y verify -f '$WORKDIR/sign-signers' -I release@xaden.dev -n xaden-release -s '$copy/dist/xaden-0.1.0.zip.sig'"
+}
+
+# REQ-094: a release archive holds no maintainer files, and Xaden runs from it.
+test_release_archive() {
+  local extracted="$WORKDIR/archive-run" bin="$WORKDIR/archive-bin" root="$WORKDIR/archive-root" repo="$WORKDIR/archive-repo" path
+  mkdir -p "$extracted"
+  git -C "$SCAFFOLD_ROOT" archive "$(git -C "$SCAFFOLD_ROOT" write-tree)" | tar -x -C "$extracted"
+  for path in tests docs/requirements docs/security-reviews docs/threat-model.md docs/release-signing.md docs/site-pages.txt .githooks .github .claude inbox \
+    AGENTS.md CLAUDE.md scripts/sign-release.sh scripts/release-scaffold.sh scripts/check-scaffold.sh scripts/setup.sh; do
+    assert "the archive leaves out $path" test ! -e "$extracted/$path"
+  done
+  for path in template/AGENTS.md docs/guide/admin/install-xaden.md release-signers VERSION CHANGELOG.md LICENSE README.md GETTING-STARTED.md scripts/xaden.sh; do
+    assert "the archive holds $path" test -e "$extracted/$path"
+  done
+  assert "the archive installs the xaden command" "$extracted/scripts/install.sh" "$bin"
+  mkdir -p "$repo" && git -C "$repo" init -q -b main && printf 'x\n' >"$repo/README.md" && git -C "$repo" add README.md && git -C "$repo" commit -q -m "chore: init"
+  assert "xaden adopt --plan works from the archive" bash -c "cd '$repo' && '$bin/xaden' adopt --plan"
+  mkdir -p "$extracted-head" && git -C "$SCAFFOLD_ROOT" archive HEAD | tar -x -C "$extracted-head"
+  assert "a clone and its extracted archive have the same tree checksum" test "$(tree_checksum "$SCAFFOLD_ROOT")" = "$(tree_checksum "$extracted-head")"
+  assert "the guides name no path of a maintainer's machine" test -z "$(grep -rnE '/Users/|/home/[a-z]' "$SCAFFOLD_ROOT/docs/guide" || true)"
+
+  # the check passes on a tree made of the archive and fails when a maintainer file is added
+  mkdir -p "$root" && cp -R "$extracted/." "$root/" && git -C "$root" init -q -b main && git -C "$root" add -A
+  assert "the archive check passes on the shipped files" "$SCAFFOLD_ROOT/scripts/check-release-archive.sh" "$root"
+  mkdir -p "$root/tests" && printf 'x\n' >"$root/tests/new.sh" && git -C "$root" add tests/new.sh
+  assert_fails_with "the archive check names a file that would ship" "tests/new.sh" "$SCAFFOLD_ROOT/scripts/check-release-archive.sh" "$root"
 }
 
 test_bump_version
@@ -227,3 +259,4 @@ test_scaffold_release_check_option
 test_sign_release
 test_release
 test_install_ways
+test_release_archive

@@ -2,7 +2,9 @@
 # Signs a release of Xaden (maintainers). Writes dist/xaden-<version>.checksum, the tree checksum of
 # the tagged release, and dist/xaden-<version>.checksum.sig, its SSH signature. `xaden fetch` and
 # `xaden upgrade` verify the signature with the public keys in `release-signers` and pin the signed
-# checksum, so nobody has to trust the first download. Never uploads: it prints the command.
+# checksum, so nobody has to trust the first download. It also writes the release zip
+# dist/xaden-<version>.zip and its signature .zip.sig (REQ-094): the download for people who install
+# without git; the zip holds no maintainer files (.gitattributes). Never uploads: it prints the command.
 # Usage: XADEN_SIGNING_KEY=<private ssh key> scripts/sign-release.sh <version>   (the tag v<version> must exist)
 # Set up the key once: docs/release-signing.md.
 set -euo pipefail
@@ -27,11 +29,13 @@ main() {
   out="$ROOT/dist"
   mkdir -p "$out"
   printf '%s  xaden-%s\n' "$(tree_checksum "$STAGING")" "$version" >"$out/xaden-$version.checksum"
-  rm -f "$out/xaden-$version.checksum.sig"
+  git -C "$ROOT" archive --format=zip --prefix="xaden-$version/" -o "$out/xaden-$version.zip" "v$version"
+  rm -f "$out/xaden-$version.checksum.sig" "$out/xaden-$version.zip.sig"
   ssh-keygen -q -Y sign -f "$key" -n "$SIGNATURE_NAMESPACE" "$out/xaden-$version.checksum"
-  ok "signed: $out/xaden-$version.checksum and .sig"
-  echo "Publish both files with the release (this uploads, so it is your call):"
-  echo "  gh release upload v$version dist/xaden-$version.checksum dist/xaden-$version.checksum.sig"
+  ssh-keygen -q -Y sign -f "$key" -n "$SIGNATURE_NAMESPACE" "$out/xaden-$version.zip"
+  ok "signed: $out/xaden-$version.checksum and .zip, each with a .sig"
+  echo "Publish the four files with the release (this uploads, so it is your call):"
+  echo "  gh release upload v$version dist/xaden-$version.checksum dist/xaden-$version.checksum.sig dist/xaden-$version.zip dist/xaden-$version.zip.sig"
 }
 
 main "$@"
