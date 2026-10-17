@@ -92,7 +92,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-037 | job | should | done | Documentation guidance is honest about checks and covers operations |
 | REQ-043 | job | should | done | Persisted data formats are versioned and migrated without data loss |
 | REQ-058 | job | should | done | Releases are blocked while security documents have unfilled markers |
-| REQ-064 | job | should | done | A new scaffold release reaches the website without manual steps |
+| REQ-064 | job | should | done | A scaffold release is published on the website under the same version |
 | REQ-065 | job | should | done | Getting started documents both ways to get Xaden: zip download and clone |
 | REQ-075 | job | could | done | Deployment artifacts can leave out the Xaden files |
 | REQ-089 | job | should | done | A release repeats the full check only when asked |
