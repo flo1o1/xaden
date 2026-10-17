@@ -4,6 +4,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-17
+
 ### Changed
 - **Breaking:** every slash command and skill that Xaden generates carries the `xaden-` prefix, so it is told apart from the commands of other tools: `/xaden-kickoff`, `/xaden-feature`, `/xaden-bugfix`, `/xaden-refactor`, `/xaden-review`, `/xaden-security`, `/xaden-requirements`, `/xaden-persona`, `/xaden-release`, `/xaden-docs` (Claude Code, Copilot prompt files, Vibe and Codex skills, `--classic` projects, and the maintainer commands in this repository). `xaden upgrade` and `xaden update` remove the old unprefixed files Xaden created and write the prefixed ones; files of the same name that someone else created stay (REQ-087).
 
