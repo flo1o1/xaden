@@ -4,6 +4,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+### Added
+- Projects made by `xaden create` have a `worktrees/` folder for change worktrees (`git worktree add worktrees/<slug> ...`); git ignores its contents and `AGENTS.md` §7 names it instead of `../<repo>-<slug>`. `xaden adopt` asks whether to add it as a separate commit (`--worktrees` / `--no-worktrees`); `xaden remove` takes it out again. Worktrees you already have stay where they are (REQ-090).
+
 ### Changed
 - Maintainers: CI runs once for each commit of a pull request instead of twice: branch pushes no longer start it, the pull request and the merge into `main` do (REQ-088). `AGENTS.md` describes landing by pull request only.
 - Maintainers: `scripts/release-scaffold.sh` no longer runs the full check by default, because CI checks the release pull request; `--check` runs it first (REQ-089).

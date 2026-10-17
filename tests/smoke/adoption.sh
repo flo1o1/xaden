@@ -393,6 +393,21 @@ test_reuse_of_existing_tooling() {
   assert "the install command is printed, not run" grep -q 'pip install -r requirements-dev.txt' "$XOUT"
   assert "the preset maps its commands" grep -q '^check.typecheck = mypy \.$' "$worktree/xaden/xaden.conf"
   assert "the preset's commit has only preset files and the mapping" test -z "$(git -C "$worktree" show --name-only --format= HEAD | grep -Ev '^(mypy\.ini|requirements-dev\.txt|xaden/xaden\.conf|xaden/footprint\.txt)$' || true)"
+
+  # REQ-090 the worktrees/ folder is its own question and its own commit
+  local plain="$WORKDIR/repos/plain-worktrees"
+  make_repo "$plain" bare-python
+  x_in "$plain" adopt --yes --skip-ci
+  assert "without the option no worktrees folder is added" test ! -e "$plain-adopt-xaden/worktrees"
+  git -C "$plain" worktree remove --force "$plain-adopt-xaden" && git -C "$plain" branch -D chore/adopt-xaden >/dev/null
+  x_in "$plain" adopt --yes --skip-ci --worktrees
+  worktree="$plain-adopt-xaden"
+  assert "the worktrees folder is its own commit" bash -c 'git -C "$1" log --format=%s main..HEAD | grep -q "worktrees/"' _ "$worktree"
+  assert "the folder ignores its contents" bash -c 'mkdir -p "$1/worktrees/x" && : >"$1/worktrees/x/f" && git -C "$1" check-ignore -q worktrees/x/f' _ "$worktree"
+  assert "the footprint lists the file" grep -qx 'file worktrees/.gitignore' "$worktree/xaden/footprint.txt"
+  rm -rf "$worktree/worktrees/x"
+  x_in "$worktree" remove --yes
+  assert "remove takes the folder away again" test ! -e "$worktree/worktrees"
 }
 
 # fake_release <dir> <version>: a release folder with v<version>.tar.gz, built from this working tree.

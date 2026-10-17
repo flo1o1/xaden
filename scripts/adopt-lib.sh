@@ -20,6 +20,7 @@ ADOPT_MODE="changed-files"
 ADOPT_ASSISTANTS=""
 ADOPT_CHECKS=""        # newline separated "kind=command" the person named (--check)
 ADOPT_PRESET=""        # stack whose preset the person accepted, or empty
+ADOPT_WORKTREES=0      # 1 when the person wants a worktrees/ folder
 ADOPT_HOOKS=1          # 0 = --skip-hooks
 ADOPT_CI=1             # 0 = --skip-ci
 ADOPT_DEFAULT_BRANCH="main"
@@ -294,7 +295,17 @@ apply_ci() {
   note_footprint "$dir" file "$file"
 }
 
-# --- step 4: a preset for the gaps ------------------------------------------------------
+# --- step 4: the worktrees/ folder (REQ-090) ---------------------------------------------
+
+# apply_worktrees <dir>: one tracked file; it ignores everything else in the folder, itself excepted.
+apply_worktrees() {
+  local dir=$1 file="worktrees/.gitignore"
+  mkdir -p "$dir/worktrees"
+  printf '*\n!.gitignore\n' >"$dir/$file"
+  note_footprint "$dir" file "$file"
+}
+
+# --- step 5: a preset for the gaps ------------------------------------------------------
 
 # preset_files <stack>: the files of Xaden's preset for a stack, relative to the preset folder.
 preset_files() {
