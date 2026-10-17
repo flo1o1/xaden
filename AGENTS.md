@@ -13,7 +13,7 @@ This repository **is the scaffold**. Read this before changing it.
 - Branch names: prefix the slug with the ID of the related requirement, e.g. `feat/req-066-adopt`
   (REQ-078). Not mandatory, but it shows at a glance what a branch is for.
 - Start of a change (REQ-082): the requirement is approved before any branch exists. Draft it in
-  the chat or in `inbox/` and wait for the OK, then `git worktree add --no-checkout -b <type>/req-nnn-<slug> ../<repo>-req-nnn-<slug> main`,
+  the chat or in `inbox/` and wait for the OK, then (worktrees live in `worktrees/`, git-ignored) `git worktree add --no-checkout -b <type>/req-nnn-<slug> worktrees/req-nnn-<slug> main`,
   `git -C <worktree> sparse-checkout set --cone docs/requirements template/scripts`, `git -C <worktree> checkout`,
   commit the requirement first, and run `git sparse-checkout disable` there when implementation starts.
 - Before "done": `scripts/check-scaffold.sh` (full run including `tests/smoke.sh`).

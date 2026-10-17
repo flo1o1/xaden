@@ -17,6 +17,7 @@ test_generation_safety() {
   printf 'private\n' >"$source/template/local-private-note.txt"
   mkdir -p "$source/template/node_modules/pkg" && printf 'x\n' >"$source/template/node_modules/pkg/index.js"
   printf 'dropped\n' >"$source/template/inbox/dropped.txt"
+  mkdir -p "$source/template/worktrees/leftover" && printf 'x\n' >"$source/template/worktrees/leftover/file.txt"
   printf '\nUNCOMMITTED EDIT\n' >>"$source/template/prompts/bugfix.md"
   local before
   before="$(git -C "$source" status --porcelain)"
@@ -25,6 +26,7 @@ test_generation_safety() {
   assert ".env not copied" test ! -e "$target/.env"
   assert "node_modules not copied" test ! -e "$target/node_modules"
   assert "inbox content not copied" test ! -e "$target/inbox/dropped.txt"
+  assert "worktrees content not copied" test ! -e "$target/worktrees/leftover"
   assert "uncommitted edit of tracked file copied (maintainer testing)" grep -q 'UNCOMMITTED EDIT' "$target/prompts/bugfix.md"
   assert "executable bits preserved" test -x "$target/scripts/check.sh"
   assert "source left untouched" test "$(git -C "$source" status --porcelain)" = "$before"
@@ -201,10 +203,21 @@ test_generation_ignores_project_root() {
   assert "other repository's configuration untouched" test -z "$(git -C "$other" config --get core.hooksPath || true)"
 }
 
+# REQ-090 worktrees/ folder for change worktrees
+test_worktrees_folder() {
+  assert "worktrees README tracked" git -C "$PROJECT" ls-files --error-unmatch worktrees/README.md
+  git -C "$PROJECT" worktree add -q worktrees/probe -b chore/probe-worktree HEAD
+  assert "a worktree in worktrees/ is ignored by git" git -C "$PROJECT" check-ignore -q worktrees/probe
+  assert "worktrees contents never staged by add -A" test -z "$(git -C "$PROJECT" add -A --dry-run | grep worktrees/probe || true)"
+  assert "the guidance names worktrees/<slug>" grep -q 'git worktree add worktrees/<slug>' "$PROJECT/AGENTS.md"
+  git -C "$PROJECT" worktree remove --force worktrees/probe && git -C "$PROJECT" branch -D chore/probe-worktree >/dev/null
+}
+
 test_license
 test_generation_safety
 test_generation_ignores_project_root
 test_inbox
+test_worktrees_folder
 test_setup_and_commit_checks
 test_scaffold_update
 test_pack_script_removed

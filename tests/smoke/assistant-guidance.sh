@@ -174,7 +174,7 @@ test_branch_rule() {
   assert_fails_with "scaffold hook refuses commits on main" "git worktree add" \
     bash -c "cd '$empty' && ALLOW_MAIN_COMMIT=0 '$SCAFFOLD_ROOT/.githooks/pre-commit'"
   assert "AGENTS.md tells assistants to use a branch and worktree per change" \
-    grep -q 'git worktree add ../<repo>-<slug> -b <type>/<slug> main' "$PROJECT/AGENTS.md"
+    grep -q 'git worktree add worktrees/<slug> -b <type>/<slug> main' "$PROJECT/AGENTS.md"
 }
 
 # shellcheck disable=SC2016 # the bash -c scripts read their file as $1

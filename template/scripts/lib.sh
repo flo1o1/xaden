@@ -307,7 +307,7 @@ refuse_commit_on_protected_branch() {
   branch="$(git symbolic-ref -q --short HEAD)" || return 0
   case " $PROTECTED_BRANCHES " in *" $branch "*) ;; *) return 0 ;; esac
   die "commits on $branch go through a pull request (AGENTS.md §7). Start the change in its own folder:
-  git worktree add ../<repo>-<slug> -b <type>/<slug> $branch
+  git worktree add worktrees/<slug> -b <type>/<slug> $branch
 Override only when told to commit on $branch: ALLOW_MAIN_COMMIT=1 git commit ..."
 }
 

@@ -139,19 +139,20 @@ Details and examples: `docs/clean-code.md` (same IDs).
   in the chat and wait for the user's OK; until then create no branch, worktree, commit or file in
   the tree. A rejected draft leaves nothing behind.
 - After the OK: one branch per change, in its own folder, so parallel changes never touch each other.
+  Worktrees live in `worktrees/` at the project root (git-ignored, skipped by the checks).
   Take the next free requirement number `nnn` and start sparse, so a large repository is not checked
   out in full for the requirement commit (`<type>` as in the commit types):
-  `git worktree add --no-checkout -b <type>/req-nnn-<slug> ../<repo>-req-nnn-<slug> main`,
-  `git -C ../<repo>-req-nnn-<slug> sparse-checkout set --cone docs/requirements scripts`, then
-  `git -C ../<repo>-req-nnn-<slug> checkout`. Create the requirement there with status `approved` and
+  `git worktree add --no-checkout -b <type>/req-nnn-<slug> worktrees/req-nnn-<slug> main`,
+  `git -C worktrees/req-nnn-<slug> sparse-checkout set --cone docs/requirements scripts`, then
+  `git -C worktrees/req-nnn-<slug> checkout`. Create the requirement there with status `approved` and
   commit it first. When implementation starts, run `git sparse-checkout disable` in that folder.
-  A change without a requirement (`Refs: none`) skips the draft: `git worktree add ../<repo>-<slug> -b <type>/<slug> main`.
+  A change without a requirement (`Refs: none`) skips the draft: `git worktree add worktrees/<slug> -b <type>/<slug> main`.
 - Work, commit and run the checks in that folder. Never commit on `main` or `master`: the pre-commit hook
   refuses it (`ALLOW_MAIN_COMMIT=1` only when the user tells you to; releases and the first
   commit are allowed automatically).
 - Finish a change with the full `scripts/check.sh`, then push the branch and open a pull request
   (both send code out: **Approval point**). CI runs on the pull request; the user merges.
-  After the merge: `git worktree remove ../<repo>-<slug>` and `git branch -d <type>/<slug>`.
+  After the merge: `git worktree remove worktrees/<slug>` and `git branch -d <type>/<slug>`.
 - Commit each coherent step. Never force-push, never rewrite published history.
 
 ## 8. Documentation (mandatory)

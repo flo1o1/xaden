@@ -12,7 +12,7 @@ MANAGED_PATHS="scripts/ prompts/ presets/ .claude/commands/ .claude/settings.jso
 docs/security.md docs/local-llm.md docs/optional-tools.md docs/decisions/0000-template.md docs/security-reviews/0000-template.md
 docs/personas/0000-template.md
 .editorconfig .gitattributes
-inbox/README.md"
+inbox/README.md worktrees/README.md worktrees/.gitignore"
 
 # Where a project records which scaffold version and files it was built from.
 SCAFFOLD_STATE_DIR=".scaffold"
@@ -66,7 +66,7 @@ export_template() {
     [ -z "$(cd "$source" && find . -type l | head -n 1)" ] || die "template contains symbolic links; refusing to export"
     (cd "$source" && find . \( -name .git -o -name node_modules -o -name .venv -o -name __pycache__ \) -prune -o \
       -type f ! -name .DS_Store ! -name .env ! \( -name '.env.*' ! -name .env.example \) \
-      ! -name '*.scaffold-new' ! \( -path './inbox/*' ! -name README.md \) -print |
+      ! -name '*.scaffold-new' ! \( -path './inbox/*' ! -name README.md \) ! \( -path './worktrees/*' ! -name README.md ! -name .gitignore \) -print |
       tar cf - -T -) | (cd "$destination" && tar xf -)
   fi
 }

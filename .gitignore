@@ -37,3 +37,6 @@ coverage/
 /inbox/*
 !/inbox/README.md
 dist/
+
+# change worktrees (see AGENTS.md)
+/worktrees/

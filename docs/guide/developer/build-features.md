@@ -14,7 +14,7 @@ In Claude Code, type:
 /xaden-feature <what users can do afterwards>
 ```
 
-The assistant first drafts the requirement in the chat. It creates the branch and worktree only after you approve the draft, and the worktree starts with just the requirements folder, so a large repository is not copied for an idea you may drop.
+The assistant first drafts the requirement in the chat. It creates the branch and worktree only after you approve the draft, and the worktree starts with just the requirements folder, so a large repository is not copied for an idea you may drop. Worktrees live in `worktrees/` at the project root; git ignores them and the checks skip them. Remove one with `git worktree remove worktrees/<slug>` after the merge.
 
 In any other assistant, tell it:
 
