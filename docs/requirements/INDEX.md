@@ -96,6 +96,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-065 | job | should | done | Getting started documents both ways to get Xaden: zip download and clone |
 | REQ-075 | job | could | done | Deployment artifacts can leave out the Xaden files |
 | REQ-089 | job | should | done | A release repeats the full check only when asked |
+| REQ-094 | job | should | approved | Xaden installs from a signed release zip that holds no maintainer files |
 
 ## Requirements (`requirements`)
 
