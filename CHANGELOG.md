@@ -4,6 +4,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-17
+
 ### Added
 - A full check, the smoke test or a project's `scripts/check.sh` started from inside itself now stops at once with a clear message instead of spawning processes without end; `XADEN_ALLOW_NESTED=1` allows it on purpose (REQ-086).
 - Maintainers: `xaden req`, `xaden check` and `xaden context` work in the scaffold checkout like in any project (REQ-085).
