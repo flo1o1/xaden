@@ -56,7 +56,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-080 | job | should | done | Claude Code users start Xaden workflows with slash commands in an adopted repository |
 | REQ-081 | job | should | done | Slash commands exist in the other detected assistants too |
 | REQ-084 | job | should | done | I decide whether and how often Xaden checks for updates |
-| REQ-087 | job | should | approved | Xaden's slash commands carry the xaden- prefix |
+| REQ-087 | job | should | done | Xaden's slash commands carry the xaden- prefix |
 
 ## Quality gates (`quality-gates`)
 
@@ -76,7 +76,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-078 | job | could | done | Branches name the requirement they relate to |
 | REQ-083 | job | should | done | The maintainer's local checks catch what CI catches |
 | REQ-086 | job | should | approved | A check started from inside a check stops at once |
-| REQ-088 | job | should | approved | CI runs once for each commit |
+| REQ-088 | job | should | done | CI runs once for each commit |
 
 ## Releases and documentation (`release-and-docs`)
 
@@ -91,7 +91,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-064 | job | should | done | A new scaffold release reaches the website without manual steps |
 | REQ-065 | job | should | done | Getting started documents both ways to get Xaden: zip download and clone |
 | REQ-075 | job | could | done | Deployment artifacts can leave out the Xaden files |
-| REQ-089 | job | should | approved | A release repeats the full check only when asked |
+| REQ-089 | job | should | done | A release repeats the full check only when asked |
 
 ## Requirements (`requirements`)
 
