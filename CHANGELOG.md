@@ -5,6 +5,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 ## [Unreleased]
 
 ### Changed
+- Maintainers: `/xaden-feature`, `/xaden-requirements`, `/xaden-release` and `/xaden-persona` now work on the scaffold itself, next to the four existing commands; `AGENTS.md` maps their paths and names the two commands left out (REQ-091).
 - Maintainers: CI runs once for each commit of a pull request instead of twice: branch pushes no longer start it, the pull request and the merge into `main` do (REQ-088). `AGENTS.md` describes landing by pull request only.
 - Maintainers: `scripts/release-scaffold.sh` no longer runs the full check by default, because CI checks the release pull request; `--check` runs it first (REQ-089).
 

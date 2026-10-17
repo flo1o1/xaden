@@ -268,13 +268,18 @@ test_personas() {
   assert_fails "the scaffold never manages project personas" is_managed docs/personas/ada-admin.md
 }
 
-# REQ-055 maintainers use the project commands on the scaffold itself
+# REQ-055, REQ-091 maintainers use the project commands on the scaffold itself
 test_scaffold_commands() {
   local name prompt
-  for name in bugfix refactor review security; do
+  for name in bugfix refactor review security feature requirements release persona; do
     prompt="$(sed -n 's|^@template/prompts/\(.*\)$|\1|p' "$SCAFFOLD_ROOT/.claude/commands/xaden-$name.md")"
     assert "/$name includes an existing template prompt" test -n "$prompt" -a -f "$SCAFFOLD_ROOT/template/prompts/$prompt"
   done
+  for name in kickoff docs; do
+    assert_fails "REQ-091 /$name stays out of the scaffold" test -e "$SCAFFOLD_ROOT/.claude/commands/xaden-$name.md"
+  done
+  assert "AGENTS.md maps the release script" grep -q 'release-scaffold.sh' "$SCAFFOLD_ROOT/AGENTS.md"
+  assert "AGENTS.md names the commands left out" grep -q 'xaden-kickoff.*xaden-docs' "$SCAFFOLD_ROOT/AGENTS.md"
   assert "AGENTS.md maps prompt paths for the scaffold" grep -q '^## Using the project commands here' "$SCAFFOLD_ROOT/AGENTS.md"
   assert "scaffold threat model names entry points" grep -q '^## Entry points' "$SCAFFOLD_ROOT/docs/threat-model.md"
   assert_fails "projects get no scaffold commands" grep -rq 'template/prompts' "$PROJECT/.claude/commands"
