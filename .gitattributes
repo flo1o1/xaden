@@ -1,2 +1,24 @@
 * text=auto eol=lf
 *.sh text eol=lf
+
+# Maintainer files stay out of release archives (REQ-094): `git archive`, the GitHub release page and the
+# signed zip skip them. scripts/check-release-archive.sh lists what an archive may hold.
+/.claude export-ignore
+/.githooks export-ignore
+/.github export-ignore
+/.editorconfig export-ignore
+/.gitattributes export-ignore
+/.gitignore export-ignore
+/AGENTS.md export-ignore
+/CLAUDE.md export-ignore
+/inbox export-ignore
+/tests export-ignore
+/docs/requirements export-ignore
+/docs/security-reviews export-ignore
+/docs/release-signing.md export-ignore
+/docs/site-pages.txt export-ignore
+/docs/threat-model.md export-ignore
+/scripts/check-*.sh export-ignore
+/scripts/release-scaffold.sh export-ignore
+/scripts/setup.sh export-ignore
+/scripts/sign-release.sh export-ignore

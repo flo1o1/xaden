@@ -138,17 +138,26 @@ sha256_stdin() {
 }
 
 # tree_checksum <dir>: SHA-256 over the paths and contents of the files of an Xaden tree.
-# A git checkout counts its tracked files, an extracted release all files; both give the same
-# value for the same release. The CI workflow of an adopted project recomputes it with the same
-# find, sed, sort and sha256 steps (scripts/adopt/ci.yml).
+# A git checkout counts the files its last commit puts into a release archive (maintainer files are
+# export-ignored, REQ-094), an extracted release all files; both give the same value for the same
+# release. The CI workflow of an adopted project recomputes it with the same find, sed, sort and
+# sha256 steps (scripts/adopt/ci.yml).
 tree_checksum() {
-  (
-    cd "$1" || return
-    if [ -e .git ]; then git ls-files; else find . -type f | sed 's|^\./||'; fi |
+  local dir=$1 staging="" checksum
+  if [ -e "$dir/.git" ]; then
+    staging="$(mktemp -d)"
+    git -C "$dir" archive HEAD | tar -x -C "$staging" || { rm -rf "${staging:?}"; return 1; }
+    dir=$staging
+  fi
+  checksum="$(
+    cd "$dir" || exit
+    find . -type f | sed 's|^\./||' |
       LC_ALL=C sort |
       while IFS= read -r file; do printf '%s  %s\n' "$(sha256_stdin <"$file")" "$file"; done |
       sha256_stdin
-  )
+  )"
+  [ -z "$staging" ] || rm -rf "${staging:?}"
+  printf '%s\n' "$checksum"
 }
 
 # The installed versions of Xaden besides the one that runs: one folder per version.

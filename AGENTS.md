@@ -24,6 +24,8 @@ This repository **is the scaffold**. Read this before changing it.
   when the change touches no row of the area table in "Smoke areas" (for example the workflow or
   `scripts/check-scaffold.sh` itself).
 - Template changes must work on Linux and macOS (bash 3.2, POSIX awk/sed/tar, no GNU-only flags).
+- Release archives hold no maintainer files (REQ-094): a new root-level path that is not for users needs an
+  `export-ignore` line in `.gitattributes`; `scripts/check-release-archive.sh` lists what an archive may hold.
 - Never put scaffold-maintenance content into `template/`, and never put project content at the root.
 - Keep the scaffold generic: never reference personal skills, plugins, accounts or private tools
   (REQ-045). Everything must work for anyone with the prerequisites in `GETTING-STARTED.md`.
@@ -85,7 +87,7 @@ suite once for the pull request (REQ-093), so run only the areas you touched bef
 | `quality-gates` | epic `quality-gates` | `template/scripts/check.sh`, `scripts/check-scaffold.sh`, `template/scripts/verify-commits.sh`, `template/scripts/verify-refs.sh` |
 | `requirements` | epic `requirements` | `template/scripts/req.sh`, `template/scripts/check-requirements.sh`, `template/scripts/check-traceability.sh` |
 | `security` | epic `security` | `template/scripts/check-security-exceptions.sh`, `template/.semgrep/` |
-| `release-and-docs` | epic `release-and-docs` | `scripts/release-scaffold.sh`, `template/scripts/release.sh`, `scripts/sign-release.sh`, `scripts/check-site-pages.sh` |
+| `release-and-docs` | epic `release-and-docs` | `scripts/release-scaffold.sh`, `template/scripts/release.sh`, `scripts/sign-release.sh`, `scripts/check-site-pages.sh`, `scripts/check-release-archive.sh`, `.gitattributes` |
 
 ## Using the project commands here (REQ-055)
 

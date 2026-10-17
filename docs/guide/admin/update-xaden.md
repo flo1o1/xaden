@@ -25,7 +25,7 @@ git -C ~/.xaden checkout v<version>
 
 ## If you installed from a zip
 
-Download the new release and extract it next to the old one, then move the command link over:
+Download the new release and extract it next to the old one (verify its signature first, as in [Install Xaden](install-xaden.md)), then move the command link over:
 
 ```bash
 ~/tools/xaden-<old>/scripts/install.sh --uninstall
