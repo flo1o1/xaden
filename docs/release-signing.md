@@ -17,7 +17,7 @@ ssh-keygen -t ed25519 -f ~/.ssh/xaden-release -C release@xaden.dev
 ## For every release
 
 ```bash
-scripts/release-scaffold.sh minor
+scripts/release-scaffold.sh minor     # --check first runs the full check; CI checks the release pull request anyway
 XADEN_SIGNING_KEY=~/.ssh/xaden-release scripts/sign-release.sh 0.3.0
 gh release upload v0.3.0 dist/xaden-0.3.0.checksum dist/xaden-0.3.0.checksum.sig
 ```

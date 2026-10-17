@@ -172,6 +172,35 @@ test_guide_links() {
   assert "every relative link in the guides resolves" test -z "$broken"
 }
 
+# REQ-089: the full check before a release runs only with --check. The stub records that it ran and fails on demand.
+test_scaffold_release_check_option() {
+  local base="$WORKDIR/scaffold-release-check" copy head out
+  mkdir -p "$base/scripts" "$base/template/scripts"
+  cp "$SCAFFOLD_ROOT/scripts/release-scaffold.sh" "$base/scripts/"
+  cp "$SCAFFOLD_ROOT/template/scripts/lib.sh" "$SCAFFOLD_ROOT/template/scripts/layout.sh" "$SCAFFOLD_ROOT/template/scripts/gate.sh" "$base/template/scripts/"
+  # shellcheck disable=SC2016 # the $ expressions belong to the stub script, not to this shell
+  printf '#!/bin/sh\ntouch "$CHECK_MARKER"\n[ -z "${FAIL_CHECK:-}" ] || exit 1\n' >"$base/scripts/check-scaffold.sh" && chmod +x "$base/scripts/check-scaffold.sh"
+  printf '0.1.0\n' >"$base/VERSION"
+  printf '# Changelog\n\n## [Unreleased]\n\n- change\n' >"$base/CHANGELOG.md"
+  git -C "$base" init -q -b main && git -C "$base" add -A && git -C "$base" commit -q -m "chore: init"
+
+  copy="$WORKDIR/scaffold-release-default" && rm -rf "$copy" && cp -R "$base" "$copy"
+  out="$(CHECK_MARKER="$copy.ran" "$copy/scripts/release-scaffold.sh" patch 2>&1)" || true
+  assert "a release without --check does not run the full check" test ! -e "$copy.ran"
+  assert "a release without --check says the check was skipped" grep -q 'full check skipped' <<<"$out"
+  assert "a release without --check still stamps the version" test "$(cat "$copy/VERSION")" = "0.1.1"
+
+  copy="$WORKDIR/scaffold-release-fail" && rm -rf "$copy" && cp -R "$base" "$copy"
+  head="$(git -C "$copy" rev-parse HEAD)"
+  assert_fails "a failing --check aborts the release" env FAIL_CHECK=1 CHECK_MARKER="$copy.ran" "$copy/scripts/release-scaffold.sh" --check patch
+  assert "a failing --check leaves everything unchanged" test "$(git -C "$copy" rev-parse HEAD)$(git -C "$copy" status --porcelain)$(cat "$copy/VERSION")" = "${head}0.1.0"
+
+  copy="$WORKDIR/scaffold-release-checked" && rm -rf "$copy" && cp -R "$base" "$copy"
+  CHECK_MARKER="$copy.ran" "$copy/scripts/release-scaffold.sh" --check patch >/dev/null 2>&1 || true
+  assert "--check runs the full check" test -e "$copy.ran"
+  assert "a passing --check releases" test "$(cat "$copy/VERSION")" = "0.1.1"
+}
+
 # REQ-077: signing a release runs clean and leaves no temp folder behind. Runs on a minimal copy with a
 # throwaway key; TMPDIR points at a folder of its own so a leftover staging folder shows.
 test_sign_release() {
@@ -194,6 +223,7 @@ test_bump_version
 test_guide_links
 test_site_pages
 test_scaffold_release_failures
+test_scaffold_release_check_option
 test_sign_release
 test_release
 test_install_ways

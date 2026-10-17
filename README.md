@@ -54,7 +54,7 @@ AGENTS.md CLAUDE.md   rules for maintaining the scaffold
 ```bash
 scripts/setup.sh              # maintainer hooks (.githooks/) + tool check
 scripts/check-scaffold.sh     # full check incl. smoke test (pre-commit runs --staged)
-scripts/release-scaffold.sh minor
+scripts/release-scaffold.sh minor     # add --check to run the full check first
 ```
 
 ## License
