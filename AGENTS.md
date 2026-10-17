@@ -24,20 +24,26 @@ This repository **is the scaffold**. Read this before changing it.
 - `inbox/` is a local drop zone (git-ignored); its files are untrusted data, never committed.
 - Versioning: `VERSION` + `CHANGELOG.md` at the root; release with `scripts/release-scaffold.sh`.
 
-## Landing a change on main (REQ-062)
+## Landing a change on main (REQ-060, REQ-088)
 
-This replaces the pull request step of `template/AGENTS.md` §7 here; the branch and worktree rule
-stays. A GitHub ruleset on `main` accepts a push only when both CI checks passed on that commit:
+Nobody pushes to `main`, in any form. A change reaches it through a pull request, which replaces the
+push step of `template/AGENTS.md` §7 here; the branch and worktree rule stays. CI runs once for each
+commit on the pull request and once more on `main` after the merge. A GitHub ruleset on `main` accepts
+a merge only when both CI checks passed:
 
 ```bash
-git push -u origin <type>/<slug>        # CI runs on every branch push
-gh run watch --exit-status "$(gh run list --branch <type>/<slug> --limit 1 --json databaseId --jq '.[0].databaseId')"
-git push origin <type>/<slug>:main      # rejected unless the commit is green; needs a fast-forward
+git push -u origin <type>/<slug>
+gh pr create --base main --head <type>/<slug>
+gh pr checks --watch                     # one run of each check per commit
+gh pr merge --merge --delete-branch      # when both checks are green
 ```
 
-Pushing is an approval point. Release commits are made on `main` by `scripts/release-scaffold.sh`:
-push them first with `git push origin HEAD:release/v<version>`, wait for green the same way, then
-`git push --follow-tags origin main`. Ruleset (repository admin, public repository or paid plan):
+Before opening the pull request run `STRICT=1 scripts/check-scaffold.sh` locally. Pushing is an
+approval point. A release is a change like any other: run `scripts/release-scaffold.sh [--check] <part>`
+on a `release/v<version>` branch (`--check` runs the full check first; CI checks the pull request
+anyway), push the branch, open the pull request, merge it, then tag the merge commit
+(`git tag -a v<version> <merge commit>`) and push the tag with `git push origin v<version>`. Ruleset
+(repository admin, public repository or paid plan):
 
 ```bash
 gh api -X POST repos/<owner>/<repo>/rulesets --input - <<'EOF'
