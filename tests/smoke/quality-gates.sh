@@ -396,6 +396,21 @@ test_nested_run_guard() {
   assert "a staged run may nest (hooks inside tests)" bash -c "XADEN_RUNNING=check.sh '$PROJECT/scripts/check.sh' --staged 2>&1 | grep -qv 'already running'"
 }
 
+# REQ-092 every smoke area has a row in AGENTS.md, so the list of what each area covers cannot go stale
+test_smoke_area_list() {
+  local copy="$WORKDIR/smoke-areas" check="$SCAFFOLD_ROOT/scripts/check-smoke-areas.sh"
+  assert "every smoke area has a row in AGENTS.md" "$check" "$SCAFFOLD_ROOT"
+  mkdir -p "$copy/tests/smoke" "$copy/template/scripts"
+  cp "$SCAFFOLD_ROOT/template/scripts/lib.sh" "$SCAFFOLD_ROOT/template/scripts/layout.sh" "$SCAFFOLD_ROOT/template/scripts/gate.sh" "$copy/template/scripts/"
+  : >"$copy/tests/smoke/lib.sh"
+  : >"$copy/tests/smoke/alpha.sh"
+  # shellcheck disable=SC2016 # the backticks are literal Markdown, not a command substitution
+  printf '| `alpha` | REQ-001 | scripts/a.sh |\n' >"$copy/AGENTS.md"
+  assert "a listed area passes" "$check" "$copy"
+  : >"$copy/tests/smoke/beta.sh"
+  assert_fails_with "an area without a row fails and is named" 'beta' "$check" "$copy"
+}
+
 test_quiet_output
 test_generated_project
 test_commit_bypasses
@@ -408,3 +423,4 @@ test_optional_tools
 test_ci_credentials
 test_maintainer_hooks
 test_nested_run_guard
+test_smoke_area_list

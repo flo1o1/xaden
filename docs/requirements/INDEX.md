@@ -79,6 +79,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-083 | job | should | done | The maintainer's local checks catch what CI catches |
 | REQ-086 | job | should | approved | A check started from inside a check stops at once |
 | REQ-088 | job | should | done | CI runs once for each commit |
+| REQ-092 | job | could | done | A maintainer re-checks only the smoke area a change touched |
 
 ## Releases and documentation (`release-and-docs`)
 

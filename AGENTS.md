@@ -16,7 +16,9 @@ This repository **is the scaffold**. Read this before changing it.
   the chat or in `inbox/` and wait for the OK, then (worktrees live in `worktrees/`, git-ignored) `git worktree add --no-checkout -b <type>/req-nnn-<slug> worktrees/req-nnn-<slug> main`,
   `git -C <worktree> sparse-checkout set --cone docs/requirements template/scripts`, `git -C <worktree> checkout`,
   commit the requirement first, and run `git sparse-checkout disable` there when implementation starts.
-- Before "done": `scripts/check-scaffold.sh` (full run including `tests/smoke.sh`).
+- While working (REQ-092): `tests/smoke.sh <area>` runs one smoke area (`--list` names them) and
+  `scripts/check-scaffold.sh --staged` the fast offline subset; see "Smoke areas" below.
+- Before "done": `STRICT=1 scripts/check-scaffold.sh` (full run including `tests/smoke.sh`), once, before the pull request.
 - Template changes must work on Linux and macOS (bash 3.2, POSIX awk/sed/tar, no GNU-only flags).
 - Never put scaffold-maintenance content into `template/`, and never put project content at the root.
 - Keep the scaffold generic: never reference personal skills, plugins, accounts or private tools
@@ -62,6 +64,24 @@ the files listed in `docs/site-pages.txt` (paths relative to the repository root
 stable: renaming or removing one needs a change on the site first. `scripts/check-site-pages.sh`
 (part of `scripts/check-scaffold.sh`) fails when a listed file is missing or when a workflow uses a
 secret other than `GITHUB_TOKEN`: the scaffold holds no site credential and never pushes to the site.
+
+## Smoke areas (REQ-092)
+
+`tests/smoke.sh <area>` runs one area after the demo project is created; `tests/smoke.sh --list` names
+them. Pick the area by the requirement your change refers to (one area per epic under
+`docs/requirements/`, plus `adoption`); the paths are the scripts it exercises most. Run the full
+`STRICT=1 scripts/check-scaffold.sh` once before the pull request.
+`scripts/check-smoke-areas.sh` (part of `scripts/check-scaffold.sh`) fails when an area has no row here.
+
+| Area | Requirements | Main paths |
+|------|--------------|------------|
+| `adoption` | REQ-066 to REQ-076 | `scripts/xaden.sh`, `scripts/fetch.sh`, `template/scripts/lib.sh` |
+| `assistant-guidance` | epic `assistant-guidance` | `template/scripts/persona.sh`, `template/AGENTS.md`, `template/prompts/` |
+| `project-setup` | epic `project-setup` | `scripts/new-project.sh`, `scripts/update-scaffold.sh`, `scripts/install.sh`, `scripts/setup.sh` |
+| `quality-gates` | epic `quality-gates` | `template/scripts/check.sh`, `scripts/check-scaffold.sh`, `template/scripts/verify-commits.sh`, `template/scripts/verify-refs.sh` |
+| `requirements` | epic `requirements` | `template/scripts/req.sh`, `template/scripts/check-requirements.sh`, `template/scripts/check-traceability.sh` |
+| `security` | epic `security` | `template/scripts/check-security-exceptions.sh`, `template/.semgrep/` |
+| `release-and-docs` | epic `release-and-docs` | `scripts/release-scaffold.sh`, `template/scripts/release.sh`, `scripts/sign-release.sh`, `scripts/check-site-pages.sh` |
 
 ## Using the project commands here (REQ-055)
 
