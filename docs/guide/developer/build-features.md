@@ -11,7 +11,7 @@ You finished the [kickoff](kick-off-with-your-assistant.md), so the project has 
 In Claude Code, type:
 
 ```text
-/feature <what users can do afterwards>
+/xaden-feature <what users can do afterwards>
 ```
 
 The assistant first drafts the requirement in the chat. It creates the branch and worktree only after you approve the draft, and the worktree starts with just the requirements folder, so a large repository is not copied for an idea you may drop.
@@ -42,13 +42,13 @@ Claude Code, GitHub Copilot and Mistral Vibe have a slash command for each promp
 
 | You want to | Claude Code | Tell another assistant to run |
 |-------------|-------------|-------------------------------|
-| Fix a bug (failing test first) | `/bugfix` | `xaden prompt bugfix` |
-| Refactor without changing behavior | `/refactor` | `xaden prompt refactor` |
-| Review code | `/review` | `xaden prompt code-review` |
-| Review security | `/security` | `xaden prompt security-review` |
-| Change or add requirements | `/requirements` | `xaden prompt requirements-update` |
-| Update documentation | `/docs` | `xaden prompt documentation` |
-| Create a user persona | `/persona` | `xaden prompt persona` |
+| Fix a bug (failing test first) | `/xaden-bugfix` | `xaden prompt bugfix` |
+| Refactor without changing behavior | `/xaden-refactor` | `xaden prompt refactor` |
+| Review code | `/xaden-review` | `xaden prompt code-review` |
+| Review security | `/xaden-security` | `xaden prompt security-review` |
+| Change or add requirements | `/xaden-requirements` | `xaden prompt requirements-update` |
+| Update documentation | `/xaden-docs` | `xaden prompt documentation` |
+| Create a user persona | `/xaden-persona` | `xaden prompt persona` |
 
 Changed your mind during a feature? Say so; the assistant updates the requirement first and then the code.
 

@@ -59,7 +59,7 @@ secret other than `GITHUB_TOKEN`: the scaffold holds no site credential and neve
 
 ## Using the project commands here (REQ-055)
 
-`/bugfix`, `/refactor`, `/review` and `/security` in `.claude/commands/` run the template's
+`/xaden-bugfix`, `/xaden-refactor`, `/xaden-review` and `/xaden-security` in `.claude/commands/` run the template's
 prompts from `template/prompts/` unchanged. `xaden check`, `xaden req` and `xaden context` work at
 the root as in any project (REQ-085; `xaden check` is `scripts/check-scaffold.sh`, full run
 `STRICT=1 xaden check`). Where a prompt names another project path, use:

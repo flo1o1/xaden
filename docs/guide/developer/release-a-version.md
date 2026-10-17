@@ -25,7 +25,7 @@ git push --follow-tags
 
 - `git push --follow-tags`: sends the release commit and its tag. Pushing sends code out, so it is your decision.
 
-In Claude Code, type `/release` for the checklist the assistant follows, including the security review before every release. In any
+In Claude Code, type `/xaden-release` for the checklist the assistant follows, including the security review before every release. In any
 other assistant, tell it to run `xaden prompt release`.
 
 ## Next

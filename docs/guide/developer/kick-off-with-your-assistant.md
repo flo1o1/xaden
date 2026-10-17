@@ -13,7 +13,7 @@ writes things down and you approve them.
 Open your assistant in the project folder. In Claude Code, type:
 
 ```text
-/kickoff <what you want to build>
+/xaden-kickoff <what you want to build>
 ```
 
 In any other assistant, tell it:
@@ -22,7 +22,7 @@ In any other assistant, tell it:
 Run `xaden prompt kickoff` and follow it. My idea: <what you want to build>
 ```
 
-Claude Code finds the `/kickoff` command in `.claude/commands/`, which `xaden create` and `xaden adopt` write for Claude Code users. GitHub Copilot,
+Claude Code finds the `/xaden-kickoff` command in `.claude/commands/`, which `xaden create` and `xaden adopt` write for Claude Code users. GitHub Copilot,
 Mistral Vibe and Codex CLI users get the same command in their own place when `--assistants` names them or `xaden adopt` finds them (see
 [Add Xaden to a repository](add-xaden-to-a-repository.md)).
 
