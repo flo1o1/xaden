@@ -11,7 +11,7 @@ tags: [prompt, security, review]
 
 ## Goal
 Find exploitable weaknesses in the changed code, ranked by risk, with fixes.
-Works with any assistant; Claude Code runs it as `/security`.
+Works with any assistant; Claude Code runs it as `/xaden-security`.
 
 ## Inputs
 - Scope: {{changed files, or whole project}}

@@ -16,12 +16,12 @@ relative to it.
 | One rule set for every LLM | `AGENTS.md` (+ `CLAUDE.md` imports it, other tools get pointer files) |
 | Clean code | Rules in `AGENTS.md`, details in `docs/clean-code.md`, review/refactor prompts |
 | Static analysis | `scripts/check.sh`: shellcheck, gitleaks, semgrep, per-stack linters/type/audit (Python, Node) |
-| Security | `docs/security.md`, `/security` and tool-agnostic `prompts/security-review.md` (OWASP WSTG based) |
+| Security | `docs/security.md`, `/xaden-security` and tool-agnostic `prompts/security-review.md` (OWASP WSTG based) |
 | Requirements tracking | `docs/requirements/`: one file per requirement in epic folders, functional ones as Jobs To Be Done, quality ones as measurable goals; validated by `scripts/check-requirements.sh`; the AI must update them when scope changes |
 | Semantic versioning | `VERSION`, `CHANGELOG.md`, Conventional Commits hook, `scripts/release.sh` |
-| User + admin docs | `docs/user-guide.md`, `docs/admin-guide.md` (install, system requirements, config, hardening, upgrade); filled by `/docs`, structure checked by `scripts/check-docs.sh` (not content), release blocked while incomplete |
+| User + admin docs | `docs/user-guide.md`, `docs/admin-guide.md` (install, system requirements, config, hardening, upgrade); filled by `/xaden-docs`, structure checked by `scripts/check-docs.sh` (not content), release blocked while incomplete |
 | Fewer invented rules/requirements | Numbered rules (`CC-nn`) and requirements (`REQ-nnn`); Claude Code imports them into every session; `scripts/req.sh` lookup; commit hook and traceability check reject unknown IDs. `scripts/context-status.sh` fingerprints the files the assistant started from: a consistency aid, not proof it read or followed them |
-| User personas | `docs/personas/`: 3 to 5 personas, created prefilled by `scripts/persona.sh new` or `/persona`; assistants check every solution against them |
+| User personas | `docs/personas/`: 3 to 5 personas, created prefilled by `scripts/persona.sh new` or `/xaden-persona`; assistants check every solution against them |
 | Git | New projects get their own repo with hooks installed |
 | An existing repository | `xaden adopt` adds Xaden beneath it on a branch: a visible `xaden/` folder, a marked block in `AGENTS.md`, your own tests, linters, hooks and CI reused, existing findings baselined; `xaden remove` takes it out again |
 | One Xaden version per team | `xaden/xaden.conf` pins the version and a checksum; `xaden doctor`, `xaden fetch` and `xaden upgrade` keep the team on one reviewed version; nothing downloads without your yes |

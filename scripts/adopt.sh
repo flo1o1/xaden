@@ -126,17 +126,17 @@ choose_assistants() {
     return 0
   fi
   if [ -z "$detected" ]; then
-    if ask "Does your team use Claude Code? Xaden then adds CLAUDE.md with the line @AGENTS.md and the slash commands (/feature, /bugfix, ...)."; then
+    if ask "Does your team use Claude Code? Xaden then adds CLAUDE.md with the line @AGENTS.md and the slash commands (/xaden-feature, /xaden-bugfix, ...)."; then
       ADOPT_ASSISTANTS=claude
     fi
     return 0
   fi
   for name in $(printf '%s' "$detected" | tr ',' ' '); do
     case "$name" in
-      claude) question="Claude Code is used here. Add CLAUDE.md with the line @AGENTS.md and the slash commands (/feature, /bugfix, ...)?" ;;
-      copilot) question="GitHub Copilot is used here. Add the slash commands (/feature, /bugfix, ...) as prompt files in .github/prompts/?" ;;
-      vibe) question="Mistral Vibe is used here. Add the slash commands (/feature, /bugfix, ...) as skills in .agents/skills/?" ;;
-      codex) question="Codex CLI is used here. Add the commands (\$feature, \$bugfix, ...) as skills in .agents/skills/?" ;;
+      claude) question="Claude Code is used here. Add CLAUDE.md with the line @AGENTS.md and the slash commands (/xaden-feature, /xaden-bugfix, ...)?" ;;
+      copilot) question="GitHub Copilot is used here. Add the slash commands (/xaden-feature, /xaden-bugfix, ...) as prompt files in .github/prompts/?" ;;
+      vibe) question="Mistral Vibe is used here. Add the slash commands (/xaden-feature, /xaden-bugfix, ...) as skills in .agents/skills/?" ;;
+      codex) question="Codex CLI is used here. Add the commands (\$xaden-feature, \$xaden-bugfix, ...) as skills in .agents/skills/?" ;;
     esac
     if ask "$question" y; then ADOPT_ASSISTANTS="$ADOPT_ASSISTANTS${ADOPT_ASSISTANTS:+,}$name"; fi
   done

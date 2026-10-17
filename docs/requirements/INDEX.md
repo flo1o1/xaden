@@ -56,6 +56,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-080 | job | should | done | Claude Code users start Xaden workflows with slash commands in an adopted repository |
 | REQ-081 | job | should | done | Slash commands exist in the other detected assistants too |
 | REQ-084 | job | should | done | I decide whether and how often Xaden checks for updates |
+| REQ-087 | job | should | approved | Xaden's slash commands carry the xaden- prefix |
 
 ## Quality gates (`quality-gates`)
 

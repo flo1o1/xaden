@@ -13,7 +13,7 @@ scripts/check.sh   # static analysis, requirements and docs checks
 ```
 
 Start an AI session by pointing the tool at this folder, then run the kickoff prompt:
-`prompts/kickoff.md` (Claude Code: `/kickoff`).
+`prompts/kickoff.md` (Claude Code: `/xaden-kickoff`).
 
 ## Where things are
 

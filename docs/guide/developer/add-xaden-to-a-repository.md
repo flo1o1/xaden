@@ -84,8 +84,8 @@ are listed.
 
 ## Working with assistants afterwards
 
-Claude Code, GitHub Copilot and Mistral Vibe users get a slash command for each prompt (`/kickoff`, `/feature`, `/bugfix` and so on), and
-Codex CLI users a skill they start with `$kickoff`, `$feature` and so on. Each one only tells the assistant to run `xaden prompt <name>`; a file of
+Claude Code, GitHub Copilot and Mistral Vibe users get a slash command for each prompt (`/xaden-kickoff`, `/xaden-feature`, `/xaden-bugfix` and so on), and
+Codex CLI users a skill they start with `$xaden-kickoff`, `$xaden-feature` and so on. Each one only tells the assistant to run `xaden prompt <name>`; a file of
 the same name that exists already stays as it is. Other assistants run `xaden prompt kickoff`, `xaden prompt feature` and so on to print the
 task prompt. A prompt of the same name in `xaden/prompts/` replaces the default for all of them. Copilot prompt files work in VS Code, and Vibe
 reads project skills only from a folder you marked as trusted.

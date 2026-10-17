@@ -215,36 +215,36 @@ test_claude_commands() {
   local repo="$WORKDIR/repos/commands" wt="$WORKDIR/repos/commands-adopt-xaden" name prompt file
   make_repo "$repo" shop
   mkdir -p "$repo/.claude/commands"
-  printf 'my own feature command\n' >"$repo/.claude/commands/feature.md"
+  printf 'my own feature command\n' >"$repo/.claude/commands/xaden-feature.md"
   git -C "$repo" add -A && git -C "$repo" commit -q -m "docs: own feature command"
 
   x_in "$repo" adopt --plan
-  assert "the plan lists a command file" grep -Eq 'A[[:space:]]+\.claude/commands/bugfix\.md' "$XOUT"
-  assert "the plan names the file it skips" grep -q 'skipped .claude/commands/feature.md' "$XOUT"
+  assert "the plan lists a command file" grep -Eq 'A[[:space:]]+\.claude/commands/xaden-bugfix\.md' "$XOUT"
+  assert "the plan names the file it skips" grep -q 'skipped .claude/commands/xaden-feature.md' "$XOUT"
   assert "the plan writes nothing" test ! -e "$wt"
 
   x_in "$repo" adopt --yes --assistants claude
   assert "adopt succeeds" test "$XRC" -eq 0
   for name in kickoff feature bugfix refactor review security requirements docs persona release; do
-    assert "command $name exists" test -f "$wt/.claude/commands/$name.md"
+    assert "command $name exists" test -f "$wt/.claude/commands/xaden-$name.md"
   done
   # feature is the team's own file here, so it has no command of Xaden's
   for prompt in "$SCAFFOLD_ROOT"/template/prompts/*.md; do
     name="$(basename "$prompt" .md)"
     [ "$name" = 00-index ] || [ "$name" = feature ] || assert "prompt $name is reachable by a command" grep -rlq "xaden prompt $name\`" "$wt/.claude/commands"
   done
-  file="$wt/.claude/commands/review.md"
+  file="$wt/.claude/commands/xaden-review.md"
   assert "a command asks the assistant to run xaden prompt" grep -Fq 'Run `xaden prompt code-review` and follow it. Task input: $ARGUMENTS' "$file"
   assert "a command has a description" grep -q '^description: .' "$file"
   assert "a command never holds the prompt text" test "$(wc -l <"$file")" -le 6
-  assert "an existing command file is not overwritten" test "$(cat "$wt/.claude/commands/feature.md")" = "my own feature command"
-  assert "a skipped file is not in the footprint" bash -c '! grep -q "commands/feature.md" "$1"' _ "$wt/xaden/footprint.txt"
-  assert "the footprint lists a created file" grep -qx 'file .claude/commands/bugfix.md' "$wt/xaden/footprint.txt"
+  assert "an existing command file is not overwritten" test "$(cat "$wt/.claude/commands/xaden-feature.md")" = "my own feature command"
+  assert "a skipped file is not in the footprint" bash -c '! grep -q "commands/xaden-feature.md" "$1"' _ "$wt/xaden/footprint.txt"
+  assert "the footprint lists a created file" grep -qx 'file .claude/commands/xaden-bugfix.md' "$wt/xaden/footprint.txt"
   assert "adopt creates exactly the new command files" test "$(git -C "$wt" diff --name-only main HEAD | grep -c '^\.claude/commands/')" -eq 9
 
   x_in "$wt" remove --yes
-  assert "remove deletes the files Xaden created" test ! -e "$wt/.claude/commands/bugfix.md" -a ! -e "$wt/.claude/commands/release.md"
-  assert "remove keeps the team's own command" test "$(cat "$wt/.claude/commands/feature.md")" = "my own feature command"
+  assert "remove deletes the files Xaden created" test ! -e "$wt/.claude/commands/xaden-bugfix.md" -a ! -e "$wt/.claude/commands/xaden-release.md"
+  assert "remove keeps the team's own command" test "$(cat "$wt/.claude/commands/xaden-feature.md")" = "my own feature command"
   assert "remove leaves no stray file" test -z "$(git -C "$wt" status --porcelain | grep -Ev ' (xaden/|AGENTS\.md|CLAUDE\.md|\.claude/commands/[a-z-]+\.md|\.github/workflows/xaden\.yml)' || true)"
 
   local plain="$WORKDIR/repos/commands-plain"
@@ -258,38 +258,38 @@ test_other_assistant_commands() {
   local repo="$WORKDIR/repos/others" wt="$WORKDIR/repos/others-adopt-xaden" name file
   make_repo "$repo" shop
   mkdir -p "$repo/.github/prompts"
-  printf 'my own feature prompt\n' >"$repo/.github/prompts/feature.prompt.md"
+  printf 'my own feature prompt\n' >"$repo/.github/prompts/xaden-feature.prompt.md"
   git -C "$repo" add -A && git -C "$repo" commit -q -m "docs: own feature prompt"
 
   x_in "$repo" adopt --plan --assistants copilot,vibe,codex
-  assert "the plan lists a Copilot prompt file" grep -Eq 'A[[:space:]]+\.github/prompts/bugfix\.prompt\.md' "$XOUT"
-  assert "the plan lists a skill" grep -Eq 'A[[:space:]]+\.agents/skills/bugfix/SKILL\.md' "$XOUT"
-  assert "the plan names the file it skips" grep -q 'skipped .github/prompts/feature.prompt.md' "$XOUT"
+  assert "the plan lists a Copilot prompt file" grep -Eq 'A[[:space:]]+\.github/prompts/xaden-bugfix\.prompt\.md' "$XOUT"
+  assert "the plan lists a skill" grep -Eq 'A[[:space:]]+\.agents/skills/xaden-bugfix/SKILL\.md' "$XOUT"
+  assert "the plan names the file it skips" grep -q 'skipped .github/prompts/xaden-feature.prompt.md' "$XOUT"
 
   x_in "$repo" adopt --yes --assistants copilot,vibe,codex
   assert "adopt succeeds" test "$XRC" -eq 0
   for name in kickoff feature bugfix refactor review security requirements docs persona release; do
-    assert "skill $name exists" test -f "$wt/.agents/skills/$name/SKILL.md"
-    [ "$name" = feature ] || assert "Copilot prompt $name exists" test -f "$wt/.github/prompts/$name.prompt.md"
+    assert "skill $name exists" test -f "$wt/.agents/skills/xaden-$name/SKILL.md"
+    [ "$name" = feature ] || assert "Copilot prompt $name exists" test -f "$wt/.github/prompts/xaden-$name.prompt.md"
   done
-  file="$wt/.github/prompts/review.prompt.md"
+  file="$wt/.github/prompts/xaden-review.prompt.md"
   assert "a Copilot prompt asks the assistant to run xaden prompt" grep -Fq 'Run `xaden prompt code-review` and follow it. Task input: ${input:task:describe the task}' "$file"
   assert "a Copilot prompt has a description" grep -q '^description: .' "$file"
-  file="$wt/.agents/skills/review/SKILL.md"
-  assert "a skill is named like its command" grep -qx 'name: review' "$file"
+  file="$wt/.agents/skills/xaden-review/SKILL.md"
+  assert "a skill is named like its command" grep -qx 'name: xaden-review' "$file"
   assert "a skill asks the assistant to run xaden prompt" grep -Fq 'Run `xaden prompt code-review` and follow it.' "$file"
-  assert "a skill is explicit-use only by its description" grep -q '^description: .*Use only when the user asks for it by name (review)' "$file"
+  assert "a skill is explicit-use only by its description" grep -q '^description: .*Use only when the user asks for it by name (xaden-review)' "$file"
   assert "no file holds the prompt text" test "$(cat "$wt"/.agents/skills/*/SKILL.md "$wt"/.github/prompts/*.prompt.md | wc -l)" -le 200
-  assert "an existing Copilot prompt is not overwritten" test "$(cat "$wt/.github/prompts/feature.prompt.md")" = "my own feature prompt"
-  assert "a skipped file is not in the footprint" bash -c '! grep -q "prompts/feature.prompt.md" "$1"' _ "$wt/xaden/footprint.txt"
-  assert "the footprint lists a created skill once, although Vibe and Codex share it" test "$(grep -cx 'file .agents/skills/bugfix/SKILL.md' "$wt/xaden/footprint.txt")" -eq 1
+  assert "an existing Copilot prompt is not overwritten" test "$(cat "$wt/.github/prompts/xaden-feature.prompt.md")" = "my own feature prompt"
+  assert "a skipped file is not in the footprint" bash -c '! grep -q "prompts/xaden-feature.prompt.md" "$1"' _ "$wt/xaden/footprint.txt"
+  assert "the footprint lists a created skill once, although Vibe and Codex share it" test "$(grep -cx 'file .agents/skills/xaden-bugfix/SKILL.md' "$wt/xaden/footprint.txt")" -eq 1
   assert "adopt creates exactly the new Copilot prompts" test "$(git -C "$wt" diff --name-only main HEAD | grep -c '^\.github/prompts/')" -eq 9
   assert "adopt creates one skill for each prompt" test "$(git -C "$wt" diff --name-only main HEAD | grep -c '^\.agents/skills/')" -eq 10
   assert "without Claude there are no Claude files" test ! -e "$wt/CLAUDE.md" -a ! -e "$wt/.claude"
 
   x_in "$wt" remove --yes
-  assert "remove deletes the Copilot prompts and skills Xaden created" test ! -e "$wt/.github/prompts/bugfix.prompt.md" -a ! -e "$wt/.agents"
-  assert "remove keeps the team's own prompt" test "$(cat "$wt/.github/prompts/feature.prompt.md")" = "my own feature prompt"
+  assert "remove deletes the Copilot prompts and skills Xaden created" test ! -e "$wt/.github/prompts/xaden-bugfix.prompt.md" -a ! -e "$wt/.agents"
+  assert "remove keeps the team's own prompt" test "$(cat "$wt/.github/prompts/xaden-feature.prompt.md")" = "my own feature prompt"
   assert "remove leaves no stray file" test -z "$(git -C "$wt" status --porcelain | grep -Ev ' (xaden/|AGENTS\.md|\.github/prompts/[a-z-]+\.prompt\.md|\.agents/skills/[a-z-]+/SKILL\.md|\.github/workflows/xaden\.yml)' || true)"
 
   # a file or folder of the assistant's own is what makes adopt offer it; .agents/ names neither Vibe nor Codex
@@ -298,19 +298,19 @@ test_other_assistant_commands() {
   mkdir -p "$vibe/.vibe" && printf 'x = 1\n' >"$vibe/.vibe/config.toml"
   git -C "$vibe" add -A && git -C "$vibe" commit -q -m "chore: vibe"
   x_in "$vibe" adopt --yes --skip-ci
-  assert "Vibe is detected and gets skills" test -f "$vibe-adopt-xaden/.agents/skills/feature/SKILL.md"
+  assert "Vibe is detected and gets skills" test -f "$vibe-adopt-xaden/.agents/skills/xaden-feature/SKILL.md"
   assert "only the detected assistant gets files" test ! -e "$vibe-adopt-xaden/.github/prompts" -a ! -e "$vibe-adopt-xaden/.claude"
   make_repo "$copilot" shop
   printf 'Be kind.\n' >"$copilot/.github/copilot-instructions.md"
   git -C "$copilot" add -A && git -C "$copilot" commit -q -m "chore: copilot"
   x_in "$copilot" adopt --yes --skip-ci
-  assert "Copilot is detected and gets prompt files" test -f "$copilot-adopt-xaden/.github/prompts/feature.prompt.md"
+  assert "Copilot is detected and gets prompt files" test -f "$copilot-adopt-xaden/.github/prompts/xaden-feature.prompt.md"
   assert "Copilot alone gets no skills" test ! -e "$copilot-adopt-xaden/.agents"
   make_repo "$codex" shop
   mkdir -p "$codex/.codex" && printf 'x = 1\n' >"$codex/.codex/config.toml"
   git -C "$codex" add -A && git -C "$codex" commit -q -m "chore: codex"
   x_in "$codex" adopt --yes --skip-ci
-  assert "Codex is detected and gets skills" test -f "$codex-adopt-xaden/.agents/skills/feature/SKILL.md"
+  assert "Codex is detected and gets skills" test -f "$codex-adopt-xaden/.agents/skills/xaden-feature/SKILL.md"
   assert "Codex alone gets no Copilot files" test ! -e "$codex-adopt-xaden/.github/prompts"
 }
 
@@ -443,12 +443,12 @@ test_versions_and_downloads() {
   assert "upgrade regenerates RULES.md for the new version" grep -q 'Generated from Xaden 9.9.9' "$upgraded/xaden/RULES.md"
   assert "upgrade shows the changelog entries" grep -q 'Something new in 9.9.9' "$XOUT"
   assert "upgrade shows the diff" grep -q 'xaden/xaden.conf' "$XOUT"
-  assert "upgrade adds a command for a new prompt (REQ-080)" grep -q 'xaden prompt newthing' "$upgraded/.claude/commands/newthing.md"
-  assert "upgrade removes the command of a dropped prompt (REQ-080)" test ! -e "$upgraded/.claude/commands/release.md"
-  assert "upgrade drops that file from the footprint (REQ-080)" bash -c '! grep -q "commands/release.md" "$1"' _ "$upgraded/xaden/footprint.txt"
-  assert "upgrade adds a Copilot prompt file for a new prompt (REQ-081)" grep -q 'xaden prompt newthing' "$upgraded/.github/prompts/newthing.prompt.md"
-  assert "upgrade adds a skill for a new prompt (REQ-081)" grep -q 'xaden prompt newthing' "$upgraded/.agents/skills/newthing/SKILL.md"
-  assert "upgrade removes the Copilot file and the skill of a dropped prompt (REQ-081)" test ! -e "$upgraded/.github/prompts/release.prompt.md" -a ! -e "$upgraded/.agents/skills/release"
+  assert "upgrade adds a command for a new prompt (REQ-080)" grep -q 'xaden prompt newthing' "$upgraded/.claude/commands/xaden-newthing.md"
+  assert "upgrade removes the command of a dropped prompt (REQ-080)" test ! -e "$upgraded/.claude/commands/xaden-release.md"
+  assert "upgrade drops that file from the footprint (REQ-080)" bash -c '! grep -q "commands/xaden-release.md" "$1"' _ "$upgraded/xaden/footprint.txt"
+  assert "upgrade adds a Copilot prompt file for a new prompt (REQ-081)" grep -q 'xaden prompt newthing' "$upgraded/.github/prompts/xaden-newthing.prompt.md"
+  assert "upgrade adds a skill for a new prompt (REQ-081)" grep -q 'xaden prompt newthing' "$upgraded/.agents/skills/xaden-newthing/SKILL.md"
+  assert "upgrade removes the Copilot file and the skill of a dropped prompt (REQ-081)" test ! -e "$upgraded/.github/prompts/xaden-release.prompt.md" -a ! -e "$upgraded/.agents/skills/xaden-release"
   assert "upgrade updates the pinned workflow" grep -q 'XADEN_VERSION: "9.9.9"' "$upgraded/.github/workflows/xaden.yml"
   assert "the project on the old branch is unchanged" grep -q "^version = $current\$" "$worktree/xaden/xaden.conf"
   assert "the downloaded version is installed once" test -x "$home/versions/9.9.9/scripts/xaden.sh"
@@ -893,10 +893,28 @@ test_update_check() {
   unset XADEN_LATEST_URL
 }
 
+# REQ-087 the commands of an older Xaden had no prefix; syncing replaces the ones Xaden created and keeps the rest
+test_command_prefix_migration() {
+  local dir="$WORKDIR/repos/prefix-migration" lib="$SCAFFOLD_ROOT/template/scripts/lib.sh" scaffold_lib="$SCAFFOLD_ROOT/scripts/scaffold-lib.sh"
+  rm -rf "$dir" && mkdir -p "$dir/xaden" "$dir/.claude/commands" "$dir/.agents/skills/feature"
+  printf 'old command\n' >"$dir/.claude/commands/feature.md"
+  printf 'old skill\n' >"$dir/.agents/skills/feature/SKILL.md"
+  printf 'my own review command\n' >"$dir/.claude/commands/review.md"
+  printf 'file .claude/commands/feature.md\nfile .agents/skills/feature/SKILL.md\n' >"$dir/xaden/footprint.txt"
+  bash -c 'source "$1"; source "$2"; sync_commands "$3" "$4" claude,vibe' _ "$lib" "$scaffold_lib" "$dir" "$SCAFFOLD_ROOT/template" >/dev/null 2>&1
+  assert "the old unprefixed command that Xaden created is removed" test ! -e "$dir/.claude/commands/feature.md"
+  assert "the old unprefixed skill that Xaden created is removed" test ! -e "$dir/.agents/skills/feature"
+  assert "the prefixed command is written" test -f "$dir/.claude/commands/xaden-feature.md"
+  assert "the prefixed skill is written" test -f "$dir/.agents/skills/xaden-feature/SKILL.md"
+  assert "the footprint lists the new file and not the old one" bash -c 'grep -qx "file .claude/commands/xaden-feature.md" "$1" && ! grep -qx "file .claude/commands/feature.md" "$1"' _ "$dir/xaden/footprint.txt"
+  assert "a command of the same old name that Xaden did not create stays" test "$(cat "$dir/.claude/commands/review.md")" = "my own review command"
+}
+
 test_messages
 test_scan_and_plan
 test_adopt_and_remove
 test_claude_commands
+test_command_prefix_migration
 test_other_assistant_commands
 test_reuse_of_existing_tooling
 test_versions_and_downloads

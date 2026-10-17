@@ -23,5 +23,5 @@ CI re-runs the static analysis and the commit-message checks, so a skipped hook 
 ## Work as the team does
 
 Read `xaden/RULES.md` and the requirements in `xaden/requirements/`. Start your assistant in the folder. In Claude Code, type
-`/feature <what users can do afterwards>`; in any other assistant, tell it to run `xaden prompt feature`. Both are described in
+`/xaden-feature <what users can do afterwards>`; in any other assistant, tell it to run `xaden prompt feature`. Both are described in
 [Build features](build-features.md).

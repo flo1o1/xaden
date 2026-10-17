@@ -6,8 +6,8 @@
 ## Claude Code specifics
 
 - Slash commands in `.claude/commands/` wrap the prompts in `prompts/`:
-  `/kickoff`, `/persona`, `/feature`, `/bugfix`, `/refactor`, `/requirements`, `/docs`, `/security`, `/review`,
-  `/release`.
+  `/xaden-kickoff`, `/xaden-persona`, `/xaden-feature`, `/xaden-bugfix`, `/xaden-refactor`, `/xaden-requirements`, `/xaden-docs`, `/xaden-security`, `/xaden-review`,
+  `/xaden-release`.
 - Use plan mode for anything touching more than two files.
 - Optional: `/model opusplan` (or `"model": "opusplan"` in `.claude/settings.local.json`) plans
   with Opus in plan mode and implements with Sonnet. Needs Opus access; without it use
