@@ -11,7 +11,7 @@ updated: 2026-10-17
 
 ## Job
 
-When I push a commit on a branch with an open pull request, I want CI to run once for it, so I get the result in about 11 minutes instead of waiting on, and paying for, a duplicate run.
+When I push a commit on a branch with an open pull request, I want to see CI run once for it, so I can read the result in about 11 minutes instead of waiting on, and paying for, a duplicate run.
 
 ## Acceptance criteria
 

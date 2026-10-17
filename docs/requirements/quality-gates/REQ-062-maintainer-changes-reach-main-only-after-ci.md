@@ -3,7 +3,7 @@ id: REQ-062
 type: job
 epic: quality-gates
 priority: should
-status: done
+status: dropped
 updated: 2026-10-17
 ---
 
@@ -22,4 +22,4 @@ Linux or macOS still never reaches `main`.
 - Given a branch whose tip passed both checks, when the maintainer pushes that commit to `main` (`git push origin <branch>:main`), then GitHub accepts it without a pull request or review
 - Given the root `AGENTS.md`, when a maintainer or assistant finishes a change, then it describes this flow, the flow for release commits and the ruleset setup
 
-Superseded in part by REQ-088 (CI runs on pull requests and on main, not on every branch push) and REQ-060 (changes reach main by pull request).
+Dropped 2026-10-17: superseded by REQ-060 (changes reach main by pull request) and REQ-088 (CI runs on pull requests and on main, not on every branch push). Nobody pushes to main.

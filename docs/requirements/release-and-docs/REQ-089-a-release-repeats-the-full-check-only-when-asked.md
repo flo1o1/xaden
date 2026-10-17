@@ -11,7 +11,7 @@ updated: 2026-10-17
 
 ## Job
 
-When I cut a release, I want `scripts/release-scaffold.sh` to skip the full local check unless I ask for it, so a release takes minutes instead of waiting about 10 minutes for a check that CI runs on the release pull request anyway.
+When I cut a release, I want to skip the full local check of `scripts/release-scaffold.sh` unless I ask for it, so I can finish a release in minutes instead of waiting about 10 minutes for a check that CI runs on the release pull request anyway.
 
 ## Acceptance criteria
 
