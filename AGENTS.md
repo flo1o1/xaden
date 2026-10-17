@@ -66,7 +66,10 @@ EOF
 ## Website contract (REQ-064)
 
 The website builds from the archive of a release tag `vX.Y.Z`, never from untagged `main`, and renders
-the files listed in `docs/site-pages.txt` (paths relative to the repository root). Keep those paths
+the files listed in `docs/site-pages.txt` (paths relative to the repository root). The site has the same
+version as the release it describes: after the scaffold tag is pushed, the site repository releases
+`X.Y.Z` (its `scripts/release-site.sh`) and publishes from its own tag `vX.Y.Z`; a site fix in between gets
+`vX.Y.Z-0001`, `-0002` and so on. Keep those paths
 stable: renaming or removing one needs a change on the site first. `scripts/check-site-pages.sh`
 (part of `scripts/check-scaffold.sh`) fails when a listed file is missing or when a workflow uses a
 secret other than `GITHUB_TOKEN`: the scaffold holds no site credential and never pushes to the site.
