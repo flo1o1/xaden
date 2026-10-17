@@ -4,7 +4,7 @@ type: job
 epic: project-setup
 priority: should
 status: done
-updated: 2026-10-15
+updated: 2026-10-17
 ---
 
 # Claude Code users start Xaden workflows with slash commands in an adopted repository
@@ -24,3 +24,5 @@ When I work in Claude Code in a repository that adopted Xaden, I want to type `/
 - Given an adoption without Claude among the assistants, then no `.claude/commands/` file is created.
 - Given `xaden upgrade`, then the command files follow the new prompt list: new ones are added, and the files Xaden created for a prompt that no longer exists are removed.
 - Given the smoke tests, then a test adopts a scratch repository and checks the files above, including the skip and the removal.
+
+Superseded in part by REQ-087: the command names carry the `xaden-` prefix.

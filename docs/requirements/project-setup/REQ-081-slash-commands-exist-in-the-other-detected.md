@@ -4,7 +4,7 @@ type: job
 epic: project-setup
 priority: should
 status: done
-updated: 2026-10-15
+updated: 2026-10-17
 ---
 
 # Slash commands exist in the other detected assistants too
@@ -23,3 +23,5 @@ When my team uses GitHub Copilot, Mistral Vibe or Codex CLI in a repository that
 - Given a file of the same name that already exists, then adopt does not overwrite it, the plan names it as skipped, and the footprint does not list it.
 - Given the plan, `xaden/footprint.txt`, `xaden remove` and `xaden upgrade`, then they handle these files exactly as REQ-080 does for the Claude files.
 - Given the smoke tests, then a test adopts a scratch repository once per supported assistant and checks the files, the skip and the removal.
+
+Superseded in part by REQ-087: the command names carry the `xaden-` prefix.
