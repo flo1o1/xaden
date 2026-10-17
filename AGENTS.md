@@ -65,8 +65,11 @@ secret other than `GITHUB_TOKEN`: the scaffold holds no site credential and neve
 
 ## Using the project commands here (REQ-055)
 
-`/xaden-bugfix`, `/xaden-refactor`, `/xaden-review` and `/xaden-security` in `.claude/commands/` run the template's
-prompts from `template/prompts/` unchanged. `xaden check`, `xaden req` and `xaden context` work at
+`/xaden-feature`, `/xaden-bugfix`, `/xaden-refactor`, `/xaden-review`, `/xaden-security`, `/xaden-requirements`,
+`/xaden-release` and `/xaden-persona` in `.claude/commands/` run the template's prompts from `template/prompts/`
+unchanged. `/xaden-kickoff` and `/xaden-docs` stay out on purpose (REQ-091): kickoff starts a new project, and
+docs was left out under REQ-055. `/xaden-release` runs
+only when the user asks for a release. `xaden check`, `xaden req` and `xaden context` work at
 the root as in any project (REQ-085; `xaden check` is `scripts/check-scaffold.sh`, full run
 `STRICT=1 xaden check`). Where a prompt names another project path, use:
 
@@ -77,4 +80,8 @@ the root as in any project (REQ-085; `xaden check` is `scripts/check-scaffold.sh
 | `docs/architecture.md` | the "Layout" section of `README.md` and this file |
 | `docs/threat-model.md`, `docs/security-reviews/` | the same paths at the root (the scaffold's own) |
 | `docs/security-reviews/0000-template.md` | `template/docs/security-reviews/0000-template.md` |
+| `scripts/check.sh`, `scripts/req.sh`, `scripts/context-status.sh` | `xaden check`, `xaden req`, `xaden context` |
+| `scripts/release.sh <part>` | `scripts/release-scaffold.sh [--check] <part>` on a `release/v<version>` branch, landed as described above; tag the merge commit, never push to `main` |
+| `docs/user-guide.md`, `docs/admin-guide.md` | `docs/guide/` (the scaffold's guides) |
+| `docs/personas/`, `scripts/persona.sh` | `docs/personas/` at the root, created with the first persona from `template/docs/personas/0000-template.md` |
 | `CHANGELOG.md`, tests | `CHANGELOG.md` at the root, `tests/smoke.sh` (areas in `tests/smoke/`; one area: `tests/smoke.sh <area>`) |
