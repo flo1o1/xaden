@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Releases the scaffold: full checks, SemVer bump of the root VERSION, changelog stamp, tag.
-# Never pushes. Usage: scripts/release-scaffold.sh <major|minor|patch>
+# Releases the scaffold: SemVer bump of the root VERSION, changelog stamp, release commit, tag.
+# The full check is opt-in (--check, REQ-089): CI checks the release pull request anyway.
+# Never pushes. Usage: scripts/release-scaffold.sh [--check] <major|minor|patch>
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -14,13 +15,19 @@ stamp_release() {
 }
 
 main() {
-  local part=${1:-} next
-  [ -n "$part" ] || die "usage: scripts/release-scaffold.sh <major|minor|patch>"
+  local run_check=0 part next
+  if [ "${1:-}" = "--check" ]; then run_check=1; shift; fi
+  part=${1:-}
+  [ -n "$part" ] || die "usage: scripts/release-scaffold.sh [--check] <major|minor|patch>"
   [ -z "$(git status --porcelain)" ] || die "working tree not clean; commit or stash first"
   next="$(bump_version "$(tr -d '[:space:]' <VERSION)" "$part")"
   ensure_tag_absent "v$next"
 
-  STRICT=1 "$ROOT/scripts/check-scaffold.sh"
+  if [ "$run_check" = "1" ]; then
+    STRICT=1 "$ROOT/scripts/check-scaffold.sh"
+  else
+    info "full check skipped: CI checks the release pull request (run with --check to check first)"
+  fi
   stamp_release_or_restore stamp_release "$next" VERSION CHANGELOG.md
   commit_release_or_restore "chore(release): scaffold v$next" VERSION CHANGELOG.md
   tag_release_or_report "v$next"

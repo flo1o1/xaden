@@ -4,6 +4,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+### Changed
+- Maintainers: CI runs once for each commit of a pull request instead of twice: branch pushes no longer start it, the pull request and the merge into `main` do (REQ-088). `AGENTS.md` describes landing by pull request only.
+- Maintainers: `scripts/release-scaffold.sh` no longer runs the full check by default, because CI checks the release pull request; `--check` runs it first (REQ-089).
+
 ## [0.4.0] - 2026-10-17
 
 ### Changed

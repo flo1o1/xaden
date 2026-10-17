@@ -326,8 +326,12 @@ test_ci_credentials() {
   done
   assert "security checklist explains new semgrep registry findings" \
     grep -q 'report a finding without a code change' "$SCAFFOLD_ROOT/template/docs/security.md"
-  # REQ-062: every branch push runs CI, so a commit has checks before it is pushed to main
-  assert "scaffold-ci.yml runs on every branch push" \
+  # REQ-088: CI runs once per commit: on the pull request, and on main after the merge, not on every branch push
+  assert "scaffold-ci.yml runs on pull requests" \
+    grep -q '^  pull_request:' "$SCAFFOLD_ROOT/.github/workflows/scaffold-ci.yml"
+  assert "scaffold-ci.yml runs on pushes to main only" \
+    grep -q '^    branches: \[main\]' "$SCAFFOLD_ROOT/.github/workflows/scaffold-ci.yml"
+  assert_fails "scaffold-ci.yml does not run on every branch push" \
     grep -q "branches: \['\*\*'\]" "$SCAFFOLD_ROOT/.github/workflows/scaffold-ci.yml"
   # REQ-078: maintainer guidance asks for branch names prefixed with the requirement ID
   assert "AGENTS.md asks for requirement-prefixed branch names" \

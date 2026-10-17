@@ -2,7 +2,7 @@ name: scaffold-ci
 
 on:
   push:
-    branches: ['**'] # REQ-062: a branch tip must pass before it may be pushed to main
+    branches: [main] # REQ-088: the merged commit; branch commits run once, through their pull request
   pull_request:
 
 permissions:
