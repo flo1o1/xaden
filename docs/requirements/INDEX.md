@@ -29,6 +29,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-079 | job | should | done | Xaden supports only assistants with file access |
 | REQ-082 | job | should | done | A requirement is approved before any branch or worktree exists |
 | REQ-085 | job | should | done | Maintainers run the xaden project commands on the scaffold itself |
+| REQ-091 | job | should | approved | Maintainers use the feature, requirements and release commands on the scaffold |
 
 ## Project setup (`project-setup`)
 
