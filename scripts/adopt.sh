@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Adds Xaden to an existing repository, or takes it out again (REQ-066, REQ-067, REQ-069, REQ-070, REQ-073).
 # Usage: xaden adopt [--scan | --plan] [--yes] [--assistants <list>] [--mode <mode>]
-#                    [--check <kind>=<command>]... [--preset | --no-preset] [--skip-hooks] [--skip-ci]
+#                    [--check <kind>=<command>]... [--preset | --no-preset] [--worktrees | --no-worktrees] [--skip-hooks] [--skip-ci]
 #        xaden remove [--yes]
 #   --scan        read the repository and report what it has; changes nothing
 #   --plan        print the exact diff and the files a run would create or change; changes nothing
@@ -37,6 +37,7 @@ STOP_AFTER=""          # scan or plan
 ASSUME_YES=0
 CLASSIC=0              # a project created by `xaden create`, with a copy of the tooling
 PRESET_CHOICE=ask      # ask, yes, no
+WORKTREES_CHOICE=ask   # ask, yes, no
 EXIT_UNSUPPORTED=4     # an unsupported hook manager or CI system (a manual step is printed)
 
 usage() {
@@ -52,6 +53,8 @@ parse_arguments() {
       --yes) ASSUME_YES=1 ;;
       --preset) PRESET_CHOICE=yes ;;
       --no-preset) PRESET_CHOICE=no ;;
+      --worktrees) WORKTREES_CHOICE=yes ;;
+      --no-worktrees) WORKTREES_CHOICE=no ;;
       --skip-hooks) ADOPT_HOOKS=0 ;;
       --skip-ci) ADOPT_CI=0 ;;
       --mode)
@@ -155,6 +158,16 @@ choose_preset() {
   fi
 }
 
+# choose_worktrees: offers a git-ignored worktrees/ folder for change worktrees (REQ-090), as a separate step.
+choose_worktrees() {
+  case "$WORKTREES_CHOICE" in
+    yes) ADOPT_WORKTREES=1; return 0 ;;
+    no) return 0 ;;
+  esac
+  if [ "$ASSUME_YES" = 1 ] || ! has_terminal; then return 0; fi
+  if ask "Add a worktrees/ folder where change worktrees live? Git ignores everything in it; one small file."; then ADOPT_WORKTREES=1; fi
+}
+
 # run_steps <dir> <record>: the steps, one commit each. record=1 also records the baselines.
 run_steps() {
   local dir=$1 record=$2
@@ -176,6 +189,10 @@ run_steps() {
         commit_step "$dir" "ci: run Xaden's checks in a separate workflow"
       fi ;;
   esac
+  if [ "$ADOPT_WORKTREES" = 1 ]; then
+    apply_worktrees "$dir"
+    commit_step "$dir" "chore: add worktrees/ for Xaden change worktrees"
+  fi
   if [ -n "$ADOPT_PRESET" ]; then
     apply_preset "$dir" "$ADOPT_PRESET"
     commit_step "$dir" "chore: add Xaden's $ADOPT_PRESET preset for the missing checks"
@@ -303,6 +320,7 @@ adopt_main() {
   check_supported
   choose_assistants
   choose_preset
+  choose_worktrees
   if [ -n "$SCAN_UNRECOGNISED$SCAN_FOUND_TOOLS" ] && [ "$ASSUME_YES" != 1 ] && has_terminal; then
     ask "Some tools were not recognised (listed above) and get no check. Continue anyway? Name their commands with --check <kind>=<command>." ||
       { echo "Nothing was changed."; return 0; }
