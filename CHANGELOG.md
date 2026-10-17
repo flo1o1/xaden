@@ -4,6 +4,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+### Fixed
+- Maintainers: `scripts/sign-release.sh` exited with an error after signing successfully and left its temporary folder behind; it now exits 0 and cleans up (REQ-077).
+
 ## [0.3.0] - 2026-10-17
 
 ### Added

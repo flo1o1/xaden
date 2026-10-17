@@ -172,9 +172,28 @@ test_guide_links() {
   assert "every relative link in the guides resolves" test -z "$broken"
 }
 
+# REQ-077: signing a release runs clean and leaves no temp folder behind. Runs on a minimal copy with a
+# throwaway key; TMPDIR points at a folder of its own so a leftover staging folder shows.
+test_sign_release() {
+  local copy="$WORKDIR/sign-release" tmp="$WORKDIR/sign-tmp" err="$WORKDIR/sign-release.err" rc=0
+  need_tool ssh-keygen "signing test" || return 0
+  mkdir -p "$copy/scripts" "$copy/template/scripts" "$tmp"
+  cp "$SCAFFOLD_ROOT/scripts/sign-release.sh" "$SCAFFOLD_ROOT/scripts/scaffold-lib.sh" "$copy/scripts/"
+  cp "$SCAFFOLD_ROOT/template/scripts/lib.sh" "$SCAFFOLD_ROOT/template/scripts/layout.sh" "$SCAFFOLD_ROOT/template/scripts/gate.sh" "$copy/template/scripts/"
+  printf '0.1.0\n' >"$copy/VERSION"
+  git -C "$copy" init -q -b main && git -C "$copy" add -A && git -C "$copy" commit -q -m "chore: init" && git -C "$copy" tag v0.1.0
+  ssh-keygen -q -t ed25519 -N '' -C test -f "$WORKDIR/sign-key"
+  env TMPDIR="$tmp" XADEN_SIGNING_KEY="$WORKDIR/sign-key" "$copy/scripts/sign-release.sh" 0.1.0 >/dev/null 2>"$err" || rc=$?
+  assert "signing a release exits 0" test "$rc" -eq 0
+  assert "signing prints no shell error" test ! -s "$err"
+  assert "the checksum and its signature are written" test -s "$copy/dist/xaden-0.1.0.checksum" -a -s "$copy/dist/xaden-0.1.0.checksum.sig"
+  assert "signing leaves no temp folder behind" test -z "$(ls -A "$tmp")"
+}
+
 test_bump_version
 test_guide_links
 test_site_pages
 test_scaffold_release_failures
+test_sign_release
 test_release
 test_install_ways
