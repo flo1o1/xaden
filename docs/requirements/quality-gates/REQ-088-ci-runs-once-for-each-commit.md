@@ -19,7 +19,7 @@ When I push a commit on a branch with an open pull request, I want to see CI run
 - Given a pull request, when I push a new commit to its branch, then exactly one run of each check (`check (ubuntu-latest)`, `check (macos-latest)`) starts for that commit
 - Given a merge into `main`, then the checks run once more on the merged commit
 - Given the ruleset on `main`, then it still requires both checks
-- Given a branch without a pull request, then no CI runs until the pull request is opened, and the maintainer runs `STRICT=1 scripts/check-scaffold.sh` locally before opening it
+- Given a branch without a pull request, then no CI runs until the pull request is opened, and the maintainer runs `STRICT=1 scripts/check-scaffold.sh` locally before opening it (superseded by REQ-093: the maintainer runs only the touched smoke areas locally and CI runs the full suite)
 - Given the root `AGENTS.md`, then it describes landing by pull request (push the branch, open the pull request, merge when `check` is green) and no longer describes pushing a branch to `main`
 - Given the smoke test of the workflow triggers, then it asserts these triggers instead of "every branch push runs CI"
 

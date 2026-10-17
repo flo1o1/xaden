@@ -80,7 +80,7 @@ Read one requirement with `scripts/req.sh show REQ-nnn`.
 | REQ-086 | job | should | approved | A check started from inside a check stops at once |
 | REQ-088 | job | should | done | CI runs once for each commit |
 | REQ-092 | job | could | done | A maintainer re-checks only the smoke area a change touched |
-| REQ-093 | job | should | approved | A maintainer waits for CI once, not for the same suite twice |
+| REQ-093 | job | should | done | A maintainer waits for CI once, not for the same suite twice |
 
 ## Releases and documentation (`release-and-docs`)
 

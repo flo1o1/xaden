@@ -333,6 +333,17 @@ test_ci_credentials() {
     grep -q '^    branches: \[main\]' "$SCAFFOLD_ROOT/.github/workflows/scaffold-ci.yml"
   assert_fails "scaffold-ci.yml does not run on every branch push" \
     grep -q "branches: \['\*\*'\]" "$SCAFFOLD_ROOT/.github/workflows/scaffold-ci.yml"
+  # REQ-093: a new push cancels the older run of the same pull request; a run on main is never cancelled
+  assert "scaffold-ci.yml cancels superseded pull request runs only" \
+    grep -q "cancel-in-progress: \${{ github.event_name == 'pull_request' }}" "$SCAFFOLD_ROOT/.github/workflows/scaffold-ci.yml"
+  assert "scaffold-ci.yml gives each run on main its own concurrency group" \
+    grep -q "group: scaffold-ci-\${{ github.event_name == 'pull_request' && github.ref || github.sha }}" "$SCAFFOLD_ROOT/.github/workflows/scaffold-ci.yml"
+  assert_fails "AGENTS.md no longer asks for the full local run before the pull request" \
+    grep -q 'once, before the pull request\|locally. Pushing is an' "$SCAFFOLD_ROOT/AGENTS.md"
+  assert "AGENTS.md names when the full local run is still required" \
+    grep -q 'touches no row of the area table' "$SCAFFOLD_ROOT/AGENTS.md"
+  assert "REQ-088 marks the local full run before the pull request as superseded by REQ-093" \
+    grep -q 'superseded by REQ-093' "$SCAFFOLD_ROOT"/docs/requirements/quality-gates/REQ-088-*.md
   # REQ-078: maintainer guidance asks for branch names prefixed with the requirement ID
   assert "AGENTS.md asks for requirement-prefixed branch names" \
     grep -q 'prefix the slug with the ID of the related requirement' "$SCAFFOLD_ROOT/AGENTS.md"
